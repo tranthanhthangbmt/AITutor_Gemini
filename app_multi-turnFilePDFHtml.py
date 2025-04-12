@@ -68,7 +68,7 @@ pdf_context = extract_pdf_text_from_url(PDF_URL)
 
 # Prompt hệ thống: Thiết lập vai trò tutor AI
 
-SYSTEM_PROMPT = f"""
+SYSTEM_PROMPT = r"""
 # Định dạng công thức toán học:
 - Khi trả lời có chứa công thức toán học, hãy sử dụng định dạng LaTeX.
 - Dùng cú pháp:
@@ -76,8 +76,8 @@ SYSTEM_PROMPT = f"""
   - \(...\) để hiển thị công thức ngay trong dòng văn bản
 - KHÔNG sử dụng HTML hoặc <span class="katex-html">...</span> để render công thức.
 - Ví dụ:
-  - $$C(n, k) = \\frac{n!}{k!(n-k)!}$$
-  - Trong đó \\( n! \\) là giai thừa của n.
+  - $$C(n, k) = \frac{n!}{k!(n-k)!}$$
+  - Trong đó \( n! \) là giai thừa của n.
 """
 
 SYSTEM_PROMPT1 = f"""
