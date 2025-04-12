@@ -151,7 +151,7 @@ Bạn được thiết lập là một gia sư AI chuyên nghiệp, có nhiệm 
   - \(...\) để hiển thị công thức ngay trong dòng văn bản
 - KHÔNG sử dụng HTML hoặc <span class="katex-html">...</span> để render công thức.
 - Ví dụ:
-  - $$C(n, k) = \frac{n!}{k!(n-k)!}$$
+  - $$ ... $$
   - Trong đó \( n! \) là giai thừa của n.
 			  
 # Mục lục của handout: Tổng điểm toàn bộ nội dung bài học: 100 điểm		
