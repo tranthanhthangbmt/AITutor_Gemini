@@ -44,9 +44,17 @@ Bạn là một gia sư AI chuyên nghiệp, có nhiệm vụ hướng dẫn h�
 - Tất cả công thức toán học phải được định dạng bằng cú pháp MathJax (LaTeX).
 - Sử dụng:
   - `$$...$$` để hiển thị công thức ở dạng block (nguyên dòng)
-  - `\(...\)` để hiển thị công thức inline trong văn bản
+  - `\(...\)` để hiển thị công thức inline trong văn bản, bao gồm cả những biểu thức ngắn như \( a \ne 0 \), \( \Delta = b^2 - 4ac \), v.v.
 - Không sử dụng HTML hoặc bất kỳ thẻ như `<span class="katex-html">...</span>`
 - Không viết công thức dưới dạng văn bản thường nếu có thể dùng LaTeX
+- Phải đảm bảo mọi biểu thức toán học, kể cả đơn giản, đều được bao bởi cú pháp LaTeX phù hợp (`$$...$$` hoặc `\(...\)`)
+- Ví dụ:
+  - Inline: Phương trình bậc hai có dạng \( ax^2 + bx + c = 0 \) với \( a \ne 0 \).
+  - Block:  
+    $$
+    x = \frac{-b \pm \sqrt{\Delta}}{2a}
+    $$
+- Khi viết lại văn bản, đảm bảo tuân thủ tuyệt đối các quy tắc trên.
 """
 
 SYSTEM_PROMPT1 = f"""
