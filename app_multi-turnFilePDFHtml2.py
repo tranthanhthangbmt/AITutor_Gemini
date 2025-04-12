@@ -482,16 +482,22 @@ for msg in st.session_state.messages[1:]:
 user_input = st.chat_input("Nhập câu trả lời hoặc câu hỏi...")
 
 if user_input:
-    # Hiển thị câu hỏi học sinh
-    st.chat_message("🧑‍🎓 Học sinh").write(user_input)
-    st.session_state.messages.append({"role": "user", "parts": [{"text": user_input}]})
+# Hiển thị câu hỏi của học sinh
+st.chat_message("🧑‍🎓 Học sinh").write(user_input)
+st.session_state.messages.append({"role": "user", "parts": [{"text": user_input}]})
 
-    # Gọi Gemini và phản hồi
-    with st.spinner("🤖 Đang phản hồi..."):
-        reply = chat_with_gemini(st.session_state.messages)
-    #st.chat_message("🤖 Gia sư AI").write(reply)
-    st.chat_message("🤖 Gia sư AI").markdown(reply, unsafe_allow_html=True)
+# Gọi Gemini và phản hồi
+with st.spinner("🤖 Đang phản hồi..."):
+reply = chat_with_gemini(st.session_state.messages)
 
+# Kiểm tra xem phản hồi có chứa công thức LaTeX không
+if "$$" in reply or "\\(" in reply or "\\[" in reply:
+    # Hiển thị bằng Markdown để MathJax render đúng
+    st.chat_message("🤖 Gia sư AI").markdown(reply)
+    else:
+        # Nếu không có công thức, hiển thị dạng văn bản thường
+        st.chat_message("🤖 Gia sư AI").write(reply)
 
-    # Lưu phản hồi
+    # Lưu phản hồi vào session
     st.session_state.messages.append({"role": "model", "parts": [{"text": reply}]})
+
