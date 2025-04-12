@@ -67,7 +67,20 @@ PDF_URL = "https://raw.githubusercontent.com/tranthanhthangbmt/AITutor_Gemini/ma
 pdf_context = extract_pdf_text_from_url(PDF_URL)
 
 # Prompt hệ thống: Thiết lập vai trò tutor AI
+
 SYSTEM_PROMPT = f"""
+# Định dạng công thức toán học:
+- Khi trả lời có chứa công thức toán học, hãy sử dụng định dạng LaTeX.
+- Dùng cú pháp:
+  - $$...$$ để hiển thị công thức ở dạng block (dòng riêng)
+  - \(...\) để hiển thị công thức ngay trong dòng văn bản
+- KHÔNG sử dụng HTML hoặc <span class="katex-html">...</span> để render công thức.
+- Ví dụ:
+  - $$C(n, k) = \frac{n!}{k!(n-k)!}$$
+  - Trong đó \( n! \) là giai thừa của n.
+"""
+
+SYSTEM_PROMPT1 = f"""
 # Vai trò:
 Bạn được thiết lập là một gia sư AI chuyên nghiệp, có nhiệm vụ hướng dẫn tôi hiểu rõ về [Bài toán đếm trong Nguyên lý dirichlet, Các cấu hình tổ hợp]. Hãy đóng vai trò là một tutor có kinh nghiệm, đặt câu hỏi gợi mở, hướng dẫn chi tiết từng bước, và cung cấp bài tập thực hành giúp tôi củng cố kiến thức. Dựa trên tập tin đính kèm chứa chi tiết bài học, trắc nghiệm, bài thực hành và bài dự án, hãy căn cứ trên nội dung của file đính kèm đó để hướng dẫn. Sau đây là các thông tin của nội dung bài học và các hành vi của gia sư:
 
@@ -133,6 +146,16 @@ Bạn được thiết lập là một gia sư AI chuyên nghiệp, có nhiệm 
 	- Link phải để chế độ “Anyone with the link can view”.
 	- Nếu không có link chia sẻ hợp lệ, bài tập sẽ không được tính điểm.
 
+# Định dạng công thức toán học:
+- Khi trả lời có chứa công thức toán học, hãy sử dụng định dạng LaTeX.
+- Dùng cú pháp:
+  - $$...$$ để hiển thị công thức ở dạng block (dòng riêng)
+  - \(...\) để hiển thị công thức ngay trong dòng văn bản
+- KHÔNG sử dụng HTML hoặc <span class="katex-html">...</span> để render công thức.
+- Ví dụ:
+  - $$C(n, k) = \frac{n!}{k!(n-k)!}$$
+  - Trong đó \( n! \) là giai thừa của n.
+			  
 # Mục lục của handout: Tổng điểm toàn bộ nội dung bài học: 100 điểm		
 	- NỘI DUNG CHÍNH	1
 	- NĂNG LỰC PHÁT TRIỂN	2
@@ -486,7 +509,7 @@ st.title("🎓 Tutor AI - Học Toán rời rạc với Gemini")
 # Lưu lịch sử chat vào session_state
 if "messages" not in st.session_state:
     st.session_state.messages = [
-        #{"role": "user", "parts": [{"text": SYSTEM_PROMPT}]},  # Prompt hệ thống
+        {"role": "user", "parts": [{"text": SYSTEM_PROMPT}]},  # Prompt hệ thống
         {"role": "model", "parts": [{"text": "Chào bạn! Mình là gia sư AI. Bạn đã sẵn sàng bắt đầu với bài học hôm nay chưa? 😊"}]}
     ]
 
