@@ -536,7 +536,7 @@ if user_input:
         reply = chat_with_gemini(st.session_state.messages)
 
     # Chuyển biểu thức toán trong ngoặc đơn => LaTeX inline
-    reply = convert_math_expressions_to_latex(reply)
+    reply = convert_parentheses_to_latex(reply)
     reply_processed = convert_to_mathjax(reply)
 
     # Hiển thị Markdown để MathJax render công thức
