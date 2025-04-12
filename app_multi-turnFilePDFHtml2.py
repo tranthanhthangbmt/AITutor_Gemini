@@ -580,7 +580,7 @@ if user_input:
 
     # Chuyển biểu thức toán trong ngoặc đơn => LaTeX inline
     #reply = convert_parentheses_to_latex(reply)
-    reply_processed = convert_to_mathjax1(reply)
+    reply_processed = reply #convert_to_mathjax1(reply)
 
     # Hiển thị Markdown để MathJax render công thức
     st.chat_message("🤖 Gia sư AI").markdown(reply_processed)
