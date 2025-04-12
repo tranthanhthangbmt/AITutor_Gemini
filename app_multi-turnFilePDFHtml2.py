@@ -7,6 +7,9 @@ import io
 
 import re
 
+import streamlit as st
+import streamlit.components.v1 as components
+
 def convert_to_mathjax(text):
     import re
 
@@ -21,19 +24,7 @@ def convert_to_mathjax(text):
 
     # Xử lý inline: ( ... ) → \( ... \)
     text = re.sub(r"\(([^()]+)\)", wrap_inline, text)
-
-    # Tự động bọc công thức block nếu là dòng riêng biệt
-    def wrap_block_lines(line):
-        math_like = re.search(r"(C_\d+|\binom|\\frac|=)", line)
-        contains_text = re.search(r"[a-zA-ZÀ-ỹ]{2,}", line)  # chứa từ tiếng Việt
-        if math_like and not contains_text:
-            return f"$$\n{line.strip()}\n$$"
-        return line
-
-    # Xử lý từng dòng
-    lines = text.split("\n")
-    lines = [wrap_block_lines(line) for line in lines]
-    return "\n".join(lines)
+    return text
 	
 def convert_parentheses_to_latex(text):
     """
