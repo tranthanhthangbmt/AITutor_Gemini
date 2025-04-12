@@ -481,10 +481,10 @@ if user_input:
         reply = chat_with_gemini(st.session_state.messages)
     #st.chat_message("🤖 Gia sư AI").write(reply)
     st.chat_message("🤖 Gia sư AI").markdown(reply, unsafe_allow_html=True)
-
-	latex_blocks = extract_latex_blocks(reply)
-	for formula in latex_blocks:
-    		st.latex(formula.strip())
+	
+    latex_blocks = extract_latex_blocks(reply)
+    for formula in latex_blocks:
+	st.latex(formula.strip())
 
     # Lưu phản hồi
     st.session_state.messages.append({"role": "model", "parts": [{"text": reply}]})
