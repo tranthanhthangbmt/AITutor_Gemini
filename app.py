@@ -1,3 +1,5 @@
+#my Gemini API: AIzaSyDEHqXQ87kY6WqGyiubv2x7a7hoN0qP9yY
+
 import os
 import streamlit as st
 import requests
@@ -14,11 +16,8 @@ if not API_KEY:
     st.error("❌ Không tìm thấy API key. Vui lòng đặt GEMINI_API_KEY trong file .env hoặc biến môi trường.")
     st.stop()
 
-# Endpoint của Gemini API
-#GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent"
-# Endpoint của Gemini API (phiên bản đúng!)
-GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1/models/gemini-1.5-pro:generateContent"
-
+# ✅ Dùng model tốt nhất hiện tại (phiên bản mới và ổn định nhất của Gemini 1.5 Pro)
+GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1/models/gemini-1.5-pro-002:generateContent"
 
 def call_gemini(prompt):
     headers = {
@@ -60,3 +59,4 @@ if st.button("Gửi"):
             response = call_gemini(user_input)
             st.success("✅ Phản hồi từ Gemini:")
             st.write(response)
+
