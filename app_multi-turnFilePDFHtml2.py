@@ -5,6 +5,23 @@ from dotenv import load_dotenv
 import fitz  # = PyMuPDF
 import io
 
+import re
+
+def convert_parentheses_to_latex(text):
+    """
+    Chuyển các đoạn trong dấu ngoặc đơn ( ) chứa công thức toán học 
+    thành cú pháp LaTeX inline \( ... \)
+    """
+    def is_math_expression(expr):
+        # Xác định xem biểu thức có phải là toán học không
+        math_keywords = ["=", "!", r"\times", r"\div", r"\cdot", r"\frac", "^", "_", r"\ge", r"\le", r"\neq", "C_"]
+        return any(keyword in expr for keyword in math_keywords)
+
+    # Tìm các biểu thức trong dấu ngoặc đơn và thay bằng LaTeX inline nếu là toán học
+    return re.sub(r"\(([^()]+)\)", 
+                  lambda m: f"\\({m.group(1)}\\)" if is_math_expression(m.group(1)) else m.group(0), 
+                  text)
+	
 # Load biến môi trường
 load_dotenv()
 API_KEY = os.getenv("GEMINI_API_KEY")
@@ -490,14 +507,15 @@ if user_input:
     with st.spinner("🤖 Đang phản hồi..."):
         reply = chat_with_gemini(st.session_state.messages)
 
-    # Kiểm tra xem phản hồi có chứa công thức LaTeX không
-    if "$$" in reply or "\\(" in reply or "\\[" in reply:
-        # Hiển thị bằng Markdown để MathJax render đúng
-        st.chat_message("🤖 Gia sư AI").markdown(reply)
-    else:
-        # Nếu không có công thức, hiển thị dạng văn bản thường
-        st.chat_message("🤖 Gia sư AI").write(reply)
+    # Tiền xử lý để đảm bảo công thức dạng (toán học) => \( ... \)
+    reply_processed = convert_parentheses_to_latex(reply)
 
-    # Lưu phản hồi vào session
+    # Kiểm tra có công thức MathJax không
+    if "$$" in reply_processed or "\\(" in reply_processed:
+        st.chat_message("🤖 Gia sư AI").markdown(reply_processed)
+    else:
+        st.chat_message("🤖 Gia sư AI").write(reply_processed)
+
+    # Lưu phản hồi gốc (chưa xử lý) nếu cần dùng lại
     st.session_state.messages.append({"role": "model", "parts": [{"text": reply}]})
 
