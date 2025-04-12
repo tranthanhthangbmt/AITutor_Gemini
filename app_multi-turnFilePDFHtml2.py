@@ -35,39 +35,20 @@ def convert_to_mathjax(text):
     lines = [wrap_block_lines(line) for line in lines]
     return "\n".join(lines)
 	
-def convert_math_expressions_to_latex(text):
+def convert_parentheses_to_latex(text):
     """
-    Chuyển các biểu thức toán học được viết trong dấu () thành LaTeX inline: \( ... \)
-
-    Áp dụng cho:
-    - Các biểu thức có chứa ký hiệu toán học
-    - Các biến hoặc biểu thức toán học đơn giản: n, k, C(n, k), a ≠ 0, ...
-
-    Giữ nguyên nếu nội dung không phải toán học.
+    Chuyển tất cả biểu thức trong dấu () thành cú pháp \( ... \) nếu là biểu thức toán học.
+    Bao gồm cả các biến đơn như (n), (k), (C(n, k))
     """
+    def is_math_expression(expr):
+        math_keywords = ["=", "!", r"\times", r"\div", r"\cdot", r"\frac", "^", "_", 
+                         r"\ge", r"\le", r"\neq", r"\binom", "C(", "C_", "n", "k"]
+        return any(keyword in expr for keyword in math_keywords) or re.fullmatch(r"[a-zA-Z0-9_+\-\*/\s\(\),]+", expr)
 
-    def is_probably_math(expr):
-        # Tập hợp các dấu hiệu toán học phổ biến
-        math_signs = [
-            r"[0-9]+!",       # giai thừa
-            r"\\?[a-zA-Z]+\(",  # hàm: C(n,k), binom(), sin(), ...
-            r"\\?[a-zA-Z]+\^",  # lũy thừa
-            r"\\?(ge|le|ne|times|cdot|div|frac|pm|sqrt)",  # toán tử LaTeX
-            r"[=<>^_]",        # dấu toán học
-            r"[a-zA-Z0-9_]+",  # biến số đơn giản như n, k
-        ]
-        combined_pattern = "|".join(math_signs)
-        return re.search(combined_pattern, expr.strip()) is not None
-
-    # Thay thế từng biểu thức trong dấu () nếu là biểu thức toán học
-    def replace_func(match):
-        expr = match.group(1).strip()
-        if is_probably_math(expr):
-            return f"\\({expr}\\)"
-        return match.group(0)  # giữ nguyên nếu không phải toán học
-
-    # Áp dụng với mọi dấu ngoặc đơn (…)
-    return re.sub(r"\(([^()]+)\)", replace_func, text)
+    # Thay tất cả (toán học) => \( ... \)
+    return re.sub(r"\(([^()]+)\)", 
+                  lambda m: f"\\({m.group(1).strip()}\\)" if is_math_expression(m.group(1)) else m.group(0), 
+                  text)
 	
 # Load biến môi trường
 load_dotenv()
@@ -555,7 +536,7 @@ if user_input:
         reply = chat_with_gemini(st.session_state.messages)
 
     # Chuyển biểu thức toán trong ngoặc đơn => LaTeX inline
-    #reply_processed = convert_math_expressions_to_latex(reply)
+    reply = convert_math_expressions_to_latex(reply)
     reply_processed = convert_to_mathjax(reply)
 
     # Hiển thị Markdown để MathJax render công thức
