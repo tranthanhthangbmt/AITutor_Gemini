@@ -505,7 +505,7 @@ if user_input:
 
     # Gọi Gemini và phản hồi
 	with st.spinner("🤖 Đang phản hồi..."):
-	    reply = chat_with_gemini(st.session_state.messages)
+	reply = chat_with_gemini(st.session_state.messages)
 	
 	# Hiển thị block phản hồi
 	st.chat_message("🤖 Gia sư AI")
