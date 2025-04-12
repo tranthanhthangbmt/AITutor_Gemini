@@ -68,7 +68,7 @@ pdf_context = extract_pdf_text_from_url(PDF_URL)
 
 # Prompt hệ thống: Thiết lập vai trò tutor AI
 
-SYSTEM_PROMPT = f"""
+SYSTEM_PROMPT = r"""
 # Định dạng công thức toán học:
 - Khi trả lời có chứa công thức toán học, hãy sử dụng định dạng LaTeX.
 - Dùng cú pháp:
