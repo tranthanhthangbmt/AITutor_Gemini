@@ -474,7 +474,9 @@ if user_input:
     # Gọi Gemini và phản hồi
     with st.spinner("🤖 Đang phản hồi..."):
         reply = chat_with_gemini(st.session_state.messages)
-    st.chat_message("🤖 Gia sư AI").write(reply)
+    #st.chat_message("🤖 Gia sư AI").write(reply)
+    st.chat_message("🤖 Gia sư AI").markdown(reply, unsafe_allow_html=True)
+
 
     # Lưu phản hồi
     st.session_state.messages.append({"role": "model", "parts": [{"text": reply}]})
