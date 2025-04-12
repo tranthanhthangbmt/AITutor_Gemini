@@ -7,6 +7,34 @@ import io
 
 import re
 
+def convert_to_mathjax(text):
+    import re
+
+    def is_inline_math(expr):
+        math_keywords = ["=", "!", r"\times", r"\div", r"\cdot", r"\frac", "^", "_", 
+                         r"\ge", r"\le", r"\neq", r"\binom", "C(", "C_", "n", "k"]
+        return any(kw in expr for kw in math_keywords)
+
+    def wrap_inline(match):
+        expr = match.group(1).strip()
+        return f"\\({expr}\\)" if is_inline_math(expr) else match.group(0)
+
+    # Xử lý inline: ( ... ) → \( ... \)
+    text = re.sub(r"\(([^()]+)\)", wrap_inline, text)
+
+    # Tự động bọc công thức block nếu là dòng riêng biệt
+    def wrap_block_lines(line):
+        math_like = re.search(r"(C_\d+|\binom|\\frac|=)", line)
+        contains_text = re.search(r"[a-zA-ZÀ-ỹ]{2,}", line)  # chứa từ tiếng Việt
+        if math_like and not contains_text:
+            return f"$$\n{line.strip()}\n$$"
+        return line
+
+    # Xử lý từng dòng
+    lines = text.split("\n")
+    lines = [wrap_block_lines(line) for line in lines]
+    return "\n".join(lines)
+	
 def convert_math_expressions_to_latex(text):
     """
     Chuyển các biểu thức toán học được viết trong dấu () thành LaTeX inline: \( ... \)
@@ -527,7 +555,8 @@ if user_input:
         reply = chat_with_gemini(st.session_state.messages)
 
     # Chuyển biểu thức toán trong ngoặc đơn => LaTeX inline
-    reply_processed = convert_math_expressions_to_latex(reply)
+    #reply_processed = convert_math_expressions_to_latex(reply)
+    reply_processed = convert_to_mathjax(reply)
 
     # Hiển thị Markdown để MathJax render công thức
     st.chat_message("🤖 Gia sư AI").markdown(reply_processed)
