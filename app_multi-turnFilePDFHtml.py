@@ -503,17 +503,17 @@ if user_input:
     st.chat_message("🧑‍🎓 Học sinh").write(user_input)
     st.session_state.messages.append({"role": "user", "parts": [{"text": user_input}]})
 
-	# Gọi Gemini và phản hồi
-	with st.spinner("🤖 Đang phản hồi..."):
-	    reply = chat_with_gemini(st.session_state.messages)
+    # Gọi Gemini và phản hồi
+    with st.spinner("🤖 Đang phản hồi..."):
+        reply = chat_with_gemini(st.session_state.messages)
 	
-	# Hiển thị block phản hồi
-	st.chat_message("🤖 Gia sư AI")
+    # Hiển thị block phản hồi
+    st.chat_message("🤖 Gia sư AI")
 	
-	# Nếu có công thức toán học dạng $$...$$ → render bằng KaTeX HTML
-	if not render_katex_html_from_reply(reply):
-	    # Không có công thức toán học → fallback dùng markdown
-	    st.markdown(reply, unsafe_allow_html=True)
+    # Nếu có công thức toán học dạng $$...$$ → render bằng KaTeX HTML
+    if not render_katex_html_from_reply(reply):
+        # Không có công thức toán học → fallback dùng markdown
+        st.markdown(reply, unsafe_allow_html=True)
 
 
     latex_blocks = extract_latex_blocks(reply)
