@@ -484,7 +484,7 @@ if user_input:
 	
     latex_blocks = extract_latex_blocks(reply)
     for formula in latex_blocks:
-	st.latex(formula.strip())
+	    st.latex(formula.strip())
 
     # Lưu phản hồi
     st.session_state.messages.append({"role": "model", "parts": [{"text": reply}]})
