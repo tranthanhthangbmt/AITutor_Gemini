@@ -15,7 +15,10 @@ if not API_KEY:
     st.stop()
 
 # Endpoint của Gemini API
-GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent"
+#GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent"
+# Endpoint của Gemini API (phiên bản đúng!)
+GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1/models/gemini-1.5-pro:generateContent"
+
 
 def call_gemini(prompt):
     headers = {
