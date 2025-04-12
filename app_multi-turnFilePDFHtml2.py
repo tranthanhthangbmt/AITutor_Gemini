@@ -580,11 +580,11 @@ if user_input:
 
     # Chuyển biểu thức toán trong ngoặc đơn => LaTeX inline
     #reply = convert_parentheses_to_latex(reply)
-    #reply_processed = convert_to_mathjax1(reply)
+    reply_processed = convert_to_mathjax1(reply)
 
     # Hiển thị Markdown để MathJax render công thức
-    #st.chat_message("🤖 Gia sư AI").markdown(reply_processed)
-    st.chat_message("🤖 Gia sư AI").markdown(reply)
+    st.chat_message("🤖 Gia sư AI").markdown(reply_processed)
+    #st.chat_message("🤖 Gia sư AI").markdown(reply)
 
     # Lưu lại phản hồi gốc
     st.session_state.messages.append({"role": "model", "parts": [{"text": reply}]})
