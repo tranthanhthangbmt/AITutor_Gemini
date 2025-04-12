@@ -5,6 +5,11 @@ from dotenv import load_dotenv
 import fitz  # = PyMuPDF
 import io
 
+import re #for latex math
+
+def extract_latex_blocks(text):
+    return re.findall(r"\$\$(.*?)\$\$", text, re.DOTALL)
+	
 # Load biến môi trường
 load_dotenv()
 API_KEY = os.getenv("GEMINI_API_KEY")
@@ -454,7 +459,7 @@ st.title("🎓 Tutor AI - Học Toán rời rạc với Gemini")
 # Lưu lịch sử chat vào session_state
 if "messages" not in st.session_state:
     st.session_state.messages = [
-        {"role": "user", "parts": [{"text": SYSTEM_PROMPT}]},  # Prompt hệ thống
+        #{"role": "user", "parts": [{"text": SYSTEM_PROMPT}]},  # Prompt hệ thống
         {"role": "model", "parts": [{"text": "Chào bạn! Mình là gia sư AI. Bạn đã sẵn sàng bắt đầu với bài học hôm nay chưa? 😊"}]}
     ]
 
@@ -476,6 +481,10 @@ if user_input:
         reply = chat_with_gemini(st.session_state.messages)
     #st.chat_message("🤖 Gia sư AI").write(reply)
     st.chat_message("🤖 Gia sư AI").markdown(reply, unsafe_allow_html=True)
+
+	latex_blocks = extract_latex_blocks(reply)
+	for formula in latex_blocks:
+    		st.latex(formula.strip())
 
     # Lưu phản hồi
     st.session_state.messages.append({"role": "model", "parts": [{"text": reply}]})
