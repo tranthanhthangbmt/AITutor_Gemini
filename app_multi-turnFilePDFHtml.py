@@ -7,6 +7,33 @@ import io
 
 import re #for latex math
 
+import streamlit.components.v1 as components
+
+def render_katex_html_from_reply(reply: str):
+    # Tìm tất cả các công thức toán trong reply: $$...$$
+    matches = re.findall(r"\$\$(.+?)\$\$", reply, re.DOTALL)
+    if not matches:
+        return False  # Không có công thức toán
+
+    # Load KaTeX JS và CSS
+    katex_script = """
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/contrib/auto-render.min.js"
+        onload="renderMathInElement(document.body);">
+    </script>
+    """
+
+    # Gộp lại nội dung HTML có công thức
+    formulas_html = ""
+    for formula in matches:
+        formulas_html += f"<p>$$ {formula.strip()} $$</p>"
+
+    final_html = katex_script + f"<div>{formulas_html}</div>"
+
+    components.html(final_html, height=200 + 80 * len(matches), scrolling=True)
+    return True
+
 def extract_latex_blocks(text):
     return re.findall(r"\$\$(.*?)\$\$", text, re.DOTALL)
 	
@@ -477,11 +504,17 @@ if user_input:
     st.session_state.messages.append({"role": "user", "parts": [{"text": user_input}]})
 
     # Gọi Gemini và phản hồi
-    with st.spinner("🤖 Đang phản hồi..."):
-        reply = chat_with_gemini(st.session_state.messages)
-    #st.chat_message("🤖 Gia sư AI").write(reply)
-    st.chat_message("🤖 Gia sư AI").markdown(reply, unsafe_allow_html=True)
+	with st.spinner("🤖 Đang phản hồi..."):
+	    reply = chat_with_gemini(st.session_state.messages)
 	
+	# Hiển thị block phản hồi
+	st.chat_message("🤖 Gia sư AI")
+	
+	# Nếu có công thức toán học dạng $$...$$ → render bằng KaTeX HTML
+	if not render_katex_html_from_reply(reply):
+	    # Không có công thức toán học → fallback dùng markdown
+	    st.markdown(reply, unsafe_allow_html=True)
+
     latex_blocks = extract_latex_blocks(reply)
     for formula in latex_blocks:
 	    st.latex(formula.strip())
