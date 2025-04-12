@@ -10,6 +10,16 @@ import re
 import streamlit as st
 import streamlit.components.v1 as components
 
+# Nhúng script MathJax
+mathjax_script = """
+<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+<script id="MathJax-script" async
+  src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+</script>
+"""
+
+st.markdown(mathjax_script, unsafe_allow_html=True)
+
 def convert_to_mathjax(text):
     import re
 
