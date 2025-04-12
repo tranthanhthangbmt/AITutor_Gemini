@@ -454,7 +454,7 @@ st.title("🎓 Tutor AI - Học Toán rời rạc với Gemini")
 # Lưu lịch sử chat vào session_state
 if "messages" not in st.session_state:
     st.session_state.messages = [
-        {"role": "user", "parts": [{"text": SYSTEM_PROMPT}]},  # Prompt hệ thống
+        #{"role": "user", "parts": [{"text": SYSTEM_PROMPT}]},  # Prompt hệ thống
         {"role": "model", "parts": [{"text": "Chào bạn! Mình là gia sư AI. Bạn đã sẵn sàng bắt đầu với bài học hôm nay chưa? 😊"}]}
     ]
 
