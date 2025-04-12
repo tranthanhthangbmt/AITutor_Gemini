@@ -488,7 +488,7 @@ if user_input:
 
     # Gọi Gemini và phản hồi
     with st.spinner("🤖 Đang phản hồi..."):
-    reply = chat_with_gemini(st.session_state.messages)
+        reply = chat_with_gemini(st.session_state.messages)
 
     # Kiểm tra xem phản hồi có chứa công thức LaTeX không
     if "$$" in reply or "\\(" in reply or "\\[" in reply:
