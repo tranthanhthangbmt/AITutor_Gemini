@@ -25,6 +25,48 @@ def convert_to_mathjax(text):
     # Xử lý inline: ( ... ) → \( ... \)
     text = re.sub(r"\(([^()]+)\)", wrap_inline, text)
     return text
+
+def convert_to_mathjax1(text):
+    import re
+
+    # 1. Những biểu thức đã được bọc bởi \(..\), \[..\], $$..$$ → giữ nguyên
+    protected_patterns = [
+        r"\\\([^\(\)]+?\\\)",  # \( ... \)
+        r"\\\[[^\[\]]+?\\\]",  # \[ ... \]
+        r"\$\$[^\$]+\$\$",     # $$ ... $$
+        r"`[^`]+?`",           # inline code block
+    ]
+
+    def protect_existing(expr):
+        return re.sub('|'.join(protected_patterns), lambda m: f"{{{{PROTECTED:{m.group(0)}}}}}", expr)
+
+    def restore_protected(expr):
+        return re.sub(r"\{\{PROTECTED:(.+?)\}\}", lambda m: m.group(1), expr)
+
+    def is_math_expression(expr):
+        math_keywords = ["=", "!", r"\times", r"\div", r"\cdot", r"\frac", "^", "_", 
+                         r"\ge", r"\le", r"\neq", r"\binom", "C(", "C_", "n!", "A_", "C_"]
+        return any(kw in expr for kw in math_keywords)
+
+    def wrap_likely_math(match):
+        expr = match.group(0)
+        stripped = expr.strip()
+        if is_math_expression(stripped):
+            return f"\\({stripped}\\)"
+        return expr
+
+    # Step 1: Bảo vệ các đoạn đã có công thức đúng
+    text = protect_existing(text)
+
+    # Step 2: Tìm và bọc những biểu thức dạng chưa được bọc (có dấu ngoặc hoặc dấu =) có chứa ký hiệu toán học
+    # Ví dụ: n! = n × (n-1) × ... × 2 × 1 → toàn bộ sẽ được bọc
+    text = re.sub(r"(?<!\\)(\b[^()\n]{1,50}\([^()]+\)[^()\n]{0,50})", wrap_likely_math, text)
+
+    # Step 3: Restore lại các biểu thức đã đúng định dạng
+    text = restore_protected(text)
+
+    return text
+
 	
 def convert_parentheses_to_latex(text):
     """
@@ -531,7 +573,7 @@ if user_input:
 
     # Chuyển biểu thức toán trong ngoặc đơn => LaTeX inline
     #reply = convert_parentheses_to_latex(reply)
-    reply_processed = convert_to_mathjax(reply)
+    reply_processed = convert_to_mathjax1(reply)
 
     # Hiển thị Markdown để MathJax render công thức
     st.chat_message("🤖 Gia sư AI").markdown(reply_processed)
