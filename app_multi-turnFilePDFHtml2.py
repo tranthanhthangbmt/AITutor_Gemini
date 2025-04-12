@@ -7,6 +7,11 @@ import io
 import re
 import streamlit.components.v1 as components
 
+# Đảm bảo st.set_page_config là lệnh đầu tiên
+# Giao diện Streamlit
+st.set_page_config(page_title="Tutor AI", page_icon="🎓")
+st.title("🎓 Tutor AI - Học Toán rời rạc với Gemini")
+
 # Nhúng script MathJax
 mathjax_script = """
 <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
@@ -551,8 +556,8 @@ def chat_with_gemini(messages):
         return f"Lỗi API: {response.status_code} - {response.text}"
 
 # Giao diện Streamlit
-st.set_page_config(page_title="Tutor AI", page_icon="🎓")
-st.title("🎓 Tutor AI - Học Toán rời rạc với Gemini")
+#st.set_page_config(page_title="Tutor AI", page_icon="🎓")
+#st.title("🎓 Tutor AI - Học Toán rời rạc với Gemini")
 
 # Lưu lịch sử chat vào session_state
 if "messages" not in st.session_state:
