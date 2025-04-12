@@ -515,6 +515,7 @@ if user_input:
 	    # Không có công thức toán học → fallback dùng markdown
 	    st.markdown(reply, unsafe_allow_html=True)
 
+
     latex_blocks = extract_latex_blocks(reply)
     for formula in latex_blocks:
 	    st.latex(formula.strip())
