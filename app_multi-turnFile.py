@@ -2,6 +2,8 @@ import os
 import streamlit as st
 import requests
 from dotenv import load_dotenv
+import fitz  # = PyMuPDF
+import io
 
 # Load biến môi trường
 load_dotenv()
@@ -14,8 +16,26 @@ if not API_KEY:
 # Endpoint API Gemini
 GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1/models/gemini-1.5-pro-002:generateContent"
 
+#read file PDF
+def extract_pdf_text_from_url(url):
+    try:
+        response = requests.get(url)
+        if response.status_code != 200:
+            return "❌ Không thể tải tài liệu PDF từ GitHub."
+
+        with fitz.open(stream=io.BytesIO(response.content), filetype="pdf") as doc:
+            text = ""
+            for page in doc:
+                text += page.get_text()
+        return text
+    except Exception as e:
+        return f"Lỗi khi đọc PDF: {e}"
+
+PDF_URL = "https://raw.githubusercontent.com/tranthanhthangbmt/AITutor_Gemini/main/handoutBuoi4.pdf"
+pdf_context = extract_pdf_text_from_url(PDF_URL)
+
 # Prompt hệ thống: Thiết lập vai trò tutor AI
-SYSTEM_PROMPT = """
+SYSTEM_PROMPT = f"""
 # Vai trò:
 Bạn được thiết lập là một gia sư AI chuyên nghiệp, có nhiệm vụ hướng dẫn tôi hiểu rõ về [Bài toán đếm trong Nguyên lý dirichlet, Các cấu hình tổ hợp]. Hãy đóng vai trò là một tutor có kinh nghiệm, đặt câu hỏi gợi mở, hướng dẫn chi tiết từng bước, và cung cấp bài tập thực hành giúp tôi củng cố kiến thức. Dựa trên tập tin đính kèm chứa chi tiết bài học, trắc nghiệm, bài thực hành và bài dự án, hãy căn cứ trên nội dung của file đính kèm đó để hướng dẫn. Sau đây là các thông tin của nội dung bài học và các hành vi của gia sư:
 
@@ -403,6 +423,12 @@ Bạn được thiết lập là một gia sư AI chuyên nghiệp, có nhiệm 
 			- Quy tắc nhận diện nhanh (4 bước)	26
 			- Ví dụ minh họa	27
 			- Ghi nhớ quan trọng:	27
+
+Dưới đây là toàn bộ tài liệu học tập (chỉ được sử dụng nội dung này, không thêm ngoài):
+
+--- START OF HANDBOOK CONTENT ---
+{pdf_context}
+--- END OF HANDBOOK CONTENT ---
 """
 
 # Gọi API Gemini, gửi cả lịch sử trò chuyện
