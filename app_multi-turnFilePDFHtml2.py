@@ -7,20 +7,39 @@ import io
 
 import re
 
-def convert_parentheses_to_latex(text):
+def convert_math_expressions_to_latex(text):
     """
-    Chuyển các đoạn trong dấu ngoặc đơn ( ) chứa công thức toán học 
-    thành cú pháp LaTeX inline \( ... \)
-    """
-    def is_math_expression(expr):
-        # Xác định xem biểu thức có phải là toán học không
-        math_keywords = ["=", "!", r"\times", r"\div", r"\cdot", r"\frac", "^", "_", r"\ge", r"\le", r"\neq", "C_"]
-        return any(keyword in expr for keyword in math_keywords)
+    Chuyển các biểu thức toán học được viết trong dấu () thành LaTeX inline: \( ... \)
 
-    # Tìm các biểu thức trong dấu ngoặc đơn và thay bằng LaTeX inline nếu là toán học
-    return re.sub(r"\(([^()]+)\)", 
-                  lambda m: f"\\({m.group(1)}\\)" if is_math_expression(m.group(1)) else m.group(0), 
-                  text)
+    Áp dụng cho:
+    - Các biểu thức có chứa ký hiệu toán học
+    - Các biến hoặc biểu thức toán học đơn giản: n, k, C(n, k), a ≠ 0, ...
+
+    Giữ nguyên nếu nội dung không phải toán học.
+    """
+
+    def is_probably_math(expr):
+        # Tập hợp các dấu hiệu toán học phổ biến
+        math_signs = [
+            r"[0-9]+!",       # giai thừa
+            r"\\?[a-zA-Z]+\(",  # hàm: C(n,k), binom(), sin(), ...
+            r"\\?[a-zA-Z]+\^",  # lũy thừa
+            r"\\?(ge|le|ne|times|cdot|div|frac|pm|sqrt)",  # toán tử LaTeX
+            r"[=<>^_]",        # dấu toán học
+            r"[a-zA-Z0-9_]+",  # biến số đơn giản như n, k
+        ]
+        combined_pattern = "|".join(math_signs)
+        return re.search(combined_pattern, expr.strip()) is not None
+
+    # Thay thế từng biểu thức trong dấu () nếu là biểu thức toán học
+    def replace_func(match):
+        expr = match.group(1).strip()
+        if is_probably_math(expr):
+            return f"\\({expr}\\)"
+        return match.group(0)  # giữ nguyên nếu không phải toán học
+
+    # Áp dụng với mọi dấu ngoặc đơn (…)
+    return re.sub(r"\(([^()]+)\)", replace_func, text)
 	
 # Load biến môi trường
 load_dotenv()
@@ -499,23 +518,20 @@ for msg in st.session_state.messages[1:]:
 user_input = st.chat_input("Nhập câu trả lời hoặc câu hỏi...")
 
 if user_input:
-    # Hiển thị câu hỏi của học sinh
+    # Hiển thị câu hỏi học sinh
     st.chat_message("🧑‍🎓 Học sinh").write(user_input)
     st.session_state.messages.append({"role": "user", "parts": [{"text": user_input}]})
 
-    # Gọi Gemini và phản hồi
+    # Gọi Gemini phản hồi
     with st.spinner("🤖 Đang phản hồi..."):
         reply = chat_with_gemini(st.session_state.messages)
 
-    # Tiền xử lý để đảm bảo công thức dạng (toán học) => \( ... \)
-    reply_processed = convert_parentheses_to_latex(reply)
+    # Chuyển biểu thức toán trong ngoặc đơn => LaTeX inline
+    reply_processed = convert_math_expressions_to_latex(reply)
 
-    # Kiểm tra có công thức MathJax không
-    if "$$" in reply_processed or "\\(" in reply_processed:
-        st.chat_message("🤖 Gia sư AI").markdown(reply_processed)
-    else:
-        st.chat_message("🤖 Gia sư AI").write(reply_processed)
+    # Hiển thị Markdown để MathJax render công thức
+    st.chat_message("🤖 Gia sư AI").markdown(reply_processed)
 
-    # Lưu phản hồi gốc (chưa xử lý) nếu cần dùng lại
+    # Lưu lại phản hồi gốc
     st.session_state.messages.append({"role": "model", "parts": [{"text": reply}]})
 
