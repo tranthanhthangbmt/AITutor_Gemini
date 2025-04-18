@@ -7,13 +7,14 @@ import io
 import re
 import streamlit.components.v1 as components
 
-with st.sidebar:
-    gemini_api_key = st.text_input("Gemini API Key", key="GEMINI_API_KEY", type="password")
-    "[Get a Gemini API key](https://aistudio.google.com/app/apikey)"
-
 # Đảm bảo st.set_page_config là lệnh đầu tiên
 # Giao diện Streamlit
 st.set_page_config(page_title="Tutor AI", page_icon="🎓")
+
+with st.sidebar:
+    gemini_api_key = st.text_input("Gemini API Key", key="GEMINI_API_KEY", type="password")
+    "[Get a Gemini API key](https://aistudio.google.com/app/apikey)"
+	
 st.title("🎓 Tutor AI - Học Toán rời rạc với Gemini")
 
 # Nhúng script MathJax
