@@ -78,7 +78,15 @@ with st.sidebar:
     
     # Lấy giá trị hiện tại từ session để hiển thị
     current_api = st.session_state.get("GEMINI_API_KEY", "")
-    
+
+    st.markdown("""
+    <style>
+    button[kind="secondary"] {
+        margin-top: 2.2rem;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+        
     # Nhập mới
     col1, col2 = st.columns([5, 1])
 
@@ -86,7 +94,8 @@ with st.sidebar:
         input_key = st.text_input("🔑 Gemini API Key", value=current_api, type="password", key="GEMINI_API_KEY")
     
     with col2:
-        save_click = st.button("💾", help="Lưu hoặc nạp API từ Local Storage")
+        #save_click = st.button("💾", help="Lưu hoặc nạp API từ Local Storage")
+        save_click = st.button("💾 Save")
         
     if save_click:
         components.html(
