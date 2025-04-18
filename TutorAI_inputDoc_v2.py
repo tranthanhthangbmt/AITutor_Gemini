@@ -91,7 +91,24 @@ def extract_text_from_uploaded_file(uploaded_file):
 # ⬇ Lấy input từ người dùng ở sidebar trước
 with st.sidebar:
     # Lấy từ localStorage
+    #key_from_local = st_javascript("JSON.parse(window.localStorage.getItem('gemini_api_key') || '\"\"')")
     key_from_local = st_javascript("JSON.parse(window.localStorage.getItem('gemini_api_key') || '\"\"')")
+
+    # Nếu chưa có session, nhưng có localStorage, thì gán và thông báo
+    if key_from_local and not st.session_state.get("GEMINI_API_KEY"):
+        st.session_state["GEMINI_API_KEY"] = key_from_local
+        st.success("✅ Đã tự động khôi phục API Key từ Local Storage!")
+    
+    # Lấy giá trị hiện tại từ session để hiển thị
+    current_api = st.session_state.get("GEMINI_API_KEY", "")
+    
+    # Nhập mới
+    input_key = st.text_input("🔑 Gemini API Key", value=current_api, type="password", key="GEMINI_API_KEY")
+    
+    # Sau khi người dùng nhập → lưu vào localStorage
+    if input_key:
+        st_javascript(f"window.localStorage.setItem('gemini_api_key', JSON.stringify('{input_key}'))")
+        st.info("🔐 API Key đã được lưu vào trình duyệt.")
 
     # Gán key nếu chưa có
     if not st.session_state.get("GEMINI_API_KEY") and key_from_local:
