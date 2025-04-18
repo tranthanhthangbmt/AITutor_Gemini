@@ -4,5 +4,6 @@ python-dotenv
 PyMuPDF
 markdown
 python-docx
+beautifulsoup4
 
 
