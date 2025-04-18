@@ -104,9 +104,15 @@ def convert_parentheses_to_latex(text):
 load_dotenv()
 API_KEY = os.getenv("GEMINI_API_KEY")
 
-if not API_KEY:
-    st.error("❌ Thiếu API KEY. Vui lòng kiểm tra biến môi trường GEMINI_API_KEY.")
-    st.stop()
+# Kiểm tra khi người dùng đã nhập
+if not gemini_api_key:
+    #st.error("❌ Thiếu API KEY. Vui lòng nhập Gemini API key ở thanh bên trái.")
+    #st.stop()
+    if not API_KEY:
+        st.error("❌ Thiếu API KEY. Vui lòng kiểm tra biến môi trường GEMINI_API_KEY.")
+        st.stop()
+	
+
 
 # Endpoint API Gemini
 GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1/models/gemini-1.5-pro-002:generateContent"
