@@ -585,7 +585,7 @@ def chat_with_gemini(messages):
 # Lưu lịch sử chat vào session_state
 if "messages" not in st.session_state:
     st.session_state.messages = [
-        {"role": "user", "parts": [{"text": SYSTEM_PROMPT1}]},  # Prompt hệ thống
+        {"role": "user", "parts": [{"text": SYSTEM_PROMPT2}]},  # Prompt hệ thống
         {"role": "model", "parts": [{"text": "Chào bạn! Mình là gia sư AI. Bạn đã sẵn sàng bắt đầu với bài học hôm nay chưa? 😊"}]}
     ]
 
