@@ -9,6 +9,33 @@ import re
 import streamlit.components.v1 as components
 import docx #dùng để đọc file người dùng upload lên
 from bs4 import BeautifulSoup
+import streamlit.components.v1 as components
+
+components.html(
+    """
+    <script>
+        const apiKeyInput = window.parent.document.querySelector('input[data-testid="stTextInput"][type="password"]');
+        const storedKey = localStorage.getItem("gemini_api_key");
+        if (apiKeyInput && storedKey) {
+            apiKeyInput.value = storedKey;
+            apiKeyInput.dispatchEvent(new Event("input", { bubbles: true }));
+        }
+
+        // Khi người dùng nhập key, tự động lưu vào Local Storage
+        const observer = new MutationObserver(() => {
+            if (apiKeyInput && apiKeyInput.value) {
+                localStorage.setItem("gemini_api_key", apiKeyInput.value);
+            }
+        });
+
+        if (apiKeyInput) {
+            observer.observe(apiKeyInput, { attributes: true, attributeFilter: ['value'] });
+        }
+    </script>
+    """,
+    height=0,
+    scrolling=False
+)
 
 available_lessons = {
     "👉 Chọn bài học...": "",
