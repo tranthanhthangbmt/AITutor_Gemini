@@ -51,6 +51,14 @@ with st.sidebar:
     default_link = available_lessons[selected_lesson]
     
     uploaded_file = st.file_uploader("📤 Tải lên file tài liệu (PDF, TXT, DOCX...)", type=["pdf", "txt", "docx"])
+
+    # 🔄 Nút reset
+    if st.button("🔄 Bắt đầu lại buổi học"):
+        if "messages" in st.session_state:
+            del st.session_state.messages
+        if "lesson_loaded" in st.session_state:
+            del st.session_state.lesson_loaded
+        st.rerun()
     
 st.title("🎓 Tutor AI - Học Toán rời rạc với Gemini")
 
@@ -718,11 +726,12 @@ if pdf_context:
     --- END OF HANDBOOK CONTENT ---
     """
     
-    # Ghi đè lại session chat để bắt đầu buổi học
+    if "lesson_loaded" not in st.session_state:
     st.session_state.messages = [
         {"role": "user", "parts": [{"text": PROMPT_LESSON_CONTEXT}]},
         {"role": "model", "parts": [{"text": "Tuyệt vời! Mình đã đọc xong tài liệu. Bạn đã sẵn sàng bắt đầu buổi học chưa? 📘"}]}
     ]
+    st.session_state.lesson_loaded = True
 
 # Hiển thị lịch sử chat
 for msg in st.session_state.messages[1:]:
