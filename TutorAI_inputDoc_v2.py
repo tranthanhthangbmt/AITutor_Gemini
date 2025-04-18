@@ -727,11 +727,11 @@ if pdf_context:
     """
     
     if "lesson_loaded" not in st.session_state:
-    st.session_state.messages = [
-        {"role": "user", "parts": [{"text": PROMPT_LESSON_CONTEXT}]},
-        {"role": "model", "parts": [{"text": "Tuyệt vời! Mình đã đọc xong tài liệu. Bạn đã sẵn sàng bắt đầu buổi học chưa? 📘"}]}
-    ]
-    st.session_state.lesson_loaded = True
+        st.session_state.messages = [
+            {"role": "user", "parts": [{"text": PROMPT_LESSON_CONTEXT}]},
+            {"role": "model", "parts": [{"text": "Tuyệt vời! Mình đã đọc xong tài liệu. Bạn đã sẵn sàng bắt đầu buổi học chưa? 📘"}]}
+        ]
+        st.session_state.lesson_loaded = True
 
 # Hiển thị lịch sử chat
 for msg in st.session_state.messages[1:]:
