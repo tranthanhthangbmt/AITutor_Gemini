@@ -20,20 +20,14 @@ available_lessons = {
 
 def format_mcq_options(text):
     """
-    Định dạng các lựa chọn A, B, C, D xuống dòng nếu bị viết liền.
+    Chèn xuống dòng trước mỗi lựa chọn A. B. C. D. nếu chúng nằm liền nhau.
     """
-    pattern = r"(Câu\s?\d+:.*?)\s+A\.\s*(.*?)\s+B\.\s*(.*?)\s+C\.\s*(.*?)\s+D\.\s*(.*?)(?=\n|$)"
-    
-    def replacer(match):
-        return (
-            f"{match.group(1)}\n"
-            f"A. {match.group(2)}\n"
-            f"B. {match.group(3)}\n"
-            f"C. {match.group(4)}\n"
-            f"D. {match.group(5)}"
-        )
-    
-    return re.sub(pattern, replacer, text, flags=re.DOTALL)
+    # Đảm bảo không làm sai các chỗ đã đúng, nên chỉ xử lý nếu không có xuống dòng giữa các lựa chọn
+    text = re.sub(r'\s*A\.\s*', r'\nA. ', text)
+    text = re.sub(r'\s*B\.\s*', r'\nB. ', text)
+    text = re.sub(r'\s*C\.\s*', r'\nC. ', text)
+    text = re.sub(r'\s*D\.\s*', r'\nD. ', text)
+    return text
     
 def extract_text_from_uploaded_file(uploaded_file):
     if uploaded_file is None:
