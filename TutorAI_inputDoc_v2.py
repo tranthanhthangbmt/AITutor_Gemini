@@ -60,7 +60,7 @@ with st.sidebar:
             del st.session_state.lesson_loaded
         st.rerun()
     
-st.title("🎓 Tutor AI - Học Toán rời rạc với Gemini")
+st.title("🎓 Tutor AI")
 
 # Nhúng script MathJax
 mathjax_script = """
