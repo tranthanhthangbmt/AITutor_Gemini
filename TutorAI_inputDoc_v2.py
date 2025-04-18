@@ -20,9 +20,10 @@ available_lessons = {
 
 def format_mcq_options(text):
     """
-    Tìm các chuỗi chứa A., B., C., D. liền nhau và chèn xuống dòng cho mỗi lựa chọn.
+    Định dạng các lựa chọn A, B, C, D xuống dòng nếu bị viết liền.
     """
-    pattern = r"(?<=\n|^)(Câu\s?\d+:[^\n]+?)\s*A\.\s*(.*?)\s*B\.\s*(.*?)\s*C\.\s*(.*?)\s*D\.\s*(.*?)(?=\n|$)"
+    pattern = r"(Câu\s?\d+:.*?)\s+A\.\s*(.*?)\s+B\.\s*(.*?)\s+C\.\s*(.*?)\s+D\.\s*(.*?)(?=\n|$)"
+    
     def replacer(match):
         return (
             f"{match.group(1)}\n"
@@ -31,6 +32,7 @@ def format_mcq_options(text):
             f"C. {match.group(4)}\n"
             f"D. {match.group(5)}"
         )
+    
     return re.sub(pattern, replacer, text, flags=re.DOTALL)
     
 def extract_text_from_uploaded_file(uploaded_file):
