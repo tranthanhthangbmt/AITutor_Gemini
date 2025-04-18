@@ -11,9 +11,10 @@ import streamlit.components.v1 as components
 # Giao diện Streamlit
 st.set_page_config(page_title="Tutor AI", page_icon="🎓")
 
+# ⬇ Lấy input từ người dùng ở sidebar trước
 with st.sidebar:
-    gemini_api_key = st.text_input("Gemini API Key", key="GEMINI_API_KEY", type="password")
-    "[Get a Gemini API key](https://aistudio.google.com/app/apikey)"
+    input_key = st.text_input("🔑 Gemini API Key", key="GEMINI_API_KEY", type="password")
+    "[Lấy API key tại đây](https://aistudio.google.com/app/apikey)"
 	
 st.title("🎓 Tutor AI - Học Toán rời rạc với Gemini")
 
