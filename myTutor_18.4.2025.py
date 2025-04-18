@@ -102,15 +102,14 @@ def convert_parentheses_to_latex(text):
 	
 # Load biến môi trường
 load_dotenv()
-API_KEY = os.getenv("GEMINI_API_KEY")
+#API_KEY = os.getenv("GEMINI_API_KEY")
+# Ưu tiên: Dùng key từ người dùng nhập ➝ nếu không có thì dùng từ môi trường
+API_KEY = input_key or os.getenv("GEMINI_API_KEY")
 
-# Kiểm tra khi người dùng đã nhập
-if not gemini_api_key:
-    #st.error("❌ Thiếu API KEY. Vui lòng nhập Gemini API key ở thanh bên trái.")
-    #st.stop()
-    if not API_KEY:
-        st.error("❌ Thiếu API KEY. Vui lòng kiểm tra biến môi trường GEMINI_API_KEY.")
-        st.stop()
+# Kiểm tra
+if not API_KEY:
+    st.error("❌ Thiếu Gemini API Key. Vui lòng nhập ở sidebar hoặc thiết lập biến môi trường 'GEMINI_API_KEY'.")
+    st.stop()
 	
 
 
