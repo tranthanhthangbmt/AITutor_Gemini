@@ -24,10 +24,14 @@ def clean_html_to_text(text):
     return soup.get_text()
     
 def format_mcq_options(text):
-    text = re.sub(r'(?<!\n)(?=\s*A\.)', r'\nA. ', text)
-    text = re.sub(r'(?<!\n)(?=\s*B\.)', r'\nB. ', text)
-    text = re.sub(r'(?<!\n)(?=\s*C\.)', r'\nC. ', text)
-    text = re.sub(r'(?<!\n)(?=\s*D\.)', r'\nD. ', text)
+    """
+    Tách các lựa chọn A. B. C. D. thành dòng riêng biệt – kể cả khi bị dính liền câu hỏi hoặc dính nhau.
+    """
+    # Xử lý A. B. C. D. (chèn \n trước nếu chưa có)
+    text = re.sub(r'\s*A\.', r'\nA.', text)
+    text = re.sub(r'\s*B\.', r'\nB.', text)
+    text = re.sub(r'\s*C\.', r'\nC.', text)
+    text = re.sub(r'\s*D\.', r'\nD.', text)
     return text
     
 def extract_text_from_uploaded_file(uploaded_file):
@@ -504,7 +508,7 @@ if user_input:
 
     # Hiển thị Markdown để MathJax render công thức
     #st.chat_message("🤖 Gia sư AI").markdown(reply_processed)
-    st.chat_message("🤖 Gia sư AI").markdown(reply)
+    #st.chat_message("🤖 Gia sư AI").markdown(reply)
 
     # Lưu lại phản hồi gốc
     st.session_state.messages.append({"role": "model", "parts": [{"text": reply}]})
