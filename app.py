@@ -1,5 +1,3 @@
-#my Gemini API: AIzaSyDEHqXQ87kY6WqGyiubv2x7a7hoN0qP9yY
-
 import os
 import streamlit as st
 import requests
