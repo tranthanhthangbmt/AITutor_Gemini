@@ -59,6 +59,27 @@ with st.sidebar:
         if "lesson_loaded" in st.session_state:
             del st.session_state.lesson_loaded
         st.rerun()
+
+    st.markdown("---")  # đường kẻ ngăn cách
+    with st.expander("📥 Kết thúc buổi học"):
+        if st.button("✅ Kết xuất nội dung buổi học thành file .txt"):
+            if st.session_state.get("messages"):
+                output_text = ""
+                for msg in st.session_state.messages[1:]:  # bỏ prompt hệ thống
+                    role = "Học sinh" if msg["role"] == "user" else "Gia sư AI"
+                    text = msg["parts"][0]["text"]
+                    output_text += f"\n[{role}]:\n{text}\n\n"
+    
+                file_name = f"BuoiHoc_{lesson_title.replace(' ', '_').replace(':', '')}.txt"
+    
+                st.download_button(
+                    label="📄 Tải về nội dung buổi học",
+                    data=output_text,
+                    file_name=file_name,
+                    mime="text/plain"
+                )
+            else:
+                st.warning("⚠️ Chưa có nội dung để kết xuất.")
     
 st.title("🎓 Tutor AI")
 
@@ -763,25 +784,3 @@ if user_input:
 
     # Lưu lại phản hồi gốc
     st.session_state.messages.append({"role": "model", "parts": [{"text": reply}]})
-
-    with st.expander("📥 Kết thúc buổi học", expanded=False):
-        if st.button("✅ Kết xuất nội dung buổi học thành file .txt"):
-            if st.session_state.get("messages"):
-                output_text = ""
-                for msg in st.session_state.messages[1:]:  # bỏ prompt hệ thống
-                    role = "Học sinh" if msg["role"] == "user" else "Gia sư AI"
-                    text = msg["parts"][0]["text"]
-                    output_text += f"\n[{role}]:\n{text}\n\n"
-    
-                # Tên file lưu
-                file_name = f"BuoiHoc_{lesson_title.replace(' ', '_').replace(':', '')}.txt"
-    
-                # Hiển thị link tải về
-                st.download_button(
-                    label="📄 Tải về nội dung buổi học",
-                    data=output_text,
-                    file_name=file_name,
-                    mime="text/plain"
-                )
-            else:
-                st.warning("⚠️ Chưa có nội dung để kết xuất.")
