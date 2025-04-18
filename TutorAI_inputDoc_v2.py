@@ -18,6 +18,21 @@ available_lessons = {
     # Bạn có thể thêm các buổi khác ở đây
 }
 
+def format_mcq_options(text):
+    """
+    Tìm các chuỗi chứa A., B., C., D. liền nhau và chèn xuống dòng cho mỗi lựa chọn.
+    """
+    pattern = r"(?<=\n|^)(Câu\s?\d+:[^\n]+?)\s*A\.\s*(.*?)\s*B\.\s*(.*?)\s*C\.\s*(.*?)\s*D\.\s*(.*?)(?=\n|$)"
+    def replacer(match):
+        return (
+            f"{match.group(1)}\n"
+            f"A. {match.group(2)}\n"
+            f"B. {match.group(3)}\n"
+            f"C. {match.group(4)}\n"
+            f"D. {match.group(5)}"
+        )
+    return re.sub(pattern, replacer, text, flags=re.DOTALL)
+    
 def extract_text_from_uploaded_file(uploaded_file):
     if uploaded_file is None:
         return ""
@@ -776,6 +791,7 @@ if user_input:
     # Gọi Gemini phản hồi
     with st.spinner("🤖 Đang phản hồi..."):
         reply = chat_with_gemini(st.session_state.messages)
+        reply = format_mcq_options(reply)
 
     # Chuyển biểu thức toán trong ngoặc đơn => LaTeX inline
     #reply = convert_parentheses_to_latex(reply)
