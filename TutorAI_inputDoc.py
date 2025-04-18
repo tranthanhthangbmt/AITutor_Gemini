@@ -685,11 +685,11 @@ PROMPT_LESSON_CONTEXT = f"""
 --- END OF HANDBOOK CONTENT ---
 """
 
-    # Ghi đè lại session chat để bắt đầu buổi học
-    st.session_state.messages = [
-        {"role": "user", "parts": [{"text": PROMPT_LESSON_CONTEXT}]},
-        {"role": "model", "parts": [{"text": "Tuyệt vời! Mình đã đọc xong tài liệu. Bạn đã sẵn sàng bắt đầu buổi học chưa? 📘"}]}
-    ]
+# Ghi đè lại session chat để bắt đầu buổi học
+st.session_state.messages = [
+    {"role": "user", "parts": [{"text": PROMPT_LESSON_CONTEXT}]},
+    {"role": "model", "parts": [{"text": "Tuyệt vời! Mình đã đọc xong tài liệu. Bạn đã sẵn sàng bắt đầu buổi học chưa? 📘"}]}
+]
 
 # Hiển thị lịch sử chat
 for msg in st.session_state.messages[1:]:
