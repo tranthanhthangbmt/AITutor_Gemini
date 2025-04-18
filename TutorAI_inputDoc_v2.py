@@ -73,46 +73,43 @@ with st.sidebar:
     if key_from_local and not st.session_state.get("GEMINI_API_KEY"):
         st.session_state["GEMINI_API_KEY"] = key_from_local
         st.success("✅ Đã tự động khôi phục API Key từ Local Storage!")
+
+    st.subheader("🔐 Thiết lập API")
     
     # Lấy giá trị hiện tại từ session để hiển thị
     current_api = st.session_state.get("GEMINI_API_KEY", "")
     
     # Nhập mới
-    input_key = st.text_input("🔑 Gemini API Key", value=current_api, type="password", key="GEMINI_API_KEY")
-    components.html(
-        """
-        <script>
-        const inputEl = window.parent.document.querySelector('input[data-testid="stTextInput"][type="password"]');
+    col1, col2 = st.columns([5, 1])
+
+    with col1:
+        input_key = st.text_input("🔑 Gemini API Key", value=current_api, type="password", key="GEMINI_API_KEY")
     
-        function alertApiKey(apiKey, source) {
-            if (apiKey && source === "load") {
-                alert("🔑 API Key được tự động khôi phục từ Local Storage:\\n" + apiKey);
-            } else if (apiKey && source === "save") {
-                alert("✅ API Key vừa nhập đã được lưu vào Local Storage:\\n" + apiKey);
-            }
-        }
-    
-        const savedKey = localStorage.getItem("gemini_api_key");
-    
-        // Nếu có API key trong localStorage, điền lại vào input (khi F5)
-        if (savedKey && inputEl && inputEl.value === "") {
-            inputEl.value = savedKey;
-            inputEl.dispatchEvent(new Event("input", { bubbles: true }));
-            alertApiKey(savedKey, "load");
-        }
-    
-        // Lắng nghe nhập API → lưu + alert
-        inputEl?.addEventListener("change", function () {
-            if (inputEl.value) {
+    with col2:
+        save_click = st.button("💾", help="Lưu hoặc nạp API từ Local Storage")
+        
+    if save_click:
+        components.html(
+            f"""
+            <script>
+            const inputEl = window.parent.document.querySelector('input[data-testid="stTextInput"][type="password"]');
+            const savedKey = localStorage.getItem("gemini_api_key");
+
+            if (inputEl.value) {{
                 localStorage.setItem("gemini_api_key", JSON.stringify(inputEl.value));
-                alertApiKey(inputEl.value, "save");
-            }
-        });
-        </script>
-        """,
-        height=0
-    )
-    
+                alert("✅ API đã được lưu vào trình duyệt:\\n" + inputEl.value);
+            }} else if (savedKey) {{
+                inputEl.value = JSON.parse(savedKey);
+                inputEl.dispatchEvent(new Event("input", {{ bubbles: true }}));
+                alert("🔁 API đã được nạp từ Local Storage:\\n" + JSON.parse(savedKey));
+            }} else {{
+                alert("⚠️ Không có API trong ô nhập và Local Storage để lưu hoặc nạp.");
+            }}
+            </script>
+            """,
+            height=0
+        )
+        
     # Sau khi người dùng nhập → lưu vào localStorage
     if input_key:
         st_javascript(f"window.localStorage.setItem('gemini_api_key', JSON.stringify('{input_key}'))")
