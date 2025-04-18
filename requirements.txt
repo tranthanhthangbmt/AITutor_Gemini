@@ -3,5 +3,6 @@ requests
 python-dotenv
 PyMuPDF
 markdown
+python-docx
 
 
