@@ -60,7 +60,7 @@ with st.sidebar:
             del st.session_state.lesson_loaded
         st.rerun()
 
-    st.markdown("---")  # đường kẻ ngăn cách
+	#nhấn nút kết thúc buổi học
     with st.expander("📥 Kết thúc buổi học"):
         if st.button("✅ Kết xuất nội dung buổi học thành file .txt"):
             if st.session_state.get("messages"):
