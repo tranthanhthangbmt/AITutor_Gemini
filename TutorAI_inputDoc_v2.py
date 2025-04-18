@@ -100,7 +100,21 @@ def extract_text_from_uploaded_file(uploaded_file):
 
 # ⬇ Lấy input từ người dùng ở sidebar trước
 with st.sidebar:
-    input_key = st.text_input("🔑 Gemini API Key", key="GEMINI_API_KEY", type="password")
+    #input_key = st.text_input("🔑 Gemini API Key", key="GEMINI_API_KEY", type="password")
+    # Nếu có key từ localStorage, ưu tiên dùng làm giá trị mặc định
+    if not st.session_state.get("GEMINI_API_KEY") and key_from_local:
+        st.session_state["GEMINI_API_KEY"] = key_from_local
+    
+    # Giao diện nhập API key (giữ lại giá trị đã có trong session_state nếu có)
+    input_key = st.text_input(
+        "🔑 Gemini API Key",
+        value=st.session_state.get("GEMINI_API_KEY", ""),
+        key="GEMINI_API_KEY",
+        type="password"
+    )
+    
+    # Sau khi nhập, lưu lại vào localStorage
+    st_javascript(f"window.localStorage.setItem('gemini_api_key', JSON.stringify('{input_key}'))")
     "[Lấy API key tại đây](https://aistudio.google.com/app/apikey)"
 
     # Sau khi nhập, lưu vào localStorage
