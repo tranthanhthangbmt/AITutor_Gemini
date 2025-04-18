@@ -702,26 +702,27 @@ else:
     lesson_title = "Chưa có bài học"
 
 # Nếu người học đã cung cấp tài liệu → Ghi đè để bắt đầu buổi học
-if (selected_lesson != "👉 Chọn bài học..." or file_url.strip()) and pdf_context:
+#if (selected_lesson != "👉 Chọn bài học..." or file_url.strip()) and pdf_context:
+if pdf_context:
     lesson_title = selected_lesson if selected_lesson != "👉 Chọn bài học..." else "Bài học tùy chỉnh"
 
-PROMPT_LESSON_CONTEXT = f"""
-{SYSTEM_PROMPT_Tutor_AI}
-
-# Bạn sẽ hướng dẫn buổi học hôm nay với tài liệu sau:
-
-## Bài học: {lesson_title}
-
---- START OF HANDBOOK CONTENT ---
-{pdf_context}
---- END OF HANDBOOK CONTENT ---
-"""
-
-# Ghi đè lại session chat để bắt đầu buổi học
-st.session_state.messages = [
-    {"role": "user", "parts": [{"text": PROMPT_LESSON_CONTEXT}]},
-    {"role": "model", "parts": [{"text": "Tuyệt vời! Mình đã đọc xong tài liệu. Bạn đã sẵn sàng bắt đầu buổi học chưa? 📘"}]}
-]
+    PROMPT_LESSON_CONTEXT = f"""
+    {SYSTEM_PROMPT_Tutor_AI}
+    
+    # Bạn sẽ hướng dẫn buổi học hôm nay với tài liệu sau:
+    
+    ## Bài học: {lesson_title}
+    
+    --- START OF HANDBOOK CONTENT ---
+    {pdf_context}
+    --- END OF HANDBOOK CONTENT ---
+    """
+    
+    # Ghi đè lại session chat để bắt đầu buổi học
+    st.session_state.messages = [
+        {"role": "user", "parts": [{"text": PROMPT_LESSON_CONTEXT}]},
+        {"role": "model", "parts": [{"text": "Tuyệt vời! Mình đã đọc xong tài liệu. Bạn đã sẵn sàng bắt đầu buổi học chưa? 📘"}]}
+    ]
 
 # Hiển thị lịch sử chat
 for msg in st.session_state.messages[1:]:
