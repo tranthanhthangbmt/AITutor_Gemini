@@ -11,6 +11,7 @@ import docx #dùng để đọc file người dùng upload lên
 from bs4 import BeautifulSoup
 import streamlit.components.v1 as components
 from streamlit_javascript import st_javascript
+import time
 
 # Đảm bảo st.set_page_config là lệnh đầu tiên
 # Giao diện Streamlit
@@ -165,6 +166,11 @@ with st.sidebar:
                 st.warning("⚠️ Chưa có nội dung để kết xuất.")
 
 #đặt lại API key
+# Tạm thời delay 0.5s để đợi JS khôi phục xong (chỉ cần ở lần đầu sau F5)
+if "checked_api_key" not in st.session_state:
+    time.sleep(0.5)  # Đợi JS -> session_state["GEMINI_API_KEY"] nhận giá trị từ localStorage
+    st.session_state.checked_api_key = True
+
 API_KEY = st.session_state.get("GEMINI_API_KEY") or os.getenv("GEMINI_API_KEY")
 
 if not API_KEY:
