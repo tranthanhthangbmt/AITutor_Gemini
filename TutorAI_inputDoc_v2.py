@@ -12,10 +12,11 @@ from bs4 import BeautifulSoup
 
 available_lessons = {
     "👉 Chọn bài học...": "",
+    "Buổi 1: Thuật toán (Phần 1)": "https://raw.githubusercontent.com/tranthanhthangbmt/AITutor_Gemini/main/Handout Buổi 1_Thuật toán (Phần 1)_v2.pdf",
+    "Buổi 2: Thuật toán (Phần 2)": "https://raw.githubusercontent.com/tranthanhthangbmt/AITutor_Gemini/main/Handout Buổi 2_Thuật toán (Phần 2)_v4.pdf"
+    "Buổi 3: Bài toán đếm_(Phần 1)": "https://raw.githubusercontent.com/tranthanhthangbmt/AITutor_Gemini/main/Slide_TRR02_Buổi 3_Bài toán đếm_(Phần 1).pdf",    
     "Buổi 4: Bài toán đếm trong Nguyên lý Dirichlet và Các cấu hình tổ hợp": "https://raw.githubusercontent.com/tranthanhthangbmt/AITutor_Gemini/main/handoutBuoi4.pdf",
-    "Buổi 2: Tập hợp & ánh xạ": "https://example.com/lesson2.pdf",
-    "Buổi 3: Quan hệ & hàm số": "https://example.com/lesson3.pdf",
-    "Buổi 4: Bài toán đếm – Dirichlet & Tổ hợp": "https://raw.githubusercontent.com/tranthanhthangbmt/AITutor_Gemini/main/handoutBuoi4.pdf"
+    "Buổi 5: Bài toán liệt kê và Hệ thức truy hồi": "https://raw.githubusercontent.com/tranthanhthangbmt/AITutor_Gemini/main/Handout_Buổi 5_Bài toán liệt kê và Hệ thức truy hồi_V3.pdf",    
     # Bạn có thể thêm các buổi khác ở đây
 }
 
