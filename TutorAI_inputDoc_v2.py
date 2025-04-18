@@ -46,7 +46,7 @@ with st.sidebar:
     input_key = st.text_input("🔑 Gemini API Key", key="GEMINI_API_KEY", type="password")
     "[Lấy API key tại đây](https://aistudio.google.com/app/apikey)"
     
-    st.markdown("📚 **Chọn bài học hoặc nhập link tùy ý**")
+    st.markdown("📚 **Chọn bài học hoặc tải lên bài học**")
     selected_lesson = st.selectbox("📖 Chọn bài học", list(available_lessons.keys()))
     default_link = available_lessons[selected_lesson]
     
