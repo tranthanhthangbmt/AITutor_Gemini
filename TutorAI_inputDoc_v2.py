@@ -149,8 +149,8 @@ if not API_KEY:
     st.stop()
 
 #input file bài học
-if selected_lesson == "👉 Chọn bài học..." and not file_url.strip():
-    st.warning("⛔ Bạn cần chọn một bài học hoặc nhập link tài liệu để bắt đầu.")
+if selected_lesson == "👉 Chọn bài học..." and uploaded_file is None:
+    st.info("📥 Hãy tải lên tài liệu PDF/TXT hoặc chọn một bài học từ danh sách bên trên để bắt đầu.")
     st.stop()
 
 # Endpoint API Gemini
