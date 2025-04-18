@@ -8,6 +8,7 @@ import io
 import re
 import streamlit.components.v1 as components
 import docx #dùng để đọc file người dùng upload lên
+from bs4 import BeautifulSoup
 
 available_lessons = {
     "👉 Chọn bài học...": "",
@@ -18,15 +19,15 @@ available_lessons = {
     # Bạn có thể thêm các buổi khác ở đây
 }
 
+def clean_html_to_text(text):
+    soup = BeautifulSoup(text, "html.parser")
+    return soup.get_text()
+    
 def format_mcq_options(text):
-    """
-    Chèn xuống dòng trước mỗi lựa chọn A. B. C. D. nếu chúng nằm liền nhau.
-    """
-    # Đảm bảo không làm sai các chỗ đã đúng, nên chỉ xử lý nếu không có xuống dòng giữa các lựa chọn
-    text = re.sub(r'\s*A\.\s*', r'\nA. ', text)
-    text = re.sub(r'\s*B\.\s*', r'\nB. ', text)
-    text = re.sub(r'\s*C\.\s*', r'\nC. ', text)
-    text = re.sub(r'\s*D\.\s*', r'\nD. ', text)
+    text = re.sub(r'(?<!\n)(?=\s*A\.)', r'\nA. ', text)
+    text = re.sub(r'(?<!\n)(?=\s*B\.)', r'\nB. ', text)
+    text = re.sub(r'(?<!\n)(?=\s*C\.)', r'\nC. ', text)
+    text = re.sub(r'(?<!\n)(?=\s*D\.)', r'\nD. ', text)
     return text
     
 def extract_text_from_uploaded_file(uploaded_file):
@@ -487,7 +488,15 @@ if user_input:
     # Gọi Gemini phản hồi
     with st.spinner("🤖 Đang phản hồi..."):
         reply = chat_with_gemini(st.session_state.messages)
+
+        # Nếu có thể xuất HTML (như <p>...</p>)
+        reply = clean_html_to_text(reply)
+        
+        # Xử lý trắc nghiệm tách dòng
         reply = format_mcq_options(reply)
+        
+        # Hiển thị
+        st.chat_message("🤖 Gia sư AI").markdown(reply)
 
     # Chuyển biểu thức toán trong ngoặc đơn => LaTeX inline
     #reply = convert_parentheses_to_latex(reply)
