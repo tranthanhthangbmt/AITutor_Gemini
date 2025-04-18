@@ -18,9 +18,6 @@ st.set_page_config(page_title="Tutor AI", page_icon="🎓")
 
 input_key = st.session_state.get("GEMINI_API_KEY", "")
 
-# Lấy từ localStorage
-key_from_local = st_javascript("JSON.parse(window.localStorage.getItem('gemini_api_key') || '\"\"')")
-
 # Nếu chưa có thì gán
 if not input_key and key_from_local:
     st.session_state["GEMINI_API_KEY"] = key_from_local
@@ -100,11 +97,14 @@ def extract_text_from_uploaded_file(uploaded_file):
 
 # ⬇ Lấy input từ người dùng ở sidebar trước
 with st.sidebar:
+    # Lấy từ localStorage
+    key_from_local = st_javascript("JSON.parse(window.localStorage.getItem('gemini_api_key') || '\"\"')")
+    
     #input_key = st.text_input("🔑 Gemini API Key", key="GEMINI_API_KEY", type="password")
     # Nếu có key từ localStorage, ưu tiên dùng làm giá trị mặc định
     if not st.session_state.get("GEMINI_API_KEY") and key_from_local:
         st.session_state["GEMINI_API_KEY"] = key_from_local
-    
+
     # Giao diện nhập API key (giữ lại giá trị đã có trong session_state nếu có)
     input_key = st.text_input(
         "🔑 Gemini API Key",
@@ -116,9 +116,6 @@ with st.sidebar:
     # Sau khi nhập, lưu lại vào localStorage
     st_javascript(f"window.localStorage.setItem('gemini_api_key', JSON.stringify('{input_key}'))")
     "[Lấy API key tại đây](https://aistudio.google.com/app/apikey)"
-
-    # Sau khi nhập, lưu vào localStorage
-    st_javascript(f"window.localStorage.setItem('gemini_api_key', JSON.stringify('{input_key}'))")
     
     st.markdown("📚 **Chọn bài học hoặc tải lên bài học**")
     selected_lesson = st.selectbox("📖 Chọn bài học", list(available_lessons.keys()))
@@ -251,7 +248,7 @@ API_KEY = input_key or os.getenv("GEMINI_API_KEY")
 
 # Kiểm tra
 if not API_KEY:
-    st.error("❌ Thiếu Gemini API Key. Vui lòng nhập ở sidebar hoặc thiết lập biến môi trường 'GEMINI_API_KEY'.")
+    st.warning("🔑 Vui lòng nhập Gemini API Key ở sidebar để bắt đầu.")
     st.stop()
 
 #input file bài học
