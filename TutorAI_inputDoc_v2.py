@@ -23,7 +23,7 @@ available_lessons = {
     "Buổi 2: Thuật toán (Phần 2)": "https://raw.githubusercontent.com/tranthanhthangbmt/AITutor_Gemini/main/Handout Buổi 2_Thuật toán (Phần 2)_v4.pdf",
     "Buổi 3: Bài toán đếm_(Phần 1)": "https://raw.githubusercontent.com/tranthanhthangbmt/AITutor_Gemini/main/Slide_TRR02_Buổi 3_Bài toán đếm_(Phần 1).pdf",    
     "Buổi 4: Bài toán đếm trong Nguyên lý Dirichlet và Các cấu hình tổ hợp": "https://raw.githubusercontent.com/tranthanhthangbmt/AITutor_Gemini/main/handoutBuoi4.pdf",
-    "Buổi 5: Bài toán liệt kê và Hệ thức truy hồi": "https://raw.githubusercontent.com/tranthanhthangbmt/AITutor_Gemini/main/Handout_Buổi 5_Bài toán liệt kê và Hệ thức truy hồi_V3.pdf"  
+    "Buổi 5: Bài toán liệt kê và Hệ thức truy hồi": "https://raw.githubusercontent.com/tranthanhthangbmt/AITutor_Gemini/main/Handout_Buổi 5_Bài toán liệt kê và Hệ thức truy hồi_V3.pdf",  
     # Bạn có thể thêm các buổi khác ở đây
 }
 
