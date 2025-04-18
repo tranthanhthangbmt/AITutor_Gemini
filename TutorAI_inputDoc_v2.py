@@ -70,7 +70,10 @@ with st.sidebar:
                     text = msg["parts"][0]["text"]
                     output_text += f"\n[{role}]:\n{text}\n\n"
     
-                file_name = f"BuoiHoc_{lesson_title.replace(' ', '_').replace(':', '')}.txt"
+                # Tạo tên file an toàn
+                lesson_title_safe = st.session_state.get("lesson_source", "BaiHoc_AITutor")
+                lesson_title_safe = lesson_title_safe.replace("upload::", "").replace("lesson::", "")
+                file_name = f"BuoiHoc_{lesson_title_safe.replace(' ', '_').replace(':', '')}.txt"
     
                 st.download_button(
                     label="📄 Tải về nội dung buổi học",
