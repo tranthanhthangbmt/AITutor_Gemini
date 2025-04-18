@@ -15,7 +15,7 @@ st.set_page_config(page_title="Tutor AI", page_icon="🎓")
 with st.sidebar:
     input_key = st.text_input("🔑 Gemini API Key", key="GEMINI_API_KEY", type="password")
     "[Lấy API key tại đây](https://aistudio.google.com/app/apikey)"
-    "[Tài liệu các buổi học]"
+    "Tài liệu các buổi học:"
     "[Buổi 4: Bài toán đếm trong Nguyên lý Dirichlet và Các cấu hình tổ hợp](https://raw.githubusercontent.com/tranthanhthangbmt/AITutor_Gemini/main/handoutBuoi4.pdf)"
     
 st.title("🎓 Tutor AI - Học Toán rời rạc với Gemini")
