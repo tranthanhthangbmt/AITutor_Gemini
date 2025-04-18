@@ -702,12 +702,15 @@ if "messages" not in st.session_state:
 if uploaded_file:
     pdf_context = extract_text_from_uploaded_file(uploaded_file)
     lesson_title = uploaded_file.name
+    current_source = f"upload::{uploaded_file.name}"
 elif selected_lesson != "👉 Chọn bài học..." and default_link.strip():
     pdf_context = extract_pdf_text_from_url(default_link)
     lesson_title = selected_lesson
+    current_source = f"lesson::{selected_lesson}"
 else:
     pdf_context = ""
     lesson_title = "Chưa có bài học"
+    current_source = ""
 
 # Nếu người học đã cung cấp tài liệu → Ghi đè để bắt đầu buổi học
 #if (selected_lesson != "👉 Chọn bài học..." or file_url.strip()) and pdf_context:
@@ -726,12 +729,12 @@ if pdf_context:
     --- END OF HANDBOOK CONTENT ---
     """
     
-    if "lesson_loaded" not in st.session_state:
+    if "lesson_source" not in st.session_state or st.session_state.lesson_source != current_source:
         st.session_state.messages = [
             {"role": "user", "parts": [{"text": PROMPT_LESSON_CONTEXT}]},
             {"role": "model", "parts": [{"text": "Tuyệt vời! Mình đã đọc xong tài liệu. Bạn đã sẵn sàng bắt đầu buổi học chưa? 📘"}]}
         ]
-        st.session_state.lesson_loaded = True
+        st.session_state.lesson_source = current_source
 
 # Hiển thị lịch sử chat
 for msg in st.session_state.messages[1:]:
