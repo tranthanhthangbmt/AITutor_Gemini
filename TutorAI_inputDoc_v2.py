@@ -10,10 +10,21 @@ import streamlit.components.v1 as components
 import docx #dùng để đọc file người dùng upload lên
 from bs4 import BeautifulSoup
 import streamlit.components.v1 as components
+from streamlit_javascript import st_javascript
 
 # Đảm bảo st.set_page_config là lệnh đầu tiên
 # Giao diện Streamlit
 st.set_page_config(page_title="Tutor AI", page_icon="🎓")
+
+input_key = st.session_state.get("GEMINI_API_KEY", "")
+
+# Lấy từ localStorage
+key_from_local = st_javascript("JSON.parse(window.localStorage.getItem('gemini_api_key') || '\"\"')")
+
+# Nếu chưa có thì gán
+if not input_key and key_from_local:
+    st.session_state["GEMINI_API_KEY"] = key_from_local
+    input_key = key_from_local
 
 components.html(
     """
@@ -91,6 +102,9 @@ def extract_text_from_uploaded_file(uploaded_file):
 with st.sidebar:
     input_key = st.text_input("🔑 Gemini API Key", key="GEMINI_API_KEY", type="password")
     "[Lấy API key tại đây](https://aistudio.google.com/app/apikey)"
+
+    # Sau khi nhập, lưu vào localStorage
+    st_javascript(f"window.localStorage.setItem('gemini_api_key', JSON.stringify('{input_key}'))")
     
     st.markdown("📚 **Chọn bài học hoặc tải lên bài học**")
     selected_lesson = st.selectbox("📖 Chọn bài học", list(available_lessons.keys()))
