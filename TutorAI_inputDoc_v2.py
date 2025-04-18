@@ -119,13 +119,6 @@ with st.sidebar:
     if not st.session_state.get("GEMINI_API_KEY") and key_from_local:
         st.session_state["GEMINI_API_KEY"] = key_from_local
 
-    # Giao diện nhập API key
-    input_key = st.text_input(
-        "🔑 Gemini API Key",
-        value=st.session_state.get("GEMINI_API_KEY", ""),
-        key="GEMINI_API_KEY",
-        type="password"
-    )
     # 👇 Đặt components.html NGAY SAU textbox để JS thao tác được với DOM
     components.html(
         """
