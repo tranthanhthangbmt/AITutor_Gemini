@@ -11,11 +11,46 @@ import docx #dùng để đọc file người dùng upload lên
 from bs4 import BeautifulSoup
 import streamlit.components.v1 as components
 from streamlit_javascript import st_javascript
-import time
 
 # Đảm bảo st.set_page_config là lệnh đầu tiên
 # Giao diện Streamlit
 st.set_page_config(page_title="Tutor AI", page_icon="🎓")
+
+input_key = st.session_state.get("GEMINI_API_KEY", "")
+
+# Lấy từ localStorage
+key_from_local = st_javascript("JSON.parse(window.localStorage.getItem('gemini_api_key') || '\"\"')")
+
+# Nếu chưa có thì gán
+if not input_key and key_from_local:
+    st.session_state["GEMINI_API_KEY"] = key_from_local
+    input_key = key_from_local
+
+components.html(
+    """
+    <script>
+        const apiKeyInput = window.parent.document.querySelector('input[data-testid="stTextInput"][type="password"]');
+        const storedKey = localStorage.getItem("gemini_api_key");
+        if (apiKeyInput && storedKey) {
+            apiKeyInput.value = storedKey;
+            apiKeyInput.dispatchEvent(new Event("input", { bubbles: true }));
+        }
+
+        // Khi người dùng nhập key, tự động lưu vào Local Storage
+        const observer = new MutationObserver(() => {
+            if (apiKeyInput && apiKeyInput.value) {
+                localStorage.setItem("gemini_api_key", apiKeyInput.value);
+            }
+        });
+
+        if (apiKeyInput) {
+            observer.observe(apiKeyInput, { attributes: true, attributeFilter: ['value'] });
+        }
+    </script>
+    """,
+    height=0,
+    scrolling=False
+)
 
 available_lessons = {
     "👉 Chọn bài học...": "",
@@ -23,7 +58,7 @@ available_lessons = {
     "Buổi 2: Thuật toán (Phần 2)": "https://raw.githubusercontent.com/tranthanhthangbmt/AITutor_Gemini/main/Handout Buổi 2_Thuật toán (Phần 2)_v4.pdf",
     "Buổi 3: Bài toán đếm_(Phần 1)": "https://raw.githubusercontent.com/tranthanhthangbmt/AITutor_Gemini/main/Slide_TRR02_Buổi 3_Bài toán đếm_(Phần 1).pdf",    
     "Buổi 4: Bài toán đếm trong Nguyên lý Dirichlet và Các cấu hình tổ hợp": "https://raw.githubusercontent.com/tranthanhthangbmt/AITutor_Gemini/main/handoutBuoi4.pdf",
-    "Buổi 5: Bài toán liệt kê và Hệ thức truy hồi": "https://raw.githubusercontent.com/tranthanhthangbmt/AITutor_Gemini/main/Handout_Buổi 5_Bài toán liệt kê và Hệ thức truy hồi_V3.pdf",  
+    "Buổi 5: Bài toán liệt kê và Hệ thức truy hồi": "https://raw.githubusercontent.com/tranthanhthangbmt/AITutor_Gemini/main/Handout_Buổi 5_Bài toán liệt kê và Hệ thức truy hồi_V3.pdf"  
     # Bạn có thể thêm các buổi khác ở đây
 }
 
@@ -65,105 +100,11 @@ def extract_text_from_uploaded_file(uploaded_file):
 
 # ⬇ Lấy input từ người dùng ở sidebar trước
 with st.sidebar:
-    # Lấy từ localStorage
-    #key_from_local = st_javascript("JSON.parse(window.localStorage.getItem('gemini_api_key') || '\"\"')")
-    key_from_local = st_javascript("JSON.parse(window.localStorage.getItem('gemini_api_key') || '\"\"')")
-
-    # Nếu chưa có session, nhưng có localStorage, thì gán và thông báo
-    if key_from_local and not st.session_state.get("GEMINI_API_KEY"):
-        st.session_state["GEMINI_API_KEY"] = key_from_local
-        st.success("✅ Đã tự động khôi phục API Key từ Local Storage!")
-
-    st.subheader("🔐 Thiết lập API")
-    
-    # Lấy giá trị hiện tại từ session để hiển thị
-    current_api = st.session_state.get("GEMINI_API_KEY", "")
-
-    st.markdown("""
-    <style>
-    button[kind="secondary"] {
-        margin-top: 2.2rem;
-    }
-    </style>
-    """, unsafe_allow_html=True)
-        
-    # Nhập mới
-    col1, col2 = st.columns([5, 1])
-
-    with col1:
-        input_key = st.text_input("🔑 Gemini API Key", value=current_api, type="password", key="GEMINI_API_KEY")
-    
-    with col2:
-        #save_click = st.button("💾", help="Lưu hoặc nạp API từ Local Storage")
-        save_click = st.button("💾 Save")
-        
-    if save_click:
-        components.html(
-            f"""
-            <script>
-            const inputEl = window.parent.document.querySelector('input[data-testid="stTextInput"][type="password"]');
-            const savedKey = localStorage.getItem("gemini_api_key");
-
-            if (inputEl.value) {{
-                localStorage.setItem("gemini_api_key", JSON.stringify(inputEl.value));
-                alert("✅ API đã được lưu vào trình duyệt:\\n" + inputEl.value);
-            }} else if (savedKey) {{
-                inputEl.value = JSON.parse(savedKey);
-                inputEl.dispatchEvent(new Event("input", {{ bubbles: true }}));
-                alert("🔁 API đã được nạp từ Local Storage:\\n" + JSON.parse(savedKey));
-            }} else {{
-                alert("⚠️ Không có API trong ô nhập và Local Storage để lưu hoặc nạp.");
-            }}
-            </script>
-            """,
-            height=0
-        )
-        
-    # Sau khi người dùng nhập → lưu vào localStorage
-    if input_key:
-        st_javascript(f"window.localStorage.setItem('gemini_api_key', JSON.stringify('{input_key}'))")
-        st.info("🔐 API Key đã được lưu vào trình duyệt.")
-
-    # Gán key nếu chưa có
-    if not st.session_state.get("GEMINI_API_KEY") and key_from_local:
-        st.session_state["GEMINI_API_KEY"] = key_from_local
-
-    # 👇 Đặt components.html NGAY SAU textbox để JS thao tác được với DOM
-    components.html(
-        """
-        <script>
-        const inputEl = window.parent.document.querySelector('input[data-testid="stTextInput"][type="password"]');
-
-        function alertApiKey(apiKey, source) {
-            if (apiKey && source === "load") {
-                alert("🔑 API Key được tự động khôi phục từ Local Storage:\\n" + apiKey);
-            } else if (apiKey && source === "save") {
-                alert("✅ API Key vừa nhập đã được lưu vào Local Storage:\\n" + apiKey);
-            }
-        }
-
-        const savedKey = localStorage.getItem("gemini_api_key");
-
-        if (savedKey && inputEl && inputEl.value === "") {
-            inputEl.value = savedKey;
-            inputEl.dispatchEvent(new Event("input", { bubbles: true }));
-            alertApiKey(savedKey, "load");
-        }
-
-        inputEl?.addEventListener("change", function () {
-            if (inputEl.value) {
-                localStorage.setItem("gemini_api_key", JSON.stringify(inputEl.value));
-                alertApiKey(inputEl.value, "save");
-            }
-        });
-        </script>
-        """,
-        height=0
-    )
-
-    # Lưu lại mỗi lần nhập
-    st_javascript(f"window.localStorage.setItem('gemini_api_key', JSON.stringify('{input_key}'))")
+    input_key = st.text_input("🔑 Gemini API Key", key="GEMINI_API_KEY", type="password")
     "[Lấy API key tại đây](https://aistudio.google.com/app/apikey)"
+
+    # Sau khi nhập, lưu vào localStorage
+    st_javascript(f"window.localStorage.setItem('gemini_api_key', JSON.stringify('{input_key}'))")
     
     st.markdown("📚 **Chọn bài học hoặc tải lên bài học**")
     selected_lesson = st.selectbox("📖 Chọn bài học", list(available_lessons.keys()))
@@ -202,18 +143,6 @@ with st.sidebar:
                 )
             else:
                 st.warning("⚠️ Chưa có nội dung để kết xuất.")
-
-#đặt lại API key
-# Tạm thời delay 0.5s để đợi JS khôi phục xong (chỉ cần ở lần đầu sau F5)
-if "checked_api_key" not in st.session_state:
-    time.sleep(0.5)  # Đợi JS -> session_state["GEMINI_API_KEY"] nhận giá trị từ localStorage
-    st.session_state.checked_api_key = True
-
-API_KEY = st.session_state.get("GEMINI_API_KEY") or os.getenv("GEMINI_API_KEY")
-
-if not API_KEY:
-    st.warning("🔑 Vui lòng nhập Gemini API Key ở sidebar để bắt đầu.")
-    st.stop()
     
 st.title("🎓 Tutor AI")
 
@@ -308,7 +237,7 @@ API_KEY = input_key or os.getenv("GEMINI_API_KEY")
 
 # Kiểm tra
 if not API_KEY:
-    st.warning("🔑 Vui lòng nhập Gemini API Key ở sidebar để bắt đầu.")
+    st.error("❌ Thiếu Gemini API Key. Vui lòng nhập ở sidebar hoặc thiết lập biến môi trường 'GEMINI_API_KEY'.")
     st.stop()
 
 #input file bài học
