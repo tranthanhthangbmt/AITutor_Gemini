@@ -11,6 +11,10 @@ import docx #dùng để đọc file người dùng upload lên
 from bs4 import BeautifulSoup
 import streamlit.components.v1 as components
 
+# Đảm bảo st.set_page_config là lệnh đầu tiên
+# Giao diện Streamlit
+st.set_page_config(page_title="Tutor AI", page_icon="🎓")
+
 components.html(
     """
     <script>
@@ -81,9 +85,7 @@ def extract_text_from_uploaded_file(uploaded_file):
     except Exception as e:
         return f"❌ Lỗi đọc file: {e}"
 
-# Đảm bảo st.set_page_config là lệnh đầu tiên
-# Giao diện Streamlit
-st.set_page_config(page_title="Tutor AI", page_icon="🎓")
+
 
 # ⬇ Lấy input từ người dùng ở sidebar trước
 with st.sidebar:
