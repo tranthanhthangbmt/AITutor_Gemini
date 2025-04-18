@@ -16,13 +16,6 @@ from streamlit_javascript import st_javascript
 # Giao diện Streamlit
 st.set_page_config(page_title="Tutor AI", page_icon="🎓")
 
-input_key = st.session_state.get("GEMINI_API_KEY", "")
-
-# Nếu chưa có thì gán
-if not input_key and key_from_local:
-    st.session_state["GEMINI_API_KEY"] = key_from_local
-    input_key = key_from_local
-
 components.html(
     """
     <script>
@@ -99,21 +92,20 @@ def extract_text_from_uploaded_file(uploaded_file):
 with st.sidebar:
     # Lấy từ localStorage
     key_from_local = st_javascript("JSON.parse(window.localStorage.getItem('gemini_api_key') || '\"\"')")
-    
-    #input_key = st.text_input("🔑 Gemini API Key", key="GEMINI_API_KEY", type="password")
-    # Nếu có key từ localStorage, ưu tiên dùng làm giá trị mặc định
+
+    # Gán key nếu chưa có
     if not st.session_state.get("GEMINI_API_KEY") and key_from_local:
         st.session_state["GEMINI_API_KEY"] = key_from_local
 
-    # Giao diện nhập API key (giữ lại giá trị đã có trong session_state nếu có)
+    # Giao diện nhập API key
     input_key = st.text_input(
         "🔑 Gemini API Key",
         value=st.session_state.get("GEMINI_API_KEY", ""),
         key="GEMINI_API_KEY",
         type="password"
     )
-    
-    # Sau khi nhập, lưu lại vào localStorage
+
+    # Lưu lại mỗi lần nhập
     st_javascript(f"window.localStorage.setItem('gemini_api_key', JSON.stringify('{input_key}'))")
     "[Lấy API key tại đây](https://aistudio.google.com/app/apikey)"
     
@@ -154,6 +146,13 @@ with st.sidebar:
                 )
             else:
                 st.warning("⚠️ Chưa có nội dung để kết xuất.")
+
+#đặt lại API key
+API_KEY = st.session_state.get("GEMINI_API_KEY") or os.getenv("GEMINI_API_KEY")
+
+if not API_KEY:
+    st.warning("🔑 Vui lòng nhập Gemini API Key ở sidebar để bắt đầu.")
+    st.stop()
     
 st.title("🎓 Tutor AI")
 
