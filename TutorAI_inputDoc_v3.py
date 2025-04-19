@@ -100,7 +100,7 @@ def extract_text_from_uploaded_file(uploaded_file):
 
 # ⬇ Lấy input từ người dùng ở sidebar trước
 with st.sidebar:
-	st.markdown("""
+    st.markdown("""
     <style>
     /* Ẩn hoàn toàn iframe tạo bởi st_javascript (vẫn hoạt động, chỉ không chiếm không gian) */
     iframe[title="streamlit_javascript.streamlit_javascript"] {
