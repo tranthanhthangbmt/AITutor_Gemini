@@ -26,32 +26,6 @@ if not input_key and key_from_local:
     st.session_state["GEMINI_API_KEY"] = key_from_local
     input_key = key_from_local
 
-components.html(
-    """
-    <script>
-        const apiKeyInput = window.parent.document.querySelector('input[data-testid="stTextInput"][type="password"]');
-        const storedKey = localStorage.getItem("gemini_api_key");
-        if (apiKeyInput && storedKey) {
-            apiKeyInput.value = storedKey;
-            apiKeyInput.dispatchEvent(new Event("input", { bubbles: true }));
-        }
-
-        // Khi người dùng nhập key, tự động lưu vào Local Storage
-        const observer = new MutationObserver(() => {
-            if (apiKeyInput && apiKeyInput.value) {
-                localStorage.setItem("gemini_api_key", apiKeyInput.value);
-            }
-        });
-
-        if (apiKeyInput) {
-            observer.observe(apiKeyInput, { attributes: true, attributeFilter: ['value'] });
-        }
-    </script>
-    """,
-    height=0,
-    scrolling=False
-)
-
 available_lessons = {
     "👉 Chọn bài học...": "",
     "Buổi 1: Thuật toán (Phần 1)": "https://raw.githubusercontent.com/tranthanhthangbmt/AITutor_Gemini/main/Handout Buổi 1_Thuật toán (Phần 1)_v2.pdf",
