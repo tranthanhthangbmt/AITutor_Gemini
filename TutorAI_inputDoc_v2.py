@@ -76,8 +76,7 @@ def extract_text_from_uploaded_file(uploaded_file):
 with st.sidebar:
     #for logo
     # Thay link này bằng logo thật của bạn (link raw từ GitHub)
-    logo_url = "https://raw.githubusercontent.com/tranthanhthangbmt/AITutor_Gemini/main/LOGO_UDA_2023_VN_EN_chuan2.png"
-    "[Lấy API key tại đây](https://aistudio.google.com/app/apikey)"
+    logo_url = "https://raw.githubusercontent.com/tranthanhthangbmt/AITutor_Gemini/main/LOGO_UDA_2023_VN_EN_chuan2.png"    
 
     st.sidebar.markdown(
         f"""
@@ -129,7 +128,8 @@ with st.sidebar:
         """,
         height=0,
         scrolling=False
-    )    
+    )
+    "[Lấy API key tại đây](https://aistudio.google.com/app/apikey)"
 
     # Sau khi nhập, lưu vào localStorage
     st_javascript(f"window.localStorage.setItem('gemini_api_key', JSON.stringify('{input_key}'))")
