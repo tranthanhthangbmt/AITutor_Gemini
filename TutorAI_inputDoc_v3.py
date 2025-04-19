@@ -117,31 +117,21 @@ with st.sidebar:
     st_javascript("""
     (() => {
         const inputEl = window.parent.document.querySelector('input[data-testid="stTextInput"][type="password"]');
-        const checkAndFill = () => {
-            const storedKey = localStorage.getItem("gemini_api_key");
-            if (storedKey && inputEl && inputEl.value === "") {
-                inputEl.value = JSON.parse(storedKey);
-                inputEl.dispatchEvent(new Event("input", { bubbles: true }));
-                console.log("✅ API tự động điền từ localStorage.");
-            }
-        };
-        setInterval(checkAndFill, 1000); // Kiểm tra mỗi 1 giây
-    })();
-    """)
-    # Tự động lưu & khôi phục API key (JS thuần không tạo iframe)
-    st_javascript("""
-    (() => {
-        const inputEl = window.parent.document.querySelector('input[data-testid="stTextInput"][type="password"]');
         const storedKey = localStorage.getItem("gemini_api_key");
     
-        // Nếu input rỗng và localStorage có key → tự động điền
-        if (inputEl && storedKey && inputEl.value === "") {
-            inputEl.value = JSON.parse(storedKey);
-            inputEl.dispatchEvent(new Event("input", { bubbles: true }));
-            console.log("✅ Tự động điền API từ localStorage.");
-        }
+        // Tự điền nếu còn trống
+        const tryFillKey = () => {
+            if (inputEl && storedKey && inputEl.value.trim() === "") {
+                inputEl.value = JSON.parse(storedKey);
+                inputEl.dispatchEvent(new Event("input", { bubbles: true }));
+                console.log("✅ Tự động điền API từ localStorage.");
+            }
+        };
     
-        // Lưu mỗi khi người dùng rời ô nhập, nhấn Enter, hoặc thay đổi
+        tryFillKey();  // gọi ngay khi chạy
+        const interval = setInterval(tryFillKey, 1000); // kiểm tra lại mỗi giây
+    
+        // Lưu khi thay đổi
         const saveAPI = () => {
             if (inputEl && inputEl.value) {
                 localStorage.setItem("gemini_api_key", JSON.stringify(inputEl.value));
@@ -157,9 +147,6 @@ with st.sidebar:
     })();
     """)
     "[Lấy API key tại đây](https://aistudio.google.com/app/apikey)"
-
-    # Sau khi nhập, lưu vào localStorage
-    st_javascript(f"window.localStorage.setItem('gemini_api_key', JSON.stringify('{input_key}'))")
     
     st.markdown("📚 **Chọn bài học hoặc tải lên bài học**")
     selected_lesson = st.selectbox("📖 Chọn bài học", list(available_lessons.keys()))
