@@ -112,8 +112,44 @@ with st.sidebar:
         """,
         unsafe_allow_html=True
     )
+
+    # ✅ Nhúng script JS duy nhất để tự động điền & lưu API key
+    key_from_local = st_javascript("""
+    (() => {
+        const inputEl = window.parent.document.querySelector('input[data-testid="stTextInput"][type="password"]');
+        const storedKey = localStorage.getItem("gemini_api_key");
     
-    input_key = st.text_input("🔑 Gemini API Key", key="GEMINI_API_KEY", type="password")
+        // Tự động điền nếu textbox rỗng
+        if (inputEl && storedKey && inputEl.value === "") {
+            inputEl.value = JSON.parse(storedKey);
+            inputEl.dispatchEvent(new Event("input", { bubbles: true }));
+        }
+    
+        // Lưu khi người dùng nhập
+        const saveAPI = () => {
+            if (inputEl && inputEl.value) {
+                localStorage.setItem("gemini_api_key", JSON.stringify(inputEl.value));
+            }
+        };
+        inputEl?.addEventListener("blur", saveAPI);
+        inputEl?.addEventListener("change", saveAPI);
+        inputEl?.addEventListener("keydown", e => {
+            if (e.key === "Enter") saveAPI();
+        });
+    
+        return storedKey ? JSON.parse(storedKey) : "";
+    })()
+    """)
+    
+    # ✅ Ưu tiên lấy từ localStorage nếu session chưa có
+    input_key = st.session_state.get("GEMINI_API_KEY", "")
+    if not input_key and key_from_local:
+        st.session_state["GEMINI_API_KEY"] = key_from_local
+        input_key = key_from_local
+    
+    # ✅ Tạo textbox với giá trị đúng
+    input_key = st.text_input("🔑 Gemini API Key", value=input_key, type="password", key="GEMINI_API_KEY")
+
     st_javascript("""
     (() => {
         const inputEl = window.parent.document.querySelector('input[data-testid="stTextInput"][type="password"]');
