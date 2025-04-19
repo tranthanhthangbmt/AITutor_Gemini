@@ -114,6 +114,47 @@ with st.sidebar:
     )
     
     input_key = st.text_input("🔑 Gemini API Key", key="GEMINI_API_KEY", type="password")
+    components.html(
+        """
+        <script>
+            const inputEl = window.parent.document.querySelector('input[data-testid="stTextInput"][type="password"]');
+            const storedKey = localStorage.getItem("gemini_api_key");
+    
+            // Nếu input rỗng và localStorage có key → tự động điền
+            if (inputEl && storedKey && inputEl.value === "") {
+                inputEl.value = JSON.parse(storedKey);
+                inputEl.dispatchEvent(new Event("input", { bubbles: true }));
+                console.log("✅ Tự động điền API từ localStorage.");
+            }
+    
+            // Lưu API mỗi khi người dùng rời khỏi input hoặc nhấn Enter
+            inputEl?.addEventListener("change", () => {
+                if (inputEl.value) {
+                    localStorage.setItem("gemini_api_key", JSON.stringify(inputEl.value));
+                    console.log("💾 Đã lưu API vào localStorage");
+                }
+            });
+    
+            // Lưu cả khi blur (click ra ngoài)
+            inputEl?.addEventListener("blur", () => {
+                if (inputEl.value) {
+                    localStorage.setItem("gemini_api_key", JSON.stringify(inputEl.value));
+                    console.log("💾 Đã lưu API sau khi blur");
+                }
+            });
+    
+            // Lưu nếu người dùng nhấn Enter (phím Enter trong textbox)
+            inputEl?.addEventListener("keydown", (e) => {
+                if (e.key === "Enter" && inputEl.value) {
+                    localStorage.setItem("gemini_api_key", JSON.stringify(inputEl.value));
+                    console.log("💾 Đã lưu API khi nhấn Enter");
+                }
+            });
+        </script>
+        """,
+        height=0,
+        scrolling=False
+    )
     "[Lấy API key tại đây](https://aistudio.google.com/app/apikey)"
 
     # Sau khi nhập, lưu vào localStorage
