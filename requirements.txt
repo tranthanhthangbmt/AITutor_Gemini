@@ -6,5 +6,7 @@ markdown
 python-docx
 beautifulsoup4
 streamlit-javascript
+streamlit
+reportlab
 
 
