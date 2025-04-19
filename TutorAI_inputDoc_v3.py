@@ -206,6 +206,8 @@ with st.sidebar:
     # Chọn bài học từ danh sách có sẵn
     selected_lesson = st.selectbox("📖 Chọn bài học", list(available_lessons.keys()))
     selected_lesson_link = available_lessons.get(selected_lesson, "").strip()
+
+    default_link = available_lessons[selected_lesson]
     
     # Upload file thủ công
     uploaded_file = st.file_uploader("📤 Tải lên file tài liệu (PDF, TXT, DOCX...)", type=["pdf", "txt", "docx"])
