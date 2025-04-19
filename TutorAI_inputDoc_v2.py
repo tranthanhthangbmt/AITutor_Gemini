@@ -100,6 +100,19 @@ def extract_text_from_uploaded_file(uploaded_file):
 
 # ⬇ Lấy input từ người dùng ở sidebar trước
 with st.sidebar:
+    #for logo
+    # Thay link này bằng logo thật của bạn (link raw từ GitHub)
+    logo_url = "https://raw.githubusercontent.com/tranthanhthangbmt/AITutor_Gemini/main/LOGO_UDA_2023_VN_EN_chuan2.png"
+
+    st.sidebar.markdown(
+        f"""
+        <div style='text-align: center; margin-bottom: 10px;'>
+            <img src="{logo_url}" width="120" style="border-radius: 10px;" />
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+    
     input_key = st.text_input("🔑 Gemini API Key", key="GEMINI_API_KEY", type="password")
     "[Lấy API key tại đây](https://aistudio.google.com/app/apikey)"
 
