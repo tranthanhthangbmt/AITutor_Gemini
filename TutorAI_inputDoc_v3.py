@@ -70,7 +70,24 @@ def extract_text_from_uploaded_file(uploaded_file):
     except Exception as e:
         return f"❌ Lỗi đọc file: {e}"
 
+# Xác thực API bằng request test
+def is_valid_gemini_key(key):
+    try:
+        test_response = requests.post(
+            GEMINI_API_URL,
+            headers={"Content-Type": "application/json"},
+            params={"key": key},
+            json={"contents": [{"parts": [{"text": "hello"}]}]},
+            timeout=5
+        )
+        return test_response.status_code == 200
+    except Exception:
+        return False
 
+# Nếu có key nhưng muốn kiểm tra tự động
+if API_KEY and not is_valid_gemini_key(API_KEY):
+    st.error("❌ API Key không hợp lệ. Vui lòng kiểm tra lại.")
+    st.stop()
 
 # ⬇ Lấy input từ người dùng ở sidebar trước
 with st.sidebar:
@@ -102,6 +119,20 @@ with st.sidebar:
     )
     
     input_key = st.text_input("🔑 Gemini API Key", key="GEMINI_API_KEY", type="password")
+    st_javascript("""
+    (() => {
+        const inputEl = window.parent.document.querySelector('input[data-testid="stTextInput"][type="password"]');
+        const checkAndFill = () => {
+            const storedKey = localStorage.getItem("gemini_api_key");
+            if (storedKey && inputEl && inputEl.value === "") {
+                inputEl.value = JSON.parse(storedKey);
+                inputEl.dispatchEvent(new Event("input", { bubbles: true }));
+                console.log("✅ API tự động điền từ localStorage.");
+            }
+        };
+        setInterval(checkAndFill, 1000); // Kiểm tra mỗi 1 giây
+    })();
+    """)
     # Tự động lưu & khôi phục API key (JS thuần không tạo iframe)
     st_javascript("""
     (() => {
