@@ -203,12 +203,16 @@ with st.sidebar:
     
     st.markdown("📚 **Chọn bài học hoặc tải lên bài học**")
 
-    # Combo box chọn bài học từ danh sách
+    # Chọn bài học từ danh sách có sẵn
     selected_lesson = st.selectbox("📖 Chọn bài học", list(available_lessons.keys()))
-    selected_lesson_link = available_lessons.get(selected_lesson, "")
+    selected_lesson_link = available_lessons.get(selected_lesson, "").strip()
     
-    # Upload file tài liệu riêng
+    # Upload file thủ công
     uploaded_file = st.file_uploader("📤 Tải lên file tài liệu (PDF, TXT, DOCX...)", type=["pdf", "txt", "docx"])
+    
+    # Chỉ hiển thị link nếu: đã chọn bài hợp lệ + chưa upload
+    if selected_lesson != "👉 Chọn bài học..." and selected_lesson_link and not uploaded_file:
+        st.markdown(f"🔗 **Tài liệu:** [Xem bài học trên GitHub]({selected_lesson_link})", unsafe_allow_html=True)
     
     # Hiển thị link bên dưới selectbox nếu:
     # - Người dùng đã chọn một bài học hợp lệ (khác mặc định)
