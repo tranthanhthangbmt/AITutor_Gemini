@@ -100,6 +100,20 @@ def extract_text_from_uploaded_file(uploaded_file):
 
 # ⬇ Lấy input từ người dùng ở sidebar trước
 with st.sidebar:
+	st.markdown("""
+    <style>
+    /* Ẩn hoàn toàn iframe tạo bởi st_javascript (vẫn hoạt động, chỉ không chiếm không gian) */
+    iframe[title="streamlit_javascript.streamlit_javascript"] {
+        display: none !important;
+    }
+    
+    /* Ẩn container chứa iframe (chính là div tạo khoảng trống) */
+    div[data-testid="stCustomComponentV1"] {
+        display: none !important;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+    
     #for logo
     # Thay link này bằng logo thật của bạn (link raw từ GitHub)
     logo_url = "https://raw.githubusercontent.com/tranthanhthangbmt/AITutor_Gemini/main/LOGO_UDA_2023_VN_EN_chuan2.png"
