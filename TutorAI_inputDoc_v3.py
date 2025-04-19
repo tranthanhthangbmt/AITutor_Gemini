@@ -580,7 +580,7 @@ if pdf_context:
     if "lesson_source" not in st.session_state or st.session_state.lesson_source != current_source:
         st.session_state.messages = [
             {"role": "user", "parts": [{"text": PROMPT_LESSON_CONTEXT}]},
-            {"role": "model", "parts": [{"text": "Tuyệt vời! Mình đã đọc xong tài liệu. Bạn đã sẵn sàng bắt đầu buổi học chưa? 📘"}]}
+            {"role": "model", "parts": [{"text": f"📘 Mình đã đọc xong tài liệu: **{lesson_title}**. Bạn đã sẵn sàng bắt đầu buổi học chưa?"}]}
         ]
         st.session_state.lesson_source = current_source
 
