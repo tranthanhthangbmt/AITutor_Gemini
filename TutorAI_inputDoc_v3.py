@@ -205,6 +205,7 @@ with st.sidebar:
 
     # 📖 Chọn bài học
     selected_lesson = st.selectbox("📖 Chọn bài học", list(available_lessons.keys()))
+    default_link = available_lessons[selected_lesson]
     selected_lesson_link = available_lessons.get(selected_lesson, "").strip()
     
     # 📤 Tải file tài liệu (mục tiêu là đặt bên dưới link)
