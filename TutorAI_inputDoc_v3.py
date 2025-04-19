@@ -84,11 +84,6 @@ def is_valid_gemini_key(key):
     except Exception:
         return False
 
-# Nếu có key nhưng muốn kiểm tra tự động
-if API_KEY and not is_valid_gemini_key(API_KEY):
-    st.error("❌ API Key không hợp lệ. Vui lòng kiểm tra lại.")
-    st.stop()
-
 # ⬇ Lấy input từ người dùng ở sidebar trước
 with st.sidebar:
     st.markdown("""
