@@ -1,0 +1,5 @@
+Buổi 1: Thuật toán (Phần 1)|https://raw.githubusercontent.com/tranthanhthangbmt/AITutor_Gemini/main/Handout%20Buổi%201_Thuật%20toán%20(Phần%201)_v2.pdf
+Buổi 2: Thuật toán (Phần 2)|https://raw.githubusercontent.com/tranthanhthangbmt/AITutor_Gemini/main/Handout%20Buổi%202_Thuật%20toán%20(Phần%202)_v4.pdf
+Buổi 3: Bài toán đếm_(Phần 1)|https://raw.githubusercontent.com/tranthanhthangbmt/AITutor_Gemini/main/Slide_TRR02_Buổi%203_Bài%20toán%20đếm_(Phần%201).pdf
+Buổi 4: Bài toán đếm trong Nguyên lý Dirichlet và Các cấu hình tổ hợp|https://raw.githubusercontent.com/tranthanhthangbmt/AITutor_Gemini/main/handoutBuoi4.pdf
+Buổi 5: Bài toán liệt kê và Hệ thức truy hồi|https://raw.githubusercontent.com/tranthanhthangbmt/AITutor_Gemini/main/Handout_Buổi%205_Bài%20toán%20liệt%20kê%20và%20Hệ%20thức%20truy%20hồi_V3.pdf
