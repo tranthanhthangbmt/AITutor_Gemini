@@ -208,19 +208,17 @@ with st.sidebar:
     selected_lesson_link = available_lessons.get(selected_lesson, "").strip()
 
     default_link = available_lessons[selected_lesson]
-    
-    # Upload file thủ công
-    uploaded_file = st.file_uploader("📤 Tải lên file tài liệu (PDF, TXT, DOCX...)", type=["pdf", "txt", "docx"])
-    
-    # Chỉ hiển thị link nếu: đã chọn bài hợp lệ + chưa upload
-    if selected_lesson != "👉 Chọn bài học..." and selected_lesson_link and not uploaded_file:
-        st.markdown(f"🔗 **Tài liệu:** [Xem bài học trên GitHub]({selected_lesson_link})", unsafe_allow_html=True)
-    
+
     # Hiển thị link bên dưới selectbox nếu:
     # - Người dùng đã chọn một bài học hợp lệ (khác mặc định)
     # - Không có file upload
     if selected_lesson != "👉 Chọn bài học..." and not uploaded_file and selected_lesson_link:
         st.markdown(f"🔗 **Tài liệu:** [Xem bài học]({selected_lesson_link})", unsafe_allow_html=True)
+	
+    # Upload file thủ công
+    uploaded_file = st.file_uploader("📤 Tải lên file tài liệu (PDF, TXT, DOCX...)", type=["pdf", "txt", "docx"])
+    
+    
 
     # 🔄 Nút reset
     if st.button("🔄 Bắt đầu lại buổi học"):
