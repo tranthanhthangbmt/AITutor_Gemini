@@ -11,6 +11,11 @@ import docx #dùng để đọc file người dùng upload lên
 from bs4 import BeautifulSoup
 import streamlit.components.v1 as components
 from streamlit_javascript import st_javascript
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
+import tempfile
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
 
 # Đảm bảo st.set_page_config là lệnh đầu tiên
 # Giao diện Streamlit
@@ -200,25 +205,62 @@ with st.sidebar:
 
 	#nhấn nút kết thúc buổi học
     with st.expander("📥 Kết thúc buổi học"):
-        if st.button("✅ Kết xuất nội dung buổi học thành file .txt"):
+        if st.button("✅ Kết xuất nội dung buổi học thành file .txt và PDF"):
             if st.session_state.get("messages"):
                 output_text = ""
                 for msg in st.session_state.messages[1:]:  # bỏ prompt hệ thống
                     role = "Học sinh" if msg["role"] == "user" else "Gia sư AI"
                     text = msg["parts"][0]["text"]
                     output_text += f"\n[{role}]:\n{text}\n\n"
-    
-                # Tạo tên file an toàn
+        
+                # ✅ File name base
                 lesson_title_safe = st.session_state.get("lesson_source", "BaiHoc_AITutor")
-                lesson_title_safe = lesson_title_safe.replace("upload::", "").replace("lesson::", "")
-                file_name = f"BuoiHoc_{lesson_title_safe.replace(' ', '_').replace(':', '')}.txt"
-    
+                lesson_title_safe = lesson_title_safe.replace("upload::", "").replace("lesson::", "").replace(" ", "_").replace(":", "")
+                txt_file_name = f"BuoiHoc_{lesson_title_safe}.txt"
+                pdf_file_name = f"BuoiHoc_{lesson_title_safe}.pdf"
+        
+                # ✅ Nút tải .txt
                 st.download_button(
-                    label="📄 Tải về nội dung buổi học",
+                    label="📄 Tải file .txt",
                     data=output_text,
-                    file_name=file_name,
+                    file_name=txt_file_name,
                     mime="text/plain"
                 )
+
+                # Đăng ký font hỗ trợ Unicode
+                pdfmetrics.registerFont(TTFont("DejaVu", "fonts/DejaVuSans.ttf"))
+        
+                # ✅ Tạo file PDF tạm
+                with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp_pdf:
+                    c = canvas.Canvas(tmp_pdf.name, pagesize=letter)
+                    c.setFont("DejaVu", 12)  # dùng font Unicode
+                
+                    width, height = letter
+                    margin = 50
+                    y = height - margin
+                    lines = output_text.split("\n")
+                
+                    for line in lines:
+                        line = line.strip()
+                        if y < margin:
+                            c.showPage()
+                            c.setFont("DejaVu", 12)
+                            y = height - margin
+                        c.drawString(margin, y, line)
+                        y -= 16
+                
+                    c.save()
+        
+                    # Đọc lại file để tải về
+                    with open(tmp_pdf.name, "rb") as f:
+                        pdf_bytes = f.read()
+        
+                    st.download_button(
+                        label="📕 Tải file .pdf",
+                        data=pdf_bytes,
+                        file_name=pdf_file_name,
+                        mime="application/pdf"
+                    )
             else:
                 st.warning("⚠️ Chưa có nội dung để kết xuất.")
     
