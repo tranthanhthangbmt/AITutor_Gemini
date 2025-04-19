@@ -31,15 +31,27 @@ if not input_key and key_from_local:
     st.session_state["GEMINI_API_KEY"] = key_from_local
     input_key = key_from_local
 
-available_lessons = {
-    "👉 Chọn bài học...": "",
-    "Buổi 1: Thuật toán (Phần 1)": "https://raw.githubusercontent.com/tranthanhthangbmt/AITutor_Gemini/main/Handout Buổi 1_Thuật toán (Phần 1)_v2.pdf",
-    "Buổi 2: Thuật toán (Phần 2)": "https://raw.githubusercontent.com/tranthanhthangbmt/AITutor_Gemini/main/Handout Buổi 2_Thuật toán (Phần 2)_v4.pdf",
-    "Buổi 3: Bài toán đếm_(Phần 1)": "https://raw.githubusercontent.com/tranthanhthangbmt/AITutor_Gemini/main/Slide_TRR02_Buổi 3_Bài toán đếm_(Phần 1).pdf",    
-    "Buổi 4: Bài toán đếm trong Nguyên lý Dirichlet và Các cấu hình tổ hợp": "https://raw.githubusercontent.com/tranthanhthangbmt/AITutor_Gemini/main/handoutBuoi4.pdf",
-    "Buổi 5: Bài toán liệt kê và Hệ thức truy hồi": "https://raw.githubusercontent.com/tranthanhthangbmt/AITutor_Gemini/main/Handout_Buổi 5_Bài toán liệt kê và Hệ thức truy hồi_V3.pdf"  
-    # Bạn có thể thêm các buổi khác ở đây
-}
+@st.cache_data
+def load_available_lessons_from_txt(url):
+    try:
+        response = requests.get(url)
+        if response.status_code == 200:
+            lines = response.text.strip().splitlines()
+            lessons = {"👉 Chọn bài học...": ""}
+            for line in lines:
+                if "|" in line:
+                    name, link = line.split("|", 1)
+                    lessons[name.strip()] = link.strip()
+            return lessons
+        else:
+            st.warning("⚠️ Không thể tải danh sách bài học từ GitHub.")
+            return {"👉 Chọn bài học...": ""}
+    except Exception as e:
+        st.error(f"Lỗi khi đọc danh sách bài học: {e}")
+        return {"👉 Chọn bài học...": ""}
+
+LESSON_LIST_URL = "https://raw.githubusercontent.com/tranthanhthangbmt/AITutor_Gemini/main/Data/DiscreteMathematicsLesson.txt.txt"
+available_lessons = load_available_lessons_from_txt(LESSON_LIST_URL)
 
 def clean_html_to_text(text):
     soup = BeautifulSoup(text, "html.parser")
