@@ -563,6 +563,64 @@ else:
 # Nếu người học đã cung cấp tài liệu → Ghi đè để bắt đầu buổi học
 #if (selected_lesson != "👉 Chọn bài học..." or file_url.strip()) and pdf_context:
 if pdf_context:
+    # Ưu tiên lấy dòng tiêu đề từ tài liệu
+    lesson_title_extracted = None
+    for line in pdf_context.splitlines():
+        line = line.strip()
+        if len(line) > 10 and any(kw in line.lower() for kw in ["buổi", "bài", "bài học", "chủ đề"]):
+            lesson_title_extracted = line
+            break
+
+    # Xác định tên bài học hợp lý
+    fallback_name = uploaded_file.name if uploaded_file else selected_lesson
+    lesson_title = lesson_title_extracted or fallback_name or "Bài học"
+
+    # Gọi Gemini để tóm tắt tài liệu
+    try:
+        response = requests.post(
+            GEMINI_API_URL,
+            headers={"Content-Type": "application/json"},
+            params={"key": API_KEY},
+            json={
+                "contents": [
+                    {"parts": [{"text": f"Tóm tắt ngắn gọn (2-3 câu) nội dung sau, dùng văn phong thân thiện, không liệt kê gạch đầu dòng:\n\n{pdf_context[:2500]}"}]}
+                ]
+            }
+        )
+        if response.status_code == 200:
+            lesson_summary = response.json()["candidates"][0]["content"]["parts"][0]["text"]
+        else:
+            lesson_summary = ""
+    except Exception as e:
+        lesson_summary = ""
+
+    # Gửi toàn bộ tài liệu vào PROMPT khởi tạo
+    PROMPT_LESSON_CONTEXT = f"""
+    {SYSTEM_PROMPT_Tutor_AI}
+
+    # Bạn sẽ hướng dẫn buổi học hôm nay với tài liệu sau:
+
+    ## Bài học: {lesson_title}
+
+    --- START OF HANDBOOK CONTENT ---
+    {pdf_context}
+    --- END OF HANDBOOK CONTENT ---
+    """
+
+    # Reset session nếu file/tài liệu mới
+    if "lesson_source" not in st.session_state or st.session_state.lesson_source != current_source:
+        greeting = f"📘 Mình đã đọc xong tài liệu: **{lesson_title}**."
+        if lesson_summary:
+            greeting += f"\n\n{lesson_summary}"
+        greeting += "\n\nBạn đã sẵn sàng bắt đầu buổi học chưa?"
+
+        st.session_state.messages = [
+            {"role": "user", "parts": [{"text": PROMPT_LESSON_CONTEXT}]},
+            {"role": "model", "parts": [{"text": greeting}]}
+        ]
+        st.session_state.lesson_source = current_source
+        
+    #Phần chọn bài học
     lesson_title = selected_lesson if selected_lesson != "👉 Chọn bài học..." else "Bài học tùy chỉnh"
 
     PROMPT_LESSON_CONTEXT = f"""
