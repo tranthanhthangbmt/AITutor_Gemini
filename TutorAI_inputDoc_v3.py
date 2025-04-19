@@ -213,7 +213,7 @@ with st.sidebar:
     
     # 🔗 Hiển thị link NGAY BÊN DƯỚI selectbox, nếu thỏa điều kiện
     if selected_lesson != "👉 Chọn bài học..." and selected_lesson_link:
-        st.markdown(f"🔗 **Tài liệu:** [Xem bài học trên GitHub]({selected_lesson_link})", unsafe_allow_html=True)
+        st.markdown(f"🔗 **Tài liệu:** [Xem bài học]({selected_lesson_link})", unsafe_allow_html=True)
     
     # 📤 Sau khi hiện link (nếu có), hiển thị phần upload
     uploaded_file = st.file_uploader("📤 Tải lên file tài liệu (PDF, TXT, DOCX...)", type=["pdf", "txt", "docx"])
