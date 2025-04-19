@@ -14,6 +14,8 @@ from streamlit_javascript import st_javascript
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 import tempfile
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
 
 # Đảm bảo st.set_page_config là lệnh đầu tiên
 # Giao diện Streamlit
@@ -224,23 +226,29 @@ with st.sidebar:
                     file_name=txt_file_name,
                     mime="text/plain"
                 )
+
+                # Đăng ký font hỗ trợ Unicode
+                pdfmetrics.registerFont(TTFont("DejaVu", "fonts/DejaVuSans.ttf"))
         
                 # ✅ Tạo file PDF tạm
                 with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp_pdf:
                     c = canvas.Canvas(tmp_pdf.name, pagesize=letter)
+                    c.setFont("DejaVu", 12)  # dùng font Unicode
+                
                     width, height = letter
                     margin = 50
                     y = height - margin
                     lines = output_text.split("\n")
-        
+                
                     for line in lines:
                         line = line.strip()
                         if y < margin:
                             c.showPage()
+                            c.setFont("DejaVu", 12)
                             y = height - margin
                         c.drawString(margin, y, line)
-                        y -= 14  # độ cao dòng
-        
+                        y -= 16
+                
                     c.save()
         
                     # Đọc lại file để tải về
