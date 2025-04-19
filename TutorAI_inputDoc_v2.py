@@ -70,13 +70,39 @@ def extract_text_from_uploaded_file(uploaded_file):
     except Exception as e:
         return f"❌ Lỗi đọc file: {e}"
 
-
+# Xác thực API bằng request test
+def is_valid_gemini_key(key):
+    try:
+        test_response = requests.post(
+            GEMINI_API_URL,
+            headers={"Content-Type": "application/json"},
+            params={"key": key},
+            json={"contents": [{"parts": [{"text": "hello"}]}]},
+            timeout=5
+        )
+        return test_response.status_code == 200
+    except Exception:
+        return False
 
 # ⬇ Lấy input từ người dùng ở sidebar trước
 with st.sidebar:
+    st.markdown("""
+    <style>
+    /* Ẩn hoàn toàn iframe tạo bởi st_javascript (vẫn hoạt động, chỉ không chiếm không gian) */
+    iframe[title="streamlit_javascript.streamlit_javascript"] {
+        display: none !important;
+    }
+    
+    /* Ẩn container chứa iframe (chính là div tạo khoảng trống) */
+    div[data-testid="stCustomComponentV1"] {
+        display: none !important;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+    
     #for logo
     # Thay link này bằng logo thật của bạn (link raw từ GitHub)
-    logo_url = "https://raw.githubusercontent.com/tranthanhthangbmt/AITutor_Gemini/main/LOGO_UDA_2023_VN_EN_chuan2.png"    
+    logo_url = "https://raw.githubusercontent.com/tranthanhthangbmt/AITutor_Gemini/main/LOGO_UDA_2023_VN_EN_chuan2.png"
 
     st.sidebar.markdown(
         f"""
@@ -86,53 +112,77 @@ with st.sidebar:
         """,
         unsafe_allow_html=True
     )
+
+    # ✅ Nhúng script JS duy nhất để tự động điền & lưu API key
+    key_from_local = st_javascript("""
+    (() => {
+        const inputEl = window.parent.document.querySelector('input[data-testid="stTextInput"][type="password"]');
+        const storedKey = localStorage.getItem("gemini_api_key");
     
-    input_key = st.text_input("🔑 Gemini API Key", key="GEMINI_API_KEY", type="password")
-    components.html(
-        """
-        <script>
-            const inputEl = window.parent.document.querySelector('input[data-testid="stTextInput"][type="password"]');
-            const storedKey = localStorage.getItem("gemini_api_key");
+        // Tự động điền nếu textbox rỗng
+        if (inputEl && storedKey && inputEl.value === "") {
+            inputEl.value = JSON.parse(storedKey);
+            inputEl.dispatchEvent(new Event("input", { bubbles: true }));
+        }
     
-            // Nếu input rỗng và localStorage có key → tự động điền
-            if (inputEl && storedKey && inputEl.value === "") {
+        // Lưu khi người dùng nhập
+        const saveAPI = () => {
+            if (inputEl && inputEl.value) {
+                localStorage.setItem("gemini_api_key", JSON.stringify(inputEl.value));
+            }
+        };
+        inputEl?.addEventListener("blur", saveAPI);
+        inputEl?.addEventListener("change", saveAPI);
+        inputEl?.addEventListener("keydown", e => {
+            if (e.key === "Enter") saveAPI();
+        });
+    
+        return storedKey ? JSON.parse(storedKey) : "";
+    })()
+    """)
+    
+    # ✅ Ưu tiên lấy từ localStorage nếu session chưa có
+    input_key = st.session_state.get("GEMINI_API_KEY", "")
+    if not input_key and key_from_local:
+        st.session_state["GEMINI_API_KEY"] = key_from_local
+        input_key = key_from_local
+    
+    # ✅ Tạo textbox với giá trị đúng
+    input_key = st.text_input("🔑 Gemini API Key", value=input_key, type="password", key="GEMINI_API_KEY")
+
+    st_javascript("""
+    (() => {
+        const inputEl = window.parent.document.querySelector('input[data-testid="stTextInput"][type="password"]');
+        const storedKey = localStorage.getItem("gemini_api_key");
+    
+        // Tự điền nếu còn trống
+        const tryFillKey = () => {
+            if (inputEl && storedKey && inputEl.value.trim() === "") {
                 inputEl.value = JSON.parse(storedKey);
                 inputEl.dispatchEvent(new Event("input", { bubbles: true }));
                 console.log("✅ Tự động điền API từ localStorage.");
             }
+        };
     
-            // Lưu API mỗi khi người dùng rời khỏi input hoặc nhấn Enter
-            inputEl?.addEventListener("change", () => {
-                if (inputEl.value) {
-                    localStorage.setItem("gemini_api_key", JSON.stringify(inputEl.value));
-                    console.log("💾 Đã lưu API vào localStorage");
-                }
-            });
+        tryFillKey();  // gọi ngay khi chạy
+        const interval = setInterval(tryFillKey, 1000); // kiểm tra lại mỗi giây
     
-            // Lưu cả khi blur (click ra ngoài)
-            inputEl?.addEventListener("blur", () => {
-                if (inputEl.value) {
-                    localStorage.setItem("gemini_api_key", JSON.stringify(inputEl.value));
-                    console.log("💾 Đã lưu API sau khi blur");
-                }
-            });
+        // Lưu khi thay đổi
+        const saveAPI = () => {
+            if (inputEl && inputEl.value) {
+                localStorage.setItem("gemini_api_key", JSON.stringify(inputEl.value));
+                console.log("💾 Đã lưu API vào localStorage.");
+            }
+        };
     
-            // Lưu nếu người dùng nhấn Enter (phím Enter trong textbox)
-            inputEl?.addEventListener("keydown", (e) => {
-                if (e.key === "Enter" && inputEl.value) {
-                    localStorage.setItem("gemini_api_key", JSON.stringify(inputEl.value));
-                    console.log("💾 Đã lưu API khi nhấn Enter");
-                }
-            });
-        </script>
-        """,
-        height=0,
-        scrolling=False
-    )
+        inputEl?.addEventListener("change", saveAPI);
+        inputEl?.addEventListener("blur", saveAPI);
+        inputEl?.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") saveAPI();
+        });
+    })();
+    """)
     "[Lấy API key tại đây](https://aistudio.google.com/app/apikey)"
-
-    # Sau khi nhập, lưu vào localStorage
-    st_javascript(f"window.localStorage.setItem('gemini_api_key', JSON.stringify('{input_key}'))")
     
     st.markdown("📚 **Chọn bài học hoặc tải lên bài học**")
     selected_lesson = st.selectbox("📖 Chọn bài học", list(available_lessons.keys()))
