@@ -31,15 +31,27 @@ if not input_key and key_from_local:
     st.session_state["GEMINI_API_KEY"] = key_from_local
     input_key = key_from_local
 
-available_lessons = {
-    "👉 Chọn bài học...": "",
-    "Buổi 1: Thuật toán (Phần 1)": "https://raw.githubusercontent.com/tranthanhthangbmt/AITutor_Gemini/main/Handout Buổi 1_Thuật toán (Phần 1)_v2.pdf",
-    "Buổi 2: Thuật toán (Phần 2)": "https://raw.githubusercontent.com/tranthanhthangbmt/AITutor_Gemini/main/Handout Buổi 2_Thuật toán (Phần 2)_v4.pdf",
-    "Buổi 3: Bài toán đếm_(Phần 1)": "https://raw.githubusercontent.com/tranthanhthangbmt/AITutor_Gemini/main/Slide_TRR02_Buổi 3_Bài toán đếm_(Phần 1).pdf",    
-    "Buổi 4: Bài toán đếm trong Nguyên lý Dirichlet và Các cấu hình tổ hợp": "https://raw.githubusercontent.com/tranthanhthangbmt/AITutor_Gemini/main/handoutBuoi4.pdf",
-    "Buổi 5: Bài toán liệt kê và Hệ thức truy hồi": "https://raw.githubusercontent.com/tranthanhthangbmt/AITutor_Gemini/main/Handout_Buổi 5_Bài toán liệt kê và Hệ thức truy hồi_V3.pdf"  
-    # Bạn có thể thêm các buổi khác ở đây
-}
+@st.cache_data
+def load_available_lessons_from_txt(url):
+    try:
+        response = requests.get(url)
+        if response.status_code == 200:
+            lines = response.text.strip().splitlines()
+            lessons = {"👉 Chọn bài học...": ""}
+            for line in lines:
+                if "|" in line:
+                    name, link = line.split("|", 1)
+                    lessons[name.strip()] = link.strip()
+            return lessons
+        else:
+            st.warning("⚠️ Không thể tải danh sách bài học từ GitHub.")
+            return {"👉 Chọn bài học...": ""}
+    except Exception as e:
+        st.error(f"Lỗi khi đọc danh sách bài học: {e}")
+        return {"👉 Chọn bài học...": ""}
+        
+LESSON_LIST_URL = "https://raw.githubusercontent.com/tranthanhthangbmt/AITutor_Gemini/main/Data/DiscreteMathematicsLesson.txt"
+available_lessons = load_available_lessons_from_txt(LESSON_LIST_URL)
 
 def clean_html_to_text(text):
     soup = BeautifulSoup(text, "html.parser")
@@ -190,10 +202,26 @@ with st.sidebar:
     "[Lấy API key tại đây](https://aistudio.google.com/app/apikey)"
     
     st.markdown("📚 **Chọn bài học hoặc tải lên bài học**")
+
+    # 📖 Chọn bài học
     selected_lesson = st.selectbox("📖 Chọn bài học", list(available_lessons.keys()))
     default_link = available_lessons[selected_lesson]
+    selected_lesson_link = available_lessons.get(selected_lesson, "").strip()
     
+    # 📤 Tải file tài liệu (mục tiêu là đặt bên dưới link)
+    uploaded_file = None  # Khởi tạo trước để dùng điều kiện bên trên
+    
+    # 🔗 Hiển thị link NGAY BÊN DƯỚI selectbox, nếu thỏa điều kiện
+    if selected_lesson != "👉 Chọn bài học..." and selected_lesson_link:
+        st.markdown(f"🔗 **Tài liệu:** [Xem bài học]({selected_lesson_link})", unsafe_allow_html=True)
+    
+    # 📤 Sau khi hiện link (nếu có), hiển thị phần upload
     uploaded_file = st.file_uploader("📤 Tải lên file tài liệu (PDF, TXT, DOCX...)", type=["pdf", "txt", "docx"])
+    
+    # ✅ Nếu người dùng upload tài liệu riêng → ẩn link (từ vòng sau trở đi)
+    if uploaded_file:
+        # Có thể xoá dòng link bằng session hoặc không hiển thị ở các phần sau
+        pass
 
     # 🔄 Nút reset
     if st.button("🔄 Bắt đầu lại buổi học"):
