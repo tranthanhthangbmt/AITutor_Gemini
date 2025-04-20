@@ -213,13 +213,15 @@ with st.sidebar:
         
         if selected_lesson != "👉 Chọn bài học..." and selected_lesson_link:
             st.markdown(f"🔗 **Tài liệu:** [Xem bài học]({selected_lesson_link})", unsafe_allow_html=True)
-            
-    """ st.markdown("📚 **Chọn bài học hoặc tải lên bài học**")
-    # 📖 Chọn bài học
-    selected_lesson = st.selectbox("📖 Chọn bài học", list(available_lessons.keys()))
+
+        uploaded_file = st.file_uploader("📤 Tải lên file tài liệu (PDF, TXT, DOCX...)", type=["pdf", "txt", "docx"])
+    else:
+        uploaded_file = None
+        selected_lesson = "👉 Chọn bài học..."
+        
+        selected_lesson_link = available_lessons.get(selected_lesson, "").strip() """
+
     default_link = available_lessons[selected_lesson]
-    selected_lesson_link = available_lessons.get(selected_lesson, "").strip() """
-    
     # 📤 Tải file tài liệu (mục tiêu là đặt bên dưới link)
     uploaded_file = None  # Khởi tạo trước để dùng điều kiện bên trên
     
