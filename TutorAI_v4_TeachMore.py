@@ -214,7 +214,7 @@ with st.sidebar:
         if selected_lesson != "👉 Chọn bài học..." and selected_lesson_link:
             st.markdown(f"🔗 **Tài liệu:** [Xem bài học]({selected_lesson_link})", unsafe_allow_html=True)
 
-        uploaded_file = st.file_uploader("📤 Tải lên file tài liệu (PDF, TXT, DOCX...)", type=["pdf", "txt", "docx"])
+        uploaded_files = st.file_uploader("📤 Tải lên nhiều file bài học (PDF, TXT, DOCX)", type=["pdf", "txt", "docx"], accept_multiple_files=True)
     else:
         uploaded_file = None
         selected_lesson = "👉 Chọn bài học..."        
@@ -235,7 +235,12 @@ with st.sidebar:
     if uploaded_file:
         # Có thể xoá dòng link bằng session hoặc không hiển thị ở các phần sau
         pass
-
+    #hiển thị danh sách các files đã upload lên
+    if uploaded_files:
+        st.markdown("📄 **Các file đã tải lên:**")
+        for f in uploaded_files:
+            st.markdown(f"- {f.name}")
+        
     # 🔄 Nút reset
     if st.button("🔄 Bắt đầu lại buổi học"):
         if "messages" in st.session_state:
@@ -402,7 +407,8 @@ if not API_KEY:
     st.stop()
 
 #input file bài học
-if selected_lesson == "👉 Chọn bài học..." and uploaded_file is None:
+#if selected_lesson == "👉 Chọn bài học..." and uploaded_file is None:
+if selected_lesson == "👉 Chọn bài học..." and not uploaded_files: #kiểm tra là đã tải liên nhiều file
     st.info("📥 Hãy tải lên tài liệu PDF/TXT hoặc chọn một bài học từ danh sách bên trên để bắt đầu.")
     st.stop()
 
@@ -561,7 +567,17 @@ if "messages" not in st.session_state:
 
 # Bước 2: Ưu tiên tài liệu từ upload, nếu không thì dùng tài liệu từ link
 if uploaded_file:
-    pdf_context = extract_text_from_uploaded_file(uploaded_file)
+    #pdf_context = extract_text_from_uploaded_file(uploaded_file)
+    #gộp các file pdf lại 
+    pdf_context_list = []
+    for file in uploaded_files:
+        text = extract_text_from_uploaded_file(file)
+        pdf_context_list.append(f"\n--- File: {file.name} ---\n{text.strip()}")
+    
+    pdf_context = "\n".join(pdf_context_list)
+    lesson_title = " + ".join([file.name for file in uploaded_files])
+    current_source = "upload::" + lesson_title
+    
     lesson_title = uploaded_file.name
     current_source = f"upload::{uploaded_file.name}"
 elif selected_lesson != "👉 Chọn bài học..." and default_link.strip():
