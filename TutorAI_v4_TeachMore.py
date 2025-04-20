@@ -26,6 +26,8 @@ import os
 # Giao diện Streamlit
 st.set_page_config(page_title="Tutor AI", page_icon="🎓")
 
+section_index = {}
+
 uploaded_files = []  # ✅ đảm bảo biến tồn tại trong mọi trường hợp
 
 input_key = st.session_state.get("GEMINI_API_KEY", "")
