@@ -231,7 +231,7 @@ with st.sidebar:
         st.markdown(f"🔗 **Tài liệu:** [Xem bài học]({selected_lesson_link})", unsafe_allow_html=True)
     
     # 📤 Sau khi hiện link (nếu có), hiển thị phần upload
-    uploaded_file = st.file_uploader("📤 Tải lên file tài liệu (PDF, TXT, DOCX...)", type=["pdf", "txt", "docx"])
+    #uploaded_file = st.file_uploader("📤 Tải lên file tài liệu (PDF, TXT, DOCX...)", type=["pdf", "txt", "docx"])
     
     # ✅ Nếu người dùng upload tài liệu riêng → ẩn link (từ vòng sau trở đi)
     if uploaded_files:
