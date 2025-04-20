@@ -22,6 +22,19 @@ import base64
 import uuid
 import os
 
+import tempfile #để mở file pdf tham chiếu
+import base64
+import tempfile
+
+def embed_pdf_viewer_from_path(file_path, page=1):
+    with open(file_path, "rb") as f:
+        base64_pdf = base64.b64encode(f.read()).decode("utf-8")
+
+    pdf_display = f"""
+    <iframe src="data:application/pdf;base64,{base64_pdf}#page={page}" width="100%" height="650px" type="application/pdf"></iframe>
+    """
+    return pdf_display
+    
 # Đảm bảo st.set_page_config là lệnh đầu tiên
 # Giao diện Streamlit
 st.set_page_config(page_title="Tutor AI", page_icon="🎓")
@@ -331,7 +344,7 @@ mathjax_script = """
   src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
 </script>
 """
-
+        
 st.markdown(mathjax_script, unsafe_allow_html=True)
 
 def convert_to_mathjax(text):
@@ -519,6 +532,12 @@ SYSTEM_PROMPT_Tutor_AI = f"""
         - Nếu tôi từ chối hoặc không phản hồi, bạn hãy tiếp tục buổi học như bình thường mà không ép buộc.  
         - Gợi ý có thể ở dạng: “Nếu bạn muốn ôn lại và hệ thống hóa kiến thức, bạn có thể thử giảng lại cho mình khái niệm bạn vừa học. Bạn có thể sử dụng ví dụ trong handout để minh họa nhé!”   
 
+# Gợi ý trích dẫn và liên kết đến tài liệu:
+    - Khi nhắc đến một phần cụ thể trong tài liệu (như "Mục 2.3", "Phần Đệ quy tuyến tính", "trang 7"), hãy ghi rõ tiêu đề hoặc số trang để người học dễ tra cứu.
+    - Nếu có thể, hãy thêm ký hiệu đặc biệt cuối câu như `[pdf_page_7]` để hỗ trợ người học mở đúng trang trong tài liệu đã tải lên.
+        - Ví dụ: “Bạn có thể đọc lại phần Đệ quy tuyến tính trong handout (trang 7). [pdf_page_7]”
+    - KHÔNG cần tạo link trực tiếp – hệ thống sẽ xử lý `[pdf_page_X]` để nhảy đến trang phù hợp.
+
 # Định dạng câu hỏi trắc nghiệm do tutor đưa ra cho người học:
     - Câu hỏi phải được đánh số rõ ràng, ví dụ: "Câu 1:", "Câu 2:", v.v.
     - Các lựa chọn A, B, C, D phải được trình bày trên **các dòng riêng biệt**, theo định dạng sau:
@@ -592,6 +611,15 @@ if uploaded_files:
     pdf_context = "\n".join(pdf_context_list)
     lesson_title = " + ".join([file.name for file in uploaded_files])
     current_source = f"upload::{lesson_title}"
+
+    # BƯỚC 1: Lưu file PDF đầu tiên vào thư mục tạm để nhúng xem
+    uploaded_pdf_path = None  # lưu đường dẫn file tạm
+    for file in uploaded_files:
+        if file.name.lower().endswith(".pdf"):
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
+                tmp.write(file.read())
+                uploaded_pdf_path = tmp.name
+            break
     
     #lesson_title = uploaded_file.name
     #current_source = f"upload::{uploaded_file.name}"
@@ -695,6 +723,13 @@ if user_input:
     # Gọi Gemini phản hồi
     with st.spinner("🤖 Đang phản hồi..."):
         reply = chat_with_gemini(st.session_state.messages)
+
+        # Sau khi in ra reply:
+        match = re.search(r"\[pdf_page_(\d+)\]", reply)
+        if match and uploaded_pdf_path:
+            page_number = int(match.group(1))
+            st.markdown(f"### 📖 Phần được trích dẫn trong tài liệu (Trang {page_number})")
+            st.components.v1.html(embed_pdf_viewer_from_path(uploaded_pdf_path, page=page_number), height=670)
 
         # Nếu có thể xuất HTML (như <p>...</p>)
         reply = clean_html_to_text(reply)
