@@ -24,7 +24,8 @@ import os
 
 # Đảm bảo st.set_page_config là lệnh đầu tiên
 # Giao diện Streamlit
-st.set_page_config(page_title="Tutor AI", page_icon="🎓")
+#st.set_page_config(page_title="Tutor AI", page_icon="🎓")
+st.set_page_config(page_title="Tutor AI", page_icon="🎓", layout="wide")
 
 section_index = {}
 
@@ -325,7 +326,19 @@ with st.sidebar:
                 st.warning("⚠️ Chưa có nội dung để kết xuất.")
     
 st.title("🎓 Tutor AI")
-left_col, right_col = st.columns([3, 1])
+#left_col, right_col = st.columns([3, 1])
+left_col, spacer, right_col = st.columns([4, 0.2, 1.5])
+with st.container():
+    st.markdown(
+        """
+        <div style='text-align: center; margin: 1rem 0;'>
+            <a href="#giua" style="font-weight: bold; font-size: 16px; color: #3366cc;">
+                🔄 Chuyển giữa phần học & mục lục
+            </a>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
             
 # Nhúng script MathJax
 mathjax_script = """
