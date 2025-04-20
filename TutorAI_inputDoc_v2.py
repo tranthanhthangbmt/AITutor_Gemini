@@ -17,9 +17,16 @@ import tempfile
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 
+from gtts import gTTS #for audio
+import base64
+import uuid
+import os
+
 # Đảm bảo st.set_page_config là lệnh đầu tiên
 # Giao diện Streamlit
 st.set_page_config(page_title="Tutor AI", page_icon="🎓")
+
+uploaded_files = []  # ✅ đảm bảo biến tồn tại trong mọi trường hợp
 
 input_key = st.session_state.get("GEMINI_API_KEY", "")
 
@@ -101,6 +108,10 @@ def is_valid_gemini_key(key):
     except Exception:
         return False
 
+#thiết lập ẩn phần bài học
+if "show_sidebar_inputs" not in st.session_state:
+    st.session_state["show_sidebar_inputs"] = False  # hoặc True nếu bạn muốn bật mặc định
+    
 # ⬇ Lấy input từ người dùng ở sidebar trước
 with st.sidebar:
     st.markdown("""
@@ -200,14 +211,23 @@ with st.sidebar:
     })();
     """)
     "[Lấy API key tại đây](https://aistudio.google.com/app/apikey)"
-    
-    st.markdown("📚 **Chọn bài học hoặc tải lên bài học**")
+    if st.session_state.get("show_sidebar_inputs", False):
+        st.markdown("📚 **Chọn bài học hoặc tải lên bài học**")
+        
+        selected_lesson = st.selectbox("📖 Chọn bài học", list(available_lessons.keys()))
+        default_link = available_lessons[selected_lesson]
+        selected_lesson_link = available_lessons.get(selected_lesson, "").strip()
+        
+        if selected_lesson != "👉 Chọn bài học..." and selected_lesson_link:
+            st.markdown(f"🔗 **Tài liệu:** [Xem bài học]({selected_lesson_link})", unsafe_allow_html=True)
 
-    # 📖 Chọn bài học
-    selected_lesson = st.selectbox("📖 Chọn bài học", list(available_lessons.keys()))
+        uploaded_files = st.file_uploader("📤 Tải lên nhiều file bài học (PDF, TXT, DOCX)", type=["pdf", "txt", "docx"], accept_multiple_files=True)
+    else:
+        # uploaded_file = None #bỏ vì bạn có thể xóa dòng này nếu đã chuyển sang uploaded_files:
+        selected_lesson = "👉 Chọn bài học..."        
+        selected_lesson_link = "" #available_lessons.get(selected_lesson, "").strip() """
+
     default_link = available_lessons[selected_lesson]
-    selected_lesson_link = available_lessons.get(selected_lesson, "").strip()
-    
     # 📤 Tải file tài liệu (mục tiêu là đặt bên dưới link)
     uploaded_file = None  # Khởi tạo trước để dùng điều kiện bên trên
     
@@ -216,13 +236,23 @@ with st.sidebar:
         st.markdown(f"🔗 **Tài liệu:** [Xem bài học]({selected_lesson_link})", unsafe_allow_html=True)
     
     # 📤 Sau khi hiện link (nếu có), hiển thị phần upload
-    uploaded_file = st.file_uploader("📤 Tải lên file tài liệu (PDF, TXT, DOCX...)", type=["pdf", "txt", "docx"])
+    #uploaded_file = st.file_uploader("📤 Tải lên file tài liệu (PDF, TXT, DOCX...)", type=["pdf", "txt", "docx"])
+    uploaded_files = st.file_uploader(
+        "📤 Tải lên nhiều file bài học (PDF, TXT, DOCX)", 
+        type=["pdf", "txt", "docx"], 
+        accept_multiple_files=True
+    )
     
     # ✅ Nếu người dùng upload tài liệu riêng → ẩn link (từ vòng sau trở đi)
-    if uploaded_file:
+    if uploaded_files:
         # Có thể xoá dòng link bằng session hoặc không hiển thị ở các phần sau
         pass
-
+    #hiển thị danh sách các files đã upload lên
+    if uploaded_files:
+        st.markdown("📄 **Các file đã tải lên:**")
+        for f in uploaded_files:
+            st.markdown(f"- {f.name}")
+        
     # 🔄 Nút reset
     if st.button("🔄 Bắt đầu lại buổi học"):
         if "messages" in st.session_state:
@@ -389,7 +419,8 @@ if not API_KEY:
     st.stop()
 
 #input file bài học
-if selected_lesson == "👉 Chọn bài học..." and uploaded_file is None:
+#if selected_lesson == "👉 Chọn bài học..." and uploaded_file is None:
+if selected_lesson == "👉 Chọn bài học..." and not uploaded_files: #kiểm tra là đã tải liên nhiều file
     st.info("📥 Hãy tải lên tài liệu PDF/TXT hoặc chọn một bài học từ danh sách bên trên để bắt đầu.")
     st.stop()
 
@@ -533,6 +564,9 @@ def chat_with_gemini(messages):
         except Exception as e:
             return f"Lỗi phân tích phản hồi: {e}"
     else:
+        #return f"Lỗi API: {response.status_code} - {response.text}"
+        if response.status_code == 429 and "quota" in response.text.lower():
+            return "⚠️ Mã API của bạn đã hết hạn hoặc vượt quá giới hạn sử dụng. Vui lòng lấy mã API mới để tiếp tục việc học."
         return f"Lỗi API: {response.status_code} - {response.text}"
 
 # Giao diện Streamlit
@@ -547,10 +581,20 @@ if "messages" not in st.session_state:
     ]
 
 # Bước 2: Ưu tiên tài liệu từ upload, nếu không thì dùng tài liệu từ link
-if uploaded_file:
-    pdf_context = extract_text_from_uploaded_file(uploaded_file)
-    lesson_title = uploaded_file.name
-    current_source = f"upload::{uploaded_file.name}"
+if uploaded_files:
+    #pdf_context = extract_text_from_uploaded_file(uploaded_file)
+    #gộp các file pdf lại 
+    pdf_context_list = []
+    for file in uploaded_files:
+        text = extract_text_from_uploaded_file(file)
+        pdf_context_list.append(f"\n--- File: {file.name} ---\n{text.strip()}")
+
+    pdf_context = "\n".join(pdf_context_list)
+    lesson_title = " + ".join([file.name for file in uploaded_files])
+    current_source = f"upload::{lesson_title}"
+    
+    #lesson_title = uploaded_file.name
+    #current_source = f"upload::{uploaded_file.name}"
 elif selected_lesson != "👉 Chọn bài học..." and default_link.strip():
     pdf_context = extract_pdf_text_from_url(default_link)
     lesson_title = selected_lesson
@@ -609,10 +653,10 @@ if pdf_context:
 
     # Reset session nếu file/tài liệu mới
     if "lesson_source" not in st.session_state or st.session_state.lesson_source != current_source:
-        greeting = f"📘 Mình đã đọc xong tài liệu: **{lesson_title}**."
+        greeting = "📘 Mình đã sẵn sàng để bắt đầu buổi học dựa trên tài liệu bạn đã cung cấp."
         if lesson_summary:
             greeting += f"\n\n{lesson_summary}"
-        greeting += "\n\nBạn đã sẵn sàng bắt đầu buổi học chưa?"
+        greeting += "\n\nBạn đã sẵn sàng chưa?"
 
         st.session_state.messages = [
             {"role": "user", "parts": [{"text": PROMPT_LESSON_CONTEXT}]},
@@ -634,13 +678,6 @@ if pdf_context:
     {pdf_context}
     --- END OF HANDBOOK CONTENT ---
     """
-    
-    if "lesson_source" not in st.session_state or st.session_state.lesson_source != current_source:
-        st.session_state.messages = [
-            {"role": "user", "parts": [{"text": PROMPT_LESSON_CONTEXT}]},
-            {"role": "model", "parts": [{"text": f"📘 Mình đã đọc xong tài liệu: **{lesson_title}**. Bạn đã sẵn sàng bắt đầu buổi học chưa?"}]}
-        ]
-        st.session_state.lesson_source = current_source
 
 # Hiển thị lịch sử chat
 for msg in st.session_state.messages[1:]:
@@ -667,6 +704,30 @@ if user_input:
         
         # Hiển thị
         st.chat_message("🤖 Gia sư AI").markdown(reply)
+        # Tạo file âm thanh tạm
+        tts = gTTS(text=reply, lang='vi')
+        temp_filename = f"temp_{uuid.uuid4().hex}.mp3"
+        tts.save(temp_filename)
+        
+        # Đọc và encode base64
+        with open(temp_filename, "rb") as f:
+            audio_bytes = f.read()
+            b64 = base64.b64encode(audio_bytes).decode()
+        
+        # Xoá file tạm sau khi encode
+        os.remove(temp_filename)
+        
+        # Hiển thị nút nghe
+        st.markdown("""
+        <details>
+        <summary>🔊 Nghe lại phản hồi</summary>
+        <br>
+        <audio controls>
+            <source src="data:audio/mp3;base64,{b64}" type="audio/mp3">
+            Trình duyệt của bạn không hỗ trợ phát âm thanh.
+        </audio>
+        </details>
+        """.format(b64=b64), unsafe_allow_html=True)
 
     # Chuyển biểu thức toán trong ngoặc đơn => LaTeX inline
     #reply = convert_parentheses_to_latex(reply)
