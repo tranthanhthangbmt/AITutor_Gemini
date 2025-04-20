@@ -630,7 +630,7 @@ if uploaded_files:
     pdf_context_list = []
     pdf_context_list = []
     
-	uploaded_pdf_path = None
+    uploaded_pdf_path = None
 	section_index = {}
 	section_index_file = None
 	section_hint = ""
