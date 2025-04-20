@@ -22,43 +22,6 @@ import base64
 import uuid
 import os
 
-import tempfile #để mở file pdf tham chiếu
-import base64
-import tempfile
-
-import json
-
-def extract_section_index_from_pdf(pdf_path):
-    index = {}
-    with fitz.open(pdf_path) as doc:
-        for page_num, page in enumerate(doc, start=1):
-            text = page.get_text()
-            lines = text.split("\n")
-            for line in lines:
-                clean = line.strip()
-                # Điều kiện: tiêu đề ngắn, có chứa từ khóa hoặc viết hoa toàn bộ
-                if (
-                    len(clean) > 5
-                    and len(clean) < 100
-                    and any(kw in clean.upper() for kw in ["PHẦN", "CHƯƠNG", "MỤC", "I.", "II.", "III."])
-                ):
-                    index[clean] = page_num
-    return index
-
-def save_section_index_to_tempfile(index_dict):
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".json", mode="w", encoding="utf-8") as f:
-        json.dump(index_dict, f, ensure_ascii=False, indent=2)
-        return f.name  # trả lại đường dẫn file tạm
-    
-def embed_pdf_viewer_from_path(file_path, page=1):
-    with open(file_path, "rb") as f:
-        base64_pdf = base64.b64encode(f.read()).decode("utf-8")
-
-    pdf_display = f"""
-    <iframe src="data:application/pdf;base64,{base64_pdf}#page={page}" width="100%" height="650px" type="application/pdf"></iframe>
-    """
-    return pdf_display
-    
 # Đảm bảo st.set_page_config là lệnh đầu tiên
 # Giao diện Streamlit
 st.set_page_config(page_title="Tutor AI", page_icon="🎓")
@@ -368,7 +331,7 @@ mathjax_script = """
   src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
 </script>
 """
-        
+
 st.markdown(mathjax_script, unsafe_allow_html=True)
 
 def convert_to_mathjax(text):
@@ -556,12 +519,6 @@ SYSTEM_PROMPT_Tutor_AI = f"""
         - Nếu tôi từ chối hoặc không phản hồi, bạn hãy tiếp tục buổi học như bình thường mà không ép buộc.  
         - Gợi ý có thể ở dạng: “Nếu bạn muốn ôn lại và hệ thống hóa kiến thức, bạn có thể thử giảng lại cho mình khái niệm bạn vừa học. Bạn có thể sử dụng ví dụ trong handout để minh họa nhé!”   
 
-# Gợi ý trích dẫn và liên kết đến tài liệu:
-    - Khi nhắc đến một phần cụ thể trong tài liệu (như "Mục 2.3", "Phần Đệ quy tuyến tính", "trang 7"), bạn BẮT BUỘC phải ghi rõ tiêu đề hoặc số trang.
-    - Và LUÔN phải thêm ký hiệu `[pdf_page_X]` vào cuối câu (ví dụ: `[pdf_page_7]`).
-        - Ví dụ: “Bạn có thể đọc lại phần Đệ quy tuyến tính trong handout (trang 7). [pdf_page_7]”
-    - KHÔNG cần tạo link trực tiếp – hệ thống sẽ xử lý `[pdf_page_X]` để nhảy đến trang phù hợp.
-
 # Định dạng câu hỏi trắc nghiệm do tutor đưa ra cho người học:
     - Câu hỏi phải được đánh số rõ ràng, ví dụ: "Câu 1:", "Câu 2:", v.v.
     - Các lựa chọn A, B, C, D phải được trình bày trên **các dòng riêng biệt**, theo định dạng sau:
@@ -628,74 +585,13 @@ if uploaded_files:
     #pdf_context = extract_text_from_uploaded_file(uploaded_file)
     #gộp các file pdf lại 
     pdf_context_list = []
-    pdf_context_list = []
-
-    pdf_context_list = []
-    uploaded_pdf_path = None
-    section_index = {}
-    section_index_file = None
-    section_hint = ""
-    
     for file in uploaded_files:
-        if file.name.lower().endswith(".pdf"):
-            # ✅ Đọc toàn bộ file một lần duy nhất
-            pdf_bytes = file.read()
-    
-            # ✅ Extract text
-            with fitz.open(stream=pdf_bytes, filetype="pdf") as doc:
-                text = "\n".join(page.get_text() for page in doc)
-            pdf_context_list.append(f"\n--- File: {file.name} ---\n{text.strip()}")
-    
-            # ✅ Ghi vào file tạm để dùng viewer sau
-            with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
-                tmp.write(pdf_bytes)
-                uploaded_pdf_path = tmp.name
-    
-            # ✅ Extract mục lục
-            section_index = extract_section_index_from_pdf(uploaded_pdf_path)
-            section_index_file = save_section_index_to_tempfile(section_index)
-            section_hint = "\n".join([f"- {title} → trang {pg}" for title, pg in section_index.items()])
-    
-            break  # chỉ dùng file PDF đầu tiên để nhúng viewer
-        else:
-            # File không phải PDF → vẫn extract text như thường
-            text = extract_text_from_uploaded_file(file)
-            pdf_context_list.append(f"\n--- File: {file.name} ---\n{text.strip()}")
-    
+        text = extract_text_from_uploaded_file(file)
+        pdf_context_list.append(f"\n--- File: {file.name} ---\n{text.strip()}")
+
     pdf_context = "\n".join(pdf_context_list)
     lesson_title = " + ".join([file.name for file in uploaded_files])
     current_source = f"upload::{lesson_title}"
-
-    # BƯỚC 1: Lưu file PDF đầu tiên vào thư mục tạm để nhúng xem
-    uploaded_pdf_path = None  # lưu đường dẫn file tạm
-    for file in uploaded_files:
-        if file.name.lower().endswith(".pdf"):
-            # Đọc nội dung một lần duy nhất
-            pdf_bytes = file.read()
-            
-            # Lưu vào file tạm
-            with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
-                tmp.write(pdf_bytes)
-                uploaded_pdf_path = tmp.name
-            
-            # Đặt lại stream của file để có thể đọc tiếp nếu cần
-            file.seek(0)
-            break
-
-    if uploaded_pdf_path:
-        # Trích mục lục từ file PDF
-        section_index = extract_section_index_from_pdf(uploaded_pdf_path)
-    
-        # Lưu ra file json tạm nếu bạn muốn dùng lại
-        section_index_file = save_section_index_to_tempfile(section_index)
-    
-        # Tạo chuỗi section_hint để đưa vào prompt
-        section_hint = "\n".join([f"- {title} → trang {pg}" for title, pg in section_index.items()])
-
-    #hiển thị mục lục:
-    if section_index and st.checkbox("📖 Hiện mục lục tài liệu", value=True):
-        st.markdown("### 🧾 Mục lục tài liệu:")
-        st.markdown(section_hint)
     
     #lesson_title = uploaded_file.name
     #current_source = f"upload::{uploaded_file.name}"
@@ -745,15 +641,14 @@ if pdf_context:
     # Gửi toàn bộ tài liệu vào PROMPT khởi tạo
     PROMPT_LESSON_CONTEXT = f"""
     {SYSTEM_PROMPT_Tutor_AI}
-    
-    # Tài liệu học hôm nay:
-    
-    --- BẮT ĐẦU NỘI DUNG TÀI LIỆU ---
+
+    # Bạn sẽ hướng dẫn buổi học hôm nay với tài liệu sau:
+
+    ## Bài học: {lesson_title}
+
+    --- START OF HANDBOOK CONTENT ---
     {pdf_context}
-    --- KẾT THÚC TÀI LIỆU ---
-    
-    # Mục lục tài liệu và số trang tương ứng:
-    {section_hint}
+    --- END OF HANDBOOK CONTENT ---
     """
 
     # Reset session nếu file/tài liệu mới
@@ -772,6 +667,18 @@ if pdf_context:
     #Phần chọn bài học
     lesson_title = selected_lesson if selected_lesson != "👉 Chọn bài học..." else "Bài học tùy chỉnh"
 
+    PROMPT_LESSON_CONTEXT = f"""
+    {SYSTEM_PROMPT_Tutor_AI}
+    
+    # Bạn sẽ hướng dẫn buổi học hôm nay với tài liệu sau:
+    
+    ## Bài học: {lesson_title}
+    
+    --- START OF HANDBOOK CONTENT ---
+    {pdf_context}
+    --- END OF HANDBOOK CONTENT ---
+    """
+
 # Hiển thị lịch sử chat
 for msg in st.session_state.messages[1:]:
     role = "🧑‍🎓 Học sinh" if msg["role"] == "user" else "🤖 Gia sư AI"
@@ -788,13 +695,6 @@ if user_input:
     # Gọi Gemini phản hồi
     with st.spinner("🤖 Đang phản hồi..."):
         reply = chat_with_gemini(st.session_state.messages)
-
-        # Sau khi in ra reply:
-        match = re.search(r"\[pdf_page_(\d+)\]", reply)
-        if match and uploaded_pdf_path:
-            page_number = int(match.group(1))
-            st.markdown(f"### 📖 Phần được trích dẫn trong tài liệu (Trang {page_number})")
-            st.components.v1.html(embed_pdf_viewer_from_path(uploaded_pdf_path, page=page_number), height=670)
 
         # Nếu có thể xuất HTML (như <p>...</p>)
         reply = clean_html_to_text(reply)
