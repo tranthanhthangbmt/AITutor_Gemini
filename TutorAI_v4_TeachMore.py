@@ -232,7 +232,7 @@ with st.sidebar:
     uploaded_file = st.file_uploader("📤 Tải lên file tài liệu (PDF, TXT, DOCX...)", type=["pdf", "txt", "docx"])
     
     # ✅ Nếu người dùng upload tài liệu riêng → ẩn link (từ vòng sau trở đi)
-    if uploaded_file:
+    if uploaded_files:
         # Có thể xoá dòng link bằng session hoặc không hiển thị ở các phần sau
         pass
     #hiển thị danh sách các files đã upload lên
@@ -566,20 +566,20 @@ if "messages" not in st.session_state:
     ]
 
 # Bước 2: Ưu tiên tài liệu từ upload, nếu không thì dùng tài liệu từ link
-if uploaded_file:
+if uploaded_files:
     #pdf_context = extract_text_from_uploaded_file(uploaded_file)
     #gộp các file pdf lại 
     pdf_context_list = []
     for file in uploaded_files:
         text = extract_text_from_uploaded_file(file)
         pdf_context_list.append(f"\n--- File: {file.name} ---\n{text.strip()}")
-    
+
     pdf_context = "\n".join(pdf_context_list)
     lesson_title = " + ".join([file.name for file in uploaded_files])
-    current_source = "upload::" + lesson_title
+    current_source = f"upload::{lesson_title}"
     
-    lesson_title = uploaded_file.name
-    current_source = f"upload::{uploaded_file.name}"
+    #lesson_title = uploaded_file.name
+    #current_source = f"upload::{uploaded_file.name}"
 elif selected_lesson != "👉 Chọn bài học..." and default_link.strip():
     pdf_context = extract_pdf_text_from_url(default_link)
     lesson_title = selected_lesson
