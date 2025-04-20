@@ -323,7 +323,9 @@ with st.sidebar:
                 st.warning("⚠️ Chưa có nội dung để kết xuất.")
     
 st.title("🎓 Tutor AI")
-
+if "lesson_summary" in st.session_state and st.session_state["lesson_summary"]:
+    st.info(f"📘 **Tóm tắt bài học:**\n\n{st.session_state['lesson_summary']}")
+    
 # Nhúng script MathJax
 mathjax_script = """
 <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
