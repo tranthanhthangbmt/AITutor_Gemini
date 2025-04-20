@@ -633,6 +633,7 @@ if pdf_context:
         )
         if response.status_code == 200:
             lesson_summary = response.json()["candidates"][0]["content"]["parts"][0]["text"]
+            st.session_state["lesson_summary"] = lesson_summary
         else:
             lesson_summary = ""
     except Exception as e:
