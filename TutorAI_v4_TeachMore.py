@@ -232,6 +232,11 @@ with st.sidebar:
     
     # 📤 Sau khi hiện link (nếu có), hiển thị phần upload
     #uploaded_file = st.file_uploader("📤 Tải lên file tài liệu (PDF, TXT, DOCX...)", type=["pdf", "txt", "docx"])
+    uploaded_files = st.file_uploader(
+        "📤 Tải lên nhiều file bài học (PDF, TXT, DOCX)", 
+        type=["pdf", "txt", "docx"], 
+        accept_multiple_files=True
+    )
     
     # ✅ Nếu người dùng upload tài liệu riêng → ẩn link (từ vòng sau trở đi)
     if uploaded_files:
