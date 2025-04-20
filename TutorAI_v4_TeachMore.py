@@ -26,6 +26,30 @@ import tempfile #để mở file pdf tham chiếu
 import base64
 import tempfile
 
+import json
+
+def extract_section_index_from_pdf(pdf_path):
+    index = {}
+    with fitz.open(pdf_path) as doc:
+        for page_num, page in enumerate(doc, start=1):
+            text = page.get_text()
+            lines = text.split("\n")
+            for line in lines:
+                clean = line.strip()
+                # Điều kiện: tiêu đề ngắn, có chứa từ khóa hoặc viết hoa toàn bộ
+                if (
+                    len(clean) > 5
+                    and len(clean) < 100
+                    and any(kw in clean.upper() for kw in ["PHẦN", "CHƯƠNG", "MỤC", "I.", "II.", "III."])
+                ):
+                    index[clean] = page_num
+    return index
+
+def save_section_index_to_tempfile(index_dict):
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".json", mode="w", encoding="utf-8") as f:
+        json.dump(index_dict, f, ensure_ascii=False, indent=2)
+        return f.name  # trả lại đường dẫn file tạm
+    
 def embed_pdf_viewer_from_path(file_path, page=1):
     with open(file_path, "rb") as f:
         base64_pdf = base64.b64encode(f.read()).decode("utf-8")
@@ -533,8 +557,8 @@ SYSTEM_PROMPT_Tutor_AI = f"""
         - Gợi ý có thể ở dạng: “Nếu bạn muốn ôn lại và hệ thống hóa kiến thức, bạn có thể thử giảng lại cho mình khái niệm bạn vừa học. Bạn có thể sử dụng ví dụ trong handout để minh họa nhé!”   
 
 # Gợi ý trích dẫn và liên kết đến tài liệu:
-    - Khi nhắc đến một phần cụ thể trong tài liệu (như "Mục 2.3", "Phần Đệ quy tuyến tính", "trang 7"), hãy ghi rõ tiêu đề hoặc số trang để người học dễ tra cứu.
-    - Nếu có thể, hãy thêm ký hiệu đặc biệt cuối câu như `[pdf_page_7]` để hỗ trợ người học mở đúng trang trong tài liệu đã tải lên.
+    - Khi nhắc đến một phần cụ thể trong tài liệu (như "Mục 2.3", "Phần Đệ quy tuyến tính", "trang 7"), bạn BẮT BUỘC phải ghi rõ tiêu đề hoặc số trang.
+    - Và LUÔN phải thêm ký hiệu `[pdf_page_X]` vào cuối câu (ví dụ: `[pdf_page_7]`).
         - Ví dụ: “Bạn có thể đọc lại phần Đệ quy tuyến tính trong handout (trang 7). [pdf_page_7]”
     - KHÔNG cần tạo link trực tiếp – hệ thống sẽ xử lý `[pdf_page_X]` để nhảy đến trang phù hợp.
 
@@ -599,6 +623,12 @@ if "messages" not in st.session_state:
         {"role": "model", "parts": [{"text": "Chào bạn! Mình là gia sư AI 🎓\n\nHãy chọn bài học hoặc nhập link tài liệu bên sidebar để mình bắt đầu chuẩn bị nội dung buổi học nhé!"}]}
     ]
 
+# 🧩 Gộp xử lý PDF đầu tiên để tạo uploaded_pdf_path + mục lục
+uploaded_pdf_path = None
+section_index = {}
+section_index_file = None
+section_hint = ""
+
 # Bước 2: Ưu tiên tài liệu từ upload, nếu không thì dùng tài liệu từ link
 if uploaded_files:
     #pdf_context = extract_text_from_uploaded_file(uploaded_file)
@@ -620,6 +650,21 @@ if uploaded_files:
                 tmp.write(file.read())
                 uploaded_pdf_path = tmp.name
             break
+
+    if uploaded_pdf_path:
+        # Trích mục lục từ file PDF
+        section_index = extract_section_index_from_pdf(uploaded_pdf_path)
+    
+        # Lưu ra file json tạm nếu bạn muốn dùng lại
+        section_index_file = save_section_index_to_tempfile(section_index)
+    
+        # Tạo chuỗi section_hint để đưa vào prompt
+        section_hint = "\n".join([f"- {title} → trang {pg}" for title, pg in section_index.items()])
+
+    #hiển thị mục lục:
+    if section_index and st.checkbox("📖 Hiện mục lục tài liệu", value=True):
+        st.markdown("### 🧾 Mục lục tài liệu:")
+        st.markdown(section_hint)
     
     #lesson_title = uploaded_file.name
     #current_source = f"upload::{uploaded_file.name}"
@@ -669,14 +714,15 @@ if pdf_context:
     # Gửi toàn bộ tài liệu vào PROMPT khởi tạo
     PROMPT_LESSON_CONTEXT = f"""
     {SYSTEM_PROMPT_Tutor_AI}
-
-    # Bạn sẽ hướng dẫn buổi học hôm nay với tài liệu sau:
-
-    ## Bài học: {lesson_title}
-
-    --- START OF HANDBOOK CONTENT ---
+    
+    # Tài liệu học hôm nay:
+    
+    --- BẮT ĐẦU NỘI DUNG TÀI LIỆU ---
     {pdf_context}
-    --- END OF HANDBOOK CONTENT ---
+    --- KẾT THÚC TÀI LIỆU ---
+    
+    # Mục lục tài liệu và số trang tương ứng:
+    {section_hint}
     """
 
     # Reset session nếu file/tài liệu mới
@@ -694,18 +740,6 @@ if pdf_context:
         
     #Phần chọn bài học
     lesson_title = selected_lesson if selected_lesson != "👉 Chọn bài học..." else "Bài học tùy chỉnh"
-
-    PROMPT_LESSON_CONTEXT = f"""
-    {SYSTEM_PROMPT_Tutor_AI}
-    
-    # Bạn sẽ hướng dẫn buổi học hôm nay với tài liệu sau:
-    
-    ## Bài học: {lesson_title}
-    
-    --- START OF HANDBOOK CONTENT ---
-    {pdf_context}
-    --- END OF HANDBOOK CONTENT ---
-    """
 
 # Hiển thị lịch sử chat
 for msg in st.session_state.messages[1:]:
