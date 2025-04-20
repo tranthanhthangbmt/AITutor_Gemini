@@ -808,3 +808,4 @@ if user_input:
 
     # Lưu lại phản hồi gốc
     st.session_state.messages.append({"role": "model", "parts": [{"text": reply}]})
+ 
