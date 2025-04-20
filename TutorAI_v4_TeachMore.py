@@ -217,9 +217,8 @@ with st.sidebar:
         uploaded_file = st.file_uploader("📤 Tải lên file tài liệu (PDF, TXT, DOCX...)", type=["pdf", "txt", "docx"])
     else:
         uploaded_file = None
-        selected_lesson = "👉 Chọn bài học..."
-        
-        selected_lesson_link = available_lessons.get(selected_lesson, "").strip() """
+        selected_lesson = "👉 Chọn bài học..."        
+        selected_lesson_link = "" #available_lessons.get(selected_lesson, "").strip() """
 
     default_link = available_lessons[selected_lesson]
     # 📤 Tải file tài liệu (mục tiêu là đặt bên dưới link)
