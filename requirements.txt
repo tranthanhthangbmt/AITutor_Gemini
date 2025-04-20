@@ -8,5 +8,5 @@ beautifulsoup4
 streamlit-javascript
 streamlit
 reportlab
-
+gTTS
 
