@@ -638,49 +638,33 @@ if uploaded_files:
     
     for file in uploaded_files:
         if file.name.lower().endswith(".pdf"):
-            # ✅ Đọc toàn bộ file một lần duy nhất
+            # ✅ Đọc 1 lần duy nhất
             pdf_bytes = file.read()
     
-            # ✅ Extract text
+            # ✅ Extract nội dung PDF
             with fitz.open(stream=pdf_bytes, filetype="pdf") as doc:
                 text = "\n".join(page.get_text() for page in doc)
             pdf_context_list.append(f"\n--- File: {file.name} ---\n{text.strip()}")
     
-            # ✅ Ghi vào file tạm để dùng viewer sau
+            # ✅ Lưu PDF ra file tạm (dành cho embed viewer)
             with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
                 tmp.write(pdf_bytes)
                 uploaded_pdf_path = tmp.name
     
-            # ✅ Extract mục lục
+            # ✅ Trích mục lục từ file tạm
             section_index = extract_section_index_from_pdf(uploaded_pdf_path)
             section_index_file = save_section_index_to_tempfile(section_index)
             section_hint = "\n".join([f"- {title} → trang {pg}" for title, pg in section_index.items()])
-    
-            break  # chỉ dùng file PDF đầu tiên để nhúng viewer
+            
+            break  # chỉ xử lý 1 file PDF đầu tiên
         else:
-            # File không phải PDF → vẫn extract text như thường
+            # Nếu không phải PDF, dùng hàm hiện tại
             text = extract_text_from_uploaded_file(file)
             pdf_context_list.append(f"\n--- File: {file.name} ---\n{text.strip()}")
-    
+            
     pdf_context = "\n".join(pdf_context_list)
     lesson_title = " + ".join([file.name for file in uploaded_files])
     current_source = f"upload::{lesson_title}"
-
-    # BƯỚC 1: Lưu file PDF đầu tiên vào thư mục tạm để nhúng xem
-    uploaded_pdf_path = None  # lưu đường dẫn file tạm
-    for file in uploaded_files:
-        if file.name.lower().endswith(".pdf"):
-            # Đọc nội dung một lần duy nhất
-            pdf_bytes = file.read()
-            
-            # Lưu vào file tạm
-            with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
-                tmp.write(pdf_bytes)
-                uploaded_pdf_path = tmp.name
-            
-            # Đặt lại stream của file để có thể đọc tiếp nếu cần
-            file.seek(0)
-            break
 
     if uploaded_pdf_path:
         # Trích mục lục từ file PDF
