@@ -17,6 +17,9 @@ import tempfile
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 
+from gtts import gTTS #audio TTS
+import base64 #cho audio TTS
+
 # Đảm bảo st.set_page_config là lệnh đầu tiên
 # Giao diện Streamlit
 st.set_page_config(page_title="Tutor AI", page_icon="🎓")
@@ -699,6 +702,22 @@ if user_input:
         
         # Hiển thị
         st.chat_message("🤖 Gia sư AI").markdown(reply)
+        tts = gTTS(text=reply, lang='vi')  # hoặc 'en' nếu tiếng Anh
+        tts.save("response.mp3")
+        
+        # Đọc file và encode base64 để phát lại
+        with open("response.mp3", "rb") as f:
+            audio_bytes = f.read()
+            b64 = base64.b64encode(audio_bytes).decode()
+        
+        audio_html = f"""
+        <audio autoplay>
+            <source src="data:audio/mp3;base64,{b64}" type="audio/mp3">
+            Trình duyệt của bạn không hỗ trợ âm thanh.
+        </audio>
+        """
+        
+        st.markdown(audio_html, unsafe_allow_html=True)
 
     # Chuyển biểu thức toán trong ngoặc đơn => LaTeX inline
     #reply = convert_parentheses_to_latex(reply)
