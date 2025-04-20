@@ -646,9 +646,16 @@ if uploaded_files:
     uploaded_pdf_path = None  # lưu đường dẫn file tạm
     for file in uploaded_files:
         if file.name.lower().endswith(".pdf"):
+            # Đọc nội dung một lần duy nhất
+            pdf_bytes = file.read()
+            
+            # Lưu vào file tạm
             with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
-                tmp.write(file.read())
+                tmp.write(pdf_bytes)
                 uploaded_pdf_path = tmp.name
+            
+            # Đặt lại stream của file để có thể đọc tiếp nếu cần
+            file.seek(0)
             break
 
     if uploaded_pdf_path:
