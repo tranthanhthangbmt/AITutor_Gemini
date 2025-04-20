@@ -24,7 +24,8 @@ import os
 
 # Đảm bảo st.set_page_config là lệnh đầu tiên
 # Giao diện Streamlit
-st.set_page_config(page_title="Tutor AI", page_icon="🎓")
+#st.set_page_config(page_title="Tutor AI", page_icon="🎓")
+st.set_page_config(page_title="Tutor AI", page_icon="🎓", layout="wide")
 
 uploaded_files = []  # ✅ đảm bảo biến tồn tại trong mọi trường hợp
 
