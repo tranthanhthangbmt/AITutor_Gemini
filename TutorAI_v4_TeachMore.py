@@ -324,6 +324,26 @@ with st.sidebar:
     
 st.title("🎓 Tutor AI")
 
+#thêm sidebar bên phải
+left_col, right_col = st.columns([3, 1])
+
+with left_col:
+    # Toàn bộ phần chat và phản hồi ở đây
+    for msg in st.session_state.messages[1:]:
+        role = "🧑‍🎓 Học sinh" if msg["role"] == "user" else "🤖 Gia sư AI"
+        st.chat_message(role).write(msg["parts"][0]["text"])
+
+    user_input = st.chat_input("Nhập câu trả lời hoặc câu hỏi...")
+    if user_input:
+        # Xử lý chat như cũ...
+
+with right_col:
+    st.markdown("### 📌 Sidebar phụ (bên phải)")
+    st.markdown("📄 Nội dung tài liệu:")
+    if section_index:
+        for title, pg in section_index.items():
+            st.markdown(f"- [{title}](?pdf_page={pg})")  # link mở đúng trang PDF
+            
 # Nhúng script MathJax
 mathjax_script = """
 <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
