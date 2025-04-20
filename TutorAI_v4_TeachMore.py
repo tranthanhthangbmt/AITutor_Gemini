@@ -17,8 +17,10 @@ import tempfile
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 
-from gtts import gTTS #audio TTS
-import base64 #cho audio TTS
+from gtts import gTTS #for audio
+import base64
+import uuid
+import os
 
 # Đảm bảo st.set_page_config là lệnh đầu tiên
 # Giao diện Streamlit
@@ -702,22 +704,30 @@ if user_input:
         
         # Hiển thị
         st.chat_message("🤖 Gia sư AI").markdown(reply)
-        tts = gTTS(text=reply, lang='vi')  # hoặc 'en' nếu tiếng Anh
-        tts.save("response.mp3")
+        # Tạo file âm thanh tạm
+        tts = gTTS(text=reply, lang='vi')
+        temp_filename = f"temp_{uuid.uuid4().hex}.mp3"
+        tts.save(temp_filename)
         
-        # Đọc file và encode base64 để phát lại
-        with open("response.mp3", "rb") as f:
+        # Đọc và encode base64
+        with open(temp_filename, "rb") as f:
             audio_bytes = f.read()
             b64 = base64.b64encode(audio_bytes).decode()
         
-        audio_html = f"""
-        <audio autoplay>
-            <source src="data:audio/mp3;base64,{b64}" type="audio/mp3">
-            Trình duyệt của bạn không hỗ trợ âm thanh.
-        </audio>
-        """
+        # Xoá file tạm sau khi encode
+        os.remove(temp_filename)
         
-        st.markdown(audio_html, unsafe_allow_html=True)
+        # Hiển thị nút nghe
+        st.markdown("""
+        <details>
+        <summary>🔊 Nghe lại phản hồi</summary>
+        <br>
+        <audio controls>
+            <source src="data:audio/mp3;base64,{b64}" type="audio/mp3">
+            Trình duyệt của bạn không hỗ trợ phát âm thanh.
+        </audio>
+        </details>
+        """.format(b64=b64), unsafe_allow_html=True)
 
     # Chuyển biểu thức toán trong ngoặc đơn => LaTeX inline
     #reply = convert_parentheses_to_latex(reply)
