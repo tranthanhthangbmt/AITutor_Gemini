@@ -321,7 +321,8 @@ with st.sidebar:
                     )
             else:
                 st.warning("⚠️ Chưa có nội dung để kết xuất.")
-    
+
+lesson_summary = ""
 st.title("🎓 Tutor AI")
 if "lesson_summary" in st.session_state and st.session_state["lesson_summary"]:
     st.info(f"📘 **Tóm tắt bài học:**\n\n{st.session_state['lesson_summary']}")
@@ -633,11 +634,26 @@ if pdf_context:
                 ]
             }
         )
-        if response.status_code == 200:
-            lesson_summary = response.json()["candidates"][0]["content"]["parts"][0]["text"]
-            st.session_state["lesson_summary"] = lesson_summary
-        else:
+        try:
+            response = requests.post(
+                GEMINI_API_URL,
+                headers={"Content-Type": "application/json"},
+                params={"key": API_KEY},
+                json={
+                    "contents": [
+                        {"parts": [{"text": f"Tóm tắt ngắn gọn (2-3 câu) nội dung sau, dùng văn phong thân thiện, không liệt kê gạch đầu dòng:\n\n{pdf_context[:2500]}"}]}
+                    ]
+                }
+            )
+            if response.status_code == 200:
+                lesson_summary = response.json()["candidates"][0]["content"]["parts"][0]["text"]
+            else:
+                lesson_summary = ""
+        except Exception:
             lesson_summary = ""
+        
+        # Luôn cập nhật session (dù trống)
+        st.session_state["lesson_summary"] = lesson_summary
     except Exception as e:
         lesson_summary = ""
 
