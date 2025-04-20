@@ -673,13 +673,6 @@ if pdf_context:
     {pdf_context}
     --- END OF HANDBOOK CONTENT ---
     """
-    
-    if "lesson_source" not in st.session_state or st.session_state.lesson_source != current_source:
-        st.session_state.messages = [
-            {"role": "user", "parts": [{"text": PROMPT_LESSON_CONTEXT}]},
-            {"role": "model", "parts": [{"text": f"📘 Mình đã đọc xong tài liệu: **{lesson_title}**. Bạn đã sẵn sàng bắt đầu buổi học chưa?"}]}
-        ]
-        st.session_state.lesson_source = current_source
 
 # Hiển thị lịch sử chat
 for msg in st.session_state.messages[1:]:
