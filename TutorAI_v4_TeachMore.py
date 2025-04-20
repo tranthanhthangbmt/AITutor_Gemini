@@ -667,6 +667,15 @@ if uploaded_files:
     current_source = f"upload::{lesson_title}"
 
     if uploaded_pdf_path:
+        from urllib.parse import parse_qs, urlparse
+
+        query_params = st.experimental_get_query_params()
+        page_to_show = int(query_params.get("pdf_page", [0])[0]) if "pdf_page" in query_params else 0
+        
+        if uploaded_pdf_path and page_to_show > 0:
+            st.markdown(f"### 📖 Mở trang {page_to_show} trong tài liệu")
+            st.components.v1.html(embed_pdf_viewer_from_path(uploaded_pdf_path, page=page_to_show), height=670)
+            
         # Trích mục lục từ file PDF
         section_index = extract_section_index_from_pdf(uploaded_pdf_path)
     
@@ -782,6 +791,9 @@ if user_input:
 
         # Nếu có thể xuất HTML (như <p>...</p>)
         reply = clean_html_to_text(reply)
+
+        # Biến tag [pdf_page_X] thành link bấm được
+        reply = re.sub(r"\[pdf_page_(\d+)\]", r"[🔎 Xem trang \1](?pdf_page=\1)", reply)
         
         # Xử lý trắc nghiệm tách dòng
         reply = format_mcq_options(reply)
