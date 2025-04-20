@@ -623,20 +623,43 @@ if "messages" not in st.session_state:
         {"role": "model", "parts": [{"text": "Chào bạn! Mình là gia sư AI 🎓\n\nHãy chọn bài học hoặc nhập link tài liệu bên sidebar để mình bắt đầu chuẩn bị nội dung buổi học nhé!"}]}
     ]
 
-# 🧩 Gộp xử lý PDF đầu tiên để tạo uploaded_pdf_path + mục lục
-uploaded_pdf_path = None
-section_index = {}
-section_index_file = None
-section_hint = ""
-
 # Bước 2: Ưu tiên tài liệu từ upload, nếu không thì dùng tài liệu từ link
 if uploaded_files:
     #pdf_context = extract_text_from_uploaded_file(uploaded_file)
     #gộp các file pdf lại 
     pdf_context_list = []
-    for file in uploaded_files:
-        text = extract_text_from_uploaded_file(file)
-        pdf_context_list.append(f"\n--- File: {file.name} ---\n{text.strip()}")
+    pdf_context_list = []
+    
+	uploaded_pdf_path = None
+	section_index = {}
+	section_index_file = None
+	section_hint = ""
+	
+	for file in uploaded_files:
+	    if file.name.lower().endswith(".pdf"):
+	        # ✅ Đọc toàn bộ file một lần duy nhất
+	        pdf_bytes = file.read()
+	
+	        # ✅ Extract text
+	        with fitz.open(stream=pdf_bytes, filetype="pdf") as doc:
+	            text = "\n".join(page.get_text() for page in doc)
+	        pdf_context_list.append(f"\n--- File: {file.name} ---\n{text.strip()}")
+	
+	        # ✅ Ghi vào file tạm để dùng viewer sau
+	        with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
+	            tmp.write(pdf_bytes)
+	            uploaded_pdf_path = tmp.name
+	
+	        # ✅ Extract mục lục
+	        section_index = extract_section_index_from_pdf(uploaded_pdf_path)
+	        section_index_file = save_section_index_to_tempfile(section_index)
+	        section_hint = "\n".join([f"- {title} → trang {pg}" for title, pg in section_index.items()])
+	
+	        break  # chỉ dùng file PDF đầu tiên để nhúng viewer
+	    else:
+	        # File không phải PDF → vẫn extract text như thường
+	        text = extract_text_from_uploaded_file(file)
+	        pdf_context_list.append(f"\n--- File: {file.name} ---\n{text.strip()}")
 
     pdf_context = "\n".join(pdf_context_list)
     lesson_title = " + ".join([file.name for file in uploaded_files])
