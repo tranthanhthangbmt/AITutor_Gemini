@@ -24,10 +24,7 @@ import os
 
 # Đảm bảo st.set_page_config là lệnh đầu tiên
 # Giao diện Streamlit
-#st.set_page_config(page_title="Tutor AI", page_icon="🎓")
-st.set_page_config(page_title="Tutor AI", page_icon="🎓", layout="wide")
-
-section_index = {}
+st.set_page_config(page_title="Tutor AI", page_icon="🎓")
 
 uploaded_files = []  # ✅ đảm bảo biến tồn tại trong mọi trường hợp
 
@@ -326,20 +323,7 @@ with st.sidebar:
                 st.warning("⚠️ Chưa có nội dung để kết xuất.")
     
 st.title("🎓 Tutor AI")
-#left_col, right_col = st.columns([3, 1])
-left_col, spacer, right_col = st.columns([4, 0.2, 1.5])
-with st.container():
-    st.markdown(
-        """
-        <div style='text-align: center; margin: 1rem 0;'>
-            <a href="#giua" style="font-weight: bold; font-size: 16px; color: #3366cc;">
-                🔄 Chuyển giữa phần học & mục lục
-            </a>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-            
+
 # Nhúng script MathJax
 mathjax_script = """
 <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
@@ -694,70 +678,64 @@ if pdf_context:
     {pdf_context}
     --- END OF HANDBOOK CONTENT ---
     """
-with left_col:
-    # Hiển thị lịch sử chat
-    for msg in st.session_state.messages[1:]:
-        role = "🧑‍🎓 Học sinh" if msg["role"] == "user" else "🤖 Gia sư AI"
-        st.chat_message(role).write(msg["parts"][0]["text"])
-    
-    # Ô nhập câu hỏi mới
-    user_input = st.chat_input("Nhập câu trả lời hoặc câu hỏi...")
-    
-    if user_input:
-        # Hiển thị câu hỏi học sinh
-        st.chat_message("🧑‍🎓 Học sinh").write(user_input)
-        st.session_state.messages.append({"role": "user", "parts": [{"text": user_input}]})
-    
-        # Gọi Gemini phản hồi
-        with st.spinner("🤖 Đang phản hồi..."):
-            reply = chat_with_gemini(st.session_state.messages)
-    
-            # Nếu có thể xuất HTML (như <p>...</p>)
-            reply = clean_html_to_text(reply)
-            
-            # Xử lý trắc nghiệm tách dòng
-            reply = format_mcq_options(reply)
-            
-            # Hiển thị
-            st.chat_message("🤖 Gia sư AI").markdown(reply)
-            # Tạo file âm thanh tạm
-            tts = gTTS(text=reply, lang='vi')
-            temp_filename = f"temp_{uuid.uuid4().hex}.mp3"
-            tts.save(temp_filename)
-            
-            # Đọc và encode base64
-            with open(temp_filename, "rb") as f:
-                audio_bytes = f.read()
-                b64 = base64.b64encode(audio_bytes).decode()
-            
-            # Xoá file tạm sau khi encode
-            os.remove(temp_filename)
-            
-            # Hiển thị nút nghe
-            st.markdown("""
-            <details>
-            <summary>🔊 Nghe lại phản hồi</summary>
-            <br>
-            <audio controls>
-                <source src="data:audio/mp3;base64,{b64}" type="audio/mp3">
-                Trình duyệt của bạn không hỗ trợ phát âm thanh.
-            </audio>
-            </details>
-            """.format(b64=b64), unsafe_allow_html=True)
-    
-        # Chuyển biểu thức toán trong ngoặc đơn => LaTeX inline
-        #reply = convert_parentheses_to_latex(reply)
-        #reply_processed = convert_to_mathjax1(reply)
-    
-        # Hiển thị Markdown để MathJax render công thức
-        #st.chat_message("🤖 Gia sư AI").markdown(reply_processed)
-        #st.chat_message("🤖 Gia sư AI").markdown(reply)
-    
-        # Lưu lại phản hồi gốc
-        st.session_state.messages.append({"role": "model", "parts": [{"text": reply}]})
-with right_col:
-    st.markdown("### 📌 Sidebar phụ (bên phải)")
-    st.markdown("📄 Nội dung tài liệu:")
-    if section_index:
-        for title, pg in section_index.items():
-            st.markdown(f"- [{title}](?pdf_page={pg})")  # link mở đúng trang PDF
+
+# Hiển thị lịch sử chat
+for msg in st.session_state.messages[1:]:
+    role = "🧑‍🎓 Học sinh" if msg["role"] == "user" else "🤖 Gia sư AI"
+    st.chat_message(role).write(msg["parts"][0]["text"])
+
+# Ô nhập câu hỏi mới
+user_input = st.chat_input("Nhập câu trả lời hoặc câu hỏi...")
+
+if user_input:
+    # Hiển thị câu hỏi học sinh
+    st.chat_message("🧑‍🎓 Học sinh").write(user_input)
+    st.session_state.messages.append({"role": "user", "parts": [{"text": user_input}]})
+
+    # Gọi Gemini phản hồi
+    with st.spinner("🤖 Đang phản hồi..."):
+        reply = chat_with_gemini(st.session_state.messages)
+
+        # Nếu có thể xuất HTML (như <p>...</p>)
+        reply = clean_html_to_text(reply)
+        
+        # Xử lý trắc nghiệm tách dòng
+        reply = format_mcq_options(reply)
+        
+        # Hiển thị
+        st.chat_message("🤖 Gia sư AI").markdown(reply)
+        # Tạo file âm thanh tạm
+        tts = gTTS(text=reply, lang='vi')
+        temp_filename = f"temp_{uuid.uuid4().hex}.mp3"
+        tts.save(temp_filename)
+        
+        # Đọc và encode base64
+        with open(temp_filename, "rb") as f:
+            audio_bytes = f.read()
+            b64 = base64.b64encode(audio_bytes).decode()
+        
+        # Xoá file tạm sau khi encode
+        os.remove(temp_filename)
+        
+        # Hiển thị nút nghe
+        st.markdown("""
+        <details>
+        <summary>🔊 Nghe lại phản hồi</summary>
+        <br>
+        <audio controls>
+            <source src="data:audio/mp3;base64,{b64}" type="audio/mp3">
+            Trình duyệt của bạn không hỗ trợ phát âm thanh.
+        </audio>
+        </details>
+        """.format(b64=b64), unsafe_allow_html=True)
+
+    # Chuyển biểu thức toán trong ngoặc đơn => LaTeX inline
+    #reply = convert_parentheses_to_latex(reply)
+    #reply_processed = convert_to_mathjax1(reply)
+
+    # Hiển thị Markdown để MathJax render công thức
+    #st.chat_message("🤖 Gia sư AI").markdown(reply_processed)
+    #st.chat_message("🤖 Gia sư AI").markdown(reply)
+
+    # Lưu lại phản hồi gốc
+    st.session_state.messages.append({"role": "model", "parts": [{"text": reply}]})
