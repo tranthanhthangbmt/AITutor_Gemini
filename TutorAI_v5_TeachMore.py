@@ -33,6 +33,17 @@ input_key = st.session_state.get("GEMINI_API_KEY", "")
 # Lấy từ localStorage
 key_from_local = st_javascript("JSON.parse(window.localStorage.getItem('gemini_api_key') || '\"\"')")
 
+def extract_api_keys_from_uploaded_files(uploaded_files):
+    for file in uploaded_files:
+        if file.name.endswith(".txt"):
+            try:
+                content = file.read().decode("utf-8")
+                keys = [line.strip() for line in content.splitlines() if line.strip()]
+                return keys
+            except Exception as e:
+                st.warning(f"Lỗi đọc file API key: {e}")
+    return []
+
 #tải APi từ file:
 def load_api_list_from_github(url="https://raw.githubusercontent.com/tranthanhthangbmt/AITutor_Gemini/main/ListAPI.txt"):
     try:
@@ -591,45 +602,43 @@ SYSTEM_PROMPT_Tutor_AI1 = f"""
 """
 
 # Gọi API Gemini, gửi cả lịch sử trò chuyện
-def chat_with_gemini(messages, retry_count=0, max_retries=3):
-    global API_KEY
-
+def chat_with_gemini(messages):
     headers = {"Content-Type": "application/json"}
-    params = {"key": API_KEY}
     data = {"contents": messages}
 
-    try:
-        response = requests.post(GEMINI_API_URL, headers=headers, params=params, json=data, timeout=12)
-    except requests.exceptions.Timeout:
-        return "⚠️ Hệ thống phản hồi quá chậm. Vui lòng thử lại sau.", None
+    # API chính từ người dùng nhập
+    key_list = [input_key]
 
-    if response.status_code == 200:
+    # Nếu có file .txt chứa API dự phòng ➝ nối vào danh sách
+    backup_keys = extract_api_keys_from_uploaded_files(uploaded_files)
+    key_list += backup_keys
+
+    for key in key_list:
         try:
-            return response.json()["candidates"][0]["content"]["parts"][0]["text"], None
+            response = requests.post(
+                GEMINI_API_URL,
+                headers=headers,
+                params={"key": key},
+                json=data,
+                timeout=15
+            )
+
+            # Thành công
+            if response.status_code == 200:
+                return response.json()["candidates"][0]["content"]["parts"][0]["text"]
+
+            # Nếu lỗi liên quan đến quota / API → thử key tiếp theo
+            elif any(x in response.text.lower() for x in ["quota", "api key", "exceeded"]):
+                continue
+
+            # Nếu lỗi khác → không thử tiếp
+            else:
+                return f"⚠️ Lỗi API ({response.status_code}): {response.text}"
+
         except Exception as e:
-            return f"Lỗi phân tích phản hồi: {e}", None
+            continue  # Nếu lỗi mạng, thử key tiếp theo
 
-    # ⚠️ Nếu lỗi có liên quan đến API
-    if "api" in response.text.lower() and retry_count < max_retries:
-        api_list = st.session_state.get("api_list", [])
-
-        if not api_list:
-            return "⚠️ Không tìm thấy danh sách API trong session_state. Vui lòng tải file .txt chứa các key.", None
-
-        current_key = API_KEY
-        try:
-            current_index = api_list.index(current_key)
-        except ValueError:
-            current_index = -1
-
-        next_index = (current_index + 1) % len(api_list)
-        new_key = api_list[next_index]
-        API_KEY = new_key
-
-        # Gọi lại chính mình với key mới
-        return chat_with_gemini(messages, retry_count=retry_count + 1)
-
-    return f"Lỗi API: {response.status_code} - {response.text}", None
+    return "❌ Không có API key nào hoạt động hoặc tất cả đều đã hết quota."
 
 # Giao diện Streamlit
 #st.set_page_config(page_title="Tutor AI", page_icon="🎓")
