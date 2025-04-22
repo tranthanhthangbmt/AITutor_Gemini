@@ -157,7 +157,7 @@ with st.sidebar:
     st.sidebar.markdown(
         f"""
         <div style='text-align: center; margin-bottom: 10px;'>
-            <img src="{logo_url}" width="200" style="border-radius: 10px;" />
+            <img src="{logo_url}" width="120" style="border-radius: 10px;" />
         </div>
         """,
         unsafe_allow_html=True
@@ -237,9 +237,7 @@ with st.sidebar:
     #lấy các API từ file
     api_file = st.file_uploader("📄 Tải file .txt chứa danh sách Gemini API", type=["txt"], key="api_list_file")
     if api_file:
-        content = api_file.read().decode("utf-8")
-        api_list = [line.strip() for line in content.splitlines() if line.strip()]
-        st.session_state["api_list"] = api_list
+        st.session_state["api_list_file_obj"] = api_file
 	
     if st.session_state.get("show_sidebar_inputs", False):
         st.markdown("📚 **Chọn bài học hoặc tải lên bài học**")
@@ -529,16 +527,6 @@ SYSTEM_PROMPT_Tutor_AI = f"""
     - Trong cùng một phiên học, nếu tôi lặp lại một lỗi sai đã được góp ý trước đó, hãy chủ động nhắc lại lỗi sai đó, chỉ rõ rằng tôi đã từng hiểu sai và mời tôi tự sửa lại.  
         - Ví dụ: “Bạn từng nhầm lẫn khái niệm này trong câu hỏi trước. Bạn có thể xem lại phần [mục trong handout] để điều chỉnh không?”  
     - Hãy theo dõi các lỗi sai hoặc điểm yếu đã được nhắc đến từ đầu phiên để tránh tôi lặp lại cùng một sai lầm. Nếu cần, đưa ra bài tập luyện tập bổ sung để khắc phục điểm yếu đó, nhưng vẫn **phải lấy từ tài liệu đính kèm**.  
-    - Hỗ trợ tăng tính chủ động của người học:
-        - Sau khi hoàn thành một phần nội dung (ví dụ: một khái niệm lý thuyết, một phần bài đọc hoặc bài giải), trước khi chuyển sang câu hỏi mới, gia sư AI phải đưa ra ít nhất 2–3 lựa chọn rõ ràng để người học quyết định hướng đi tiếp theo, ví dụ:
-            1. “Bạn có muốn tôi tóm tắt lại nội dung [tên phần/mục cụ thể] để bạn nắm rõ hơn không?”
-            2. “Bạn có muốn tôi gợi ý một vài điểm chính hoặc lỗi thường gặp ở phần này?”
-            3. “Hay bạn muốn chuyển sang câu hỏi tiếp theo để kiểm tra mức độ hiểu?”
-        - Người học chỉ cần gõ số tương ứng (1, 2 hoặc 3) để chọn hướng đi tiếp theo, không cần gõ lại nội dung câu hỏi.
-        - Việc đưa lựa chọn giúp người học kiểm soát tiến độ học và tránh bỏ sót các điểm quan trọng nếu chưa nắm rõ.
-        - Nếu người học chọn “muốn nhắc lại nội dung”, hãy chỉ tóm tắt đúng phần đó, không mở rộng hoặc suy diễn thêm.
-        - Nếu người học không phản hồi sau 10–15 giây (tùy nền tảng), có thể nhắc lại nhẹ nhàng:
-            - “Mình có thể nhắc lại nội dung, đưa gợi ý, hoặc tiếp tục phần tiếp theo — bạn chọn nhé (1, 2 hoặc 3)?”
  	
 # Định dạng phản hồi của gia sư AI:
 	- Trước mỗi phản hồi hoặc đề bài, LUÔN kiểm tra tài liệu handout đính kèm để xác minh rằng nội dung đã có trong đó.
@@ -591,45 +579,37 @@ SYSTEM_PROMPT_Tutor_AI = f"""
 """
 
 # Gọi API Gemini, gửi cả lịch sử trò chuyện
-def chat_with_gemini(messages, retry_count=0, max_retries=3):
+def chat_with_gemini(messages):
     global API_KEY
 
     headers = {"Content-Type": "application/json"}
     params = {"key": API_KEY}
     data = {"contents": messages}
 
-    try:
-        response = requests.post(GEMINI_API_URL, headers=headers, params=params, json=data, timeout=12)
-    except requests.exceptions.Timeout:
-        return "⚠️ Hệ thống phản hồi quá chậm. Vui lòng thử lại sau.", None
+    response = requests.post(GEMINI_API_URL, headers=headers, params=params, json=data)
 
     if response.status_code == 200:
         try:
             return response.json()["candidates"][0]["content"]["parts"][0]["text"], None
         except Exception as e:
             return f"Lỗi phân tích phản hồi: {e}", None
+    else:
+        if "api" in response.text.lower():
+            #api_list = load_api_list_from_github()
+            api_list = load_api_list_from_uploaded_file(st.session_state.get("api_list_file_obj"))
+            current_key = API_KEY
+            if current_key in api_list:
+                current_index = api_list.index(current_key)
+            else:
+                current_index = -1
 
-    # ⚠️ Nếu lỗi có liên quan đến API
-    if "api" in response.text.lower() and retry_count < max_retries:
-        api_list = st.session_state.get("api_list", [])
+            next_index = (current_index + 1) % len(api_list)
+            new_key = api_list[next_index]
+            API_KEY = new_key  # ✅ Cập nhật nội bộ, KHÔNG gán vào session_state tại đây
 
-        if not api_list:
-            return "⚠️ Không tìm thấy danh sách API trong session_state. Vui lòng tải file .txt chứa các key.", None
-
-        current_key = API_KEY
-        try:
-            current_index = api_list.index(current_key)
-        except ValueError:
-            current_index = -1
-
-        next_index = (current_index + 1) % len(api_list)
-        new_key = api_list[next_index]
-        API_KEY = new_key
-
-        # Gọi lại chính mình với key mới
-        return chat_with_gemini(messages, retry_count=retry_count + 1)
-
-    return f"Lỗi API: {response.status_code} - {response.text}", None
+            # Gọi lại sau khi đổi key
+            return chat_with_gemini(messages)  # Giữ nguyên logic gọi lại
+        return f"Lỗi API: {response.status_code} - {response.text}", None
 
 # Giao diện Streamlit
 #st.set_page_config(page_title="Tutor AI", page_icon="🎓")
@@ -804,4 +784,5 @@ if user_input:
     #st.chat_message("🤖 Gia sư AI").markdown(reply)
 
     # Lưu lại phản hồi gốc
-    st.session_state.messages.append({"role": "model", "parts": [{"text": reply}]}) 
+    st.session_state.messages.append({"role": "model", "parts": [{"text": reply}]})
+ 
