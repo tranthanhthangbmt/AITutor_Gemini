@@ -240,7 +240,6 @@ with st.sidebar:
         content = api_file.read().decode("utf-8")
         api_list = [line.strip() for line in content.splitlines() if line.strip()]
         st.session_state["api_list"] = api_list
-        st.session_state["api_list_file_obj"] = api_file  # nếu vẫn muốn giữ
 	
     if st.session_state.get("show_sidebar_inputs", False):
         st.markdown("📚 **Chọn bài học hoặc tải lên bài học**")
@@ -592,14 +591,17 @@ SYSTEM_PROMPT_Tutor_AI = f"""
 """
 
 # Gọi API Gemini, gửi cả lịch sử trò chuyện
-def chat_with_gemini(messages):
+def chat_with_gemini(messages, retry_count=0, max_retries=3):
     global API_KEY
 
     headers = {"Content-Type": "application/json"}
     params = {"key": API_KEY}
     data = {"contents": messages}
 
-    response = requests.post(GEMINI_API_URL, headers=headers, params=params, json=data)
+    try:
+        response = requests.post(GEMINI_API_URL, headers=headers, params=params, json=data, timeout=12)
+    except requests.exceptions.Timeout:
+        return "⚠️ Hệ thống phản hồi quá chậm. Vui lòng thử lại sau.", None
 
     if response.status_code == 200:
         try:
@@ -607,24 +609,26 @@ def chat_with_gemini(messages):
         except Exception as e:
             return f"Lỗi phân tích phản hồi: {e}", None
     else:
-        if "api" in response.text.lower():
-            # ⚠️ KHÔNG đọc lại file — lấy từ session_state
+        # ✅ Chỉ xử lý đổi API nếu có lỗi liên quan đến API
+        if "api" in response.text.lower() and retry_count < max_retries:
+            # ⏬ Tải danh sách API tại đây, chỉ khi cần
             api_list = st.session_state.get("api_list", [])
+
             if not api_list:
                 return "⚠️ Không tìm thấy danh sách API trong session_state. Vui lòng tải lại file .txt.", None
 
             current_key = API_KEY
-            if current_key in api_list:
+            try:
                 current_index = api_list.index(current_key)
-            else:
+            except ValueError:
                 current_index = -1
 
             next_index = (current_index + 1) % len(api_list)
             new_key = api_list[next_index]
             API_KEY = new_key
 
-            # Gọi lại hàm với key mới
-            return chat_with_gemini(messages)
+            # 🔁 Gọi lại chính mình với key mới
+            return chat_with_gemini(messages, retry_count=retry_count+1)
 
         return f"Lỗi API: {response.status_code} - {response.text}", None
 
