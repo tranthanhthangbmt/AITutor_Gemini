@@ -563,7 +563,8 @@ SYSTEM_PROMPT_Tutor_AI = f"""
 
 # Gọi API Gemini, gửi cả lịch sử trò chuyện
 def chat_with_gemini(messages):
-    global API_KEY  # 🔄 Đặt ở đầu để tránh lỗi "used prior to global"
+    global API_KEY  # ✅ Đặt ngay đầu hàm trước khi dùng API_KEY
+
     headers = {"Content-Type": "application/json"}
     params = {"key": API_KEY}
     data = {"contents": messages}
@@ -589,15 +590,13 @@ def chat_with_gemini(messages):
             next_index = (current_index + 1) % len(api_list)
             new_key = api_list[next_index]
 
-            # Cập nhật key
+            # Cập nhật API mới
             st.session_state["GEMINI_API_KEY"] = new_key
-            global API_KEY
             API_KEY = new_key
 
-            #return "⚠️ Mã API hiện tại bị lỗi. Đã tự động chuyển sang mã API khác để tiếp tục hoạt động."
-            # ✅ Gọi lại hàm sau khi đổi API
+            # 🔁 Gọi lại hàm sau khi đổi key
             return chat_with_gemini(messages)
-        
+
         return f"Lỗi API: {response.status_code} - {response.text}"
 
 # Giao diện Streamlit
