@@ -804,4 +804,4 @@ if user_input:
     #st.chat_message("🤖 Gia sư AI").markdown(reply)
 
     # Lưu lại phản hồi gốc
-    st.session_state.messages.append({"role": "model", "parts": [{"text": reply}]})
+    st.session_state.messages.append({"role": "model", "parts": [{"text": reply}]}) 
