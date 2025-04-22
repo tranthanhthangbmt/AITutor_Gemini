@@ -739,7 +739,10 @@ if pdf_context:
             {"role": "model", "parts": [{"text": greeting}]}
         ]
         st.session_state.lesson_source = current_source
-        st.session_state.lesson_initialized = True  # 🔑 Đánh dấu đã khởi tạo
+        st.session_state.lesson_initialized = True
+        
+        # ✅ Buộc Streamlit khởi chạy lại vòng render → tránh hiện tượng hiển thị chồng
+        st.rerun()
         
     #Phần chọn bài học
     lesson_title = selected_lesson if selected_lesson != "👉 Chọn bài học..." else "Bài học tùy chỉnh"
