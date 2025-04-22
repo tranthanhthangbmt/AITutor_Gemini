@@ -153,11 +153,6 @@ with st.sidebar:
     #for logo
     # Thay link này bằng logo thật của bạn (link raw từ GitHub)
     logo_url = "https://raw.githubusercontent.com/tranthanhthangbmt/AITutor_Gemini/main/LOGO_UDA_2023_VN_EN_chuan2.png"
-
-    #lấy các API từ file
-    api_file = st.file_uploader("📄 Tải file .txt chứa danh sách Gemini API", type=["txt"], key="api_list_file")
-    if api_file:
-        st.session_state["api_list_file_obj"] = api_file
     
     st.sidebar.markdown(
         f"""
@@ -238,6 +233,12 @@ with st.sidebar:
     })();
     """)
     "[Lấy API key tại đây](https://aistudio.google.com/app/apikey)"
+    
+    #lấy các API từ file
+    api_file = st.file_uploader("📄 Tải file .txt chứa danh sách Gemini API", type=["txt"], key="api_list_file")
+    if api_file:
+        st.session_state["api_list_file_obj"] = api_file
+	
     if st.session_state.get("show_sidebar_inputs", False):
         st.markdown("📚 **Chọn bài học hoặc tải lên bài học**")
         
