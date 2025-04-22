@@ -608,29 +608,28 @@ def chat_with_gemini(messages, retry_count=0, max_retries=3):
             return response.json()["candidates"][0]["content"]["parts"][0]["text"], None
         except Exception as e:
             return f"Lỗi phân tích phản hồi: {e}", None
-    else:
-        # ✅ Chỉ xử lý đổi API nếu có lỗi liên quan đến API
-        if "api" in response.text.lower() and retry_count < max_retries:
-            # ⏬ Tải danh sách API tại đây, chỉ khi cần
-            api_list = st.session_state.get("api_list", [])
 
-            if not api_list:
-                return "⚠️ Không tìm thấy danh sách API trong session_state. Vui lòng tải lại file .txt.", None
+    # ⚠️ Nếu lỗi có liên quan đến API
+    if "api" in response.text.lower() and retry_count < max_retries:
+        api_list = st.session_state.get("api_list", [])
 
-            current_key = API_KEY
-            try:
-                current_index = api_list.index(current_key)
-            except ValueError:
-                current_index = -1
+        if not api_list:
+            return "⚠️ Không tìm thấy danh sách API trong session_state. Vui lòng tải file .txt chứa các key.", None
 
-            next_index = (current_index + 1) % len(api_list)
-            new_key = api_list[next_index]
-            API_KEY = new_key
+        current_key = API_KEY
+        try:
+            current_index = api_list.index(current_key)
+        except ValueError:
+            current_index = -1
 
-            # 🔁 Gọi lại chính mình với key mới
-            return chat_with_gemini(messages, retry_count=retry_count+1)
+        next_index = (current_index + 1) % len(api_list)
+        new_key = api_list[next_index]
+        API_KEY = new_key
 
-        return f"Lỗi API: {response.status_code} - {response.text}", None
+        # Gọi lại chính mình với key mới
+        return chat_with_gemini(messages, retry_count=retry_count + 1)
+
+    return f"Lỗi API: {response.status_code} - {response.text}", None
 
 # Giao diện Streamlit
 #st.set_page_config(page_title="Tutor AI", page_icon="🎓")
