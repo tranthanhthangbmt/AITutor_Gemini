@@ -33,6 +33,17 @@ input_key = st.session_state.get("GEMINI_API_KEY", "")
 # Lấy từ localStorage
 key_from_local = st_javascript("JSON.parse(window.localStorage.getItem('gemini_api_key') || '\"\"')")
 
+#tải APi từ file:
+def load_api_list_from_github(url="https://raw.githubusercontent.com/tranthanhthangbmt/AITutor_Gemini/main/ListAPI.txt"):
+    try:
+        response = requests.get(url)
+        if response.status_code == 200:
+            keys = [line.strip() for line in response.text.strip().splitlines() if line.strip()]
+            return keys
+    except Exception as e:
+        print(f"Lỗi khi tải danh sách API: {e}")
+    return []
+    
 # Nếu chưa có thì gán
 if not input_key and key_from_local:
     st.session_state["GEMINI_API_KEY"] = key_from_local
@@ -94,6 +105,17 @@ def extract_text_from_uploaded_file(uploaded_file):
     except Exception as e:
         return f"❌ Lỗi đọc file: {e}"
 
+#Tạo hàm đọc danh sách API từ file upload
+def load_api_list_from_uploaded_file(api_file):
+    if api_file is not None:
+        try:
+            content = api_file.read().decode("utf-8")
+            keys = [line.strip() for line in content.splitlines() if line.strip()]
+            return keys
+        except Exception as e:
+            st.error(f"❌ Lỗi khi đọc file API: {e}")
+    return []
+    
 # Xác thực API bằng request test
 def is_valid_gemini_key(key):
     try:
@@ -131,11 +153,11 @@ with st.sidebar:
     #for logo
     # Thay link này bằng logo thật của bạn (link raw từ GitHub)
     logo_url = "https://raw.githubusercontent.com/tranthanhthangbmt/AITutor_Gemini/main/LOGO_UDA_2023_VN_EN_chuan2.png"
-
+    
     st.sidebar.markdown(
         f"""
         <div style='text-align: center; margin-bottom: 10px;'>
-            <img src="{logo_url}" width="120" style="border-radius: 10px;" />
+            <img src="{logo_url}" width="200" style="border-radius: 10px;" />
         </div>
         """,
         unsafe_allow_html=True
@@ -211,6 +233,14 @@ with st.sidebar:
     })();
     """)
     "[Lấy API key tại đây](https://aistudio.google.com/app/apikey)"
+    
+    #lấy các API từ file
+    api_file = st.file_uploader("📄 Tải file .txt chứa danh sách Gemini API", type=["txt"], key="api_list_file")
+    if api_file:
+        content = api_file.read().decode("utf-8")
+        api_list = [line.strip() for line in content.splitlines() if line.strip()]
+        st.session_state["api_list"] = api_list
+	
     if st.session_state.get("show_sidebar_inputs", False):
         st.markdown("📚 **Chọn bài học hoặc tải lên bài học**")
         
@@ -447,7 +477,7 @@ pdf_context = extract_pdf_text_from_url(PDF_URL)
 
 # Prompt hệ thống: Thiết lập vai trò tutor AI
 
-SYSTEM_PROMPT1 = r"""
+SYSTEM_PROMPT_Tutor_AI = r"""
 # Vai trò:
 Bạn là một gia sư AI chuyên nghiệp, có nhiệm vụ hướng dẫn học sinh học về "Nội dung bài học do bạn nhập vào". Bạn phải phản hồi chi tiết, đặt câu hỏi gợi mở, kiểm tra phản xạ và giải thích dựa trên tài liệu handout được cung cấp.
 
@@ -465,7 +495,7 @@ Bạn là một gia sư AI chuyên nghiệp, có nhiệm vụ hướng dẫn h�
 """
 
 # 🔹 Vai trò mặc định của Tutor AI (trước khi có tài liệu)
-SYSTEM_PROMPT_Tutor_AI = f"""
+SYSTEM_PROMPT_Tutor_AI1 = f"""
 # Vai trò:
     - Bạn được thiết lập là một gia sư AI chuyên nghiệp, có nhiệm vụ hướng dẫn tôi hiểu rõ về [Bài toán đếm trong Nguyên lý dirichlet, Các cấu hình tổ hợp]. Hãy đóng vai trò là một tutor có kinh nghiệm, đặt câu hỏi gợi mở, hướng dẫn chi tiết từng bước, và cung cấp bài tập thực hành giúp tôi củng cố kiến thức. Dựa trên tập tin đính kèm chứa chi tiết bài học, trắc nghiệm, bài thực hành và bài dự án, hãy căn cứ trên nội dung của file đính kèm đó để hướng dẫn. Sau đây là các thông tin của nội dung bài học và các hành vi của gia sư:
 
@@ -528,6 +558,18 @@ SYSTEM_PROMPT_Tutor_AI = f"""
     - Sau khi tôi hoàn thành một phần học (ví dụ: một khái niệm lý thuyết hoặc một bài tập), bạn có thể gợi ý tôi thực hiện một lượt **"teach-back" – giảng lại cho bạn như thể tôi là người dạy**. Tuy nhiên, đây chỉ là lựa chọn mở, **không bắt buộc**.  
         - Nếu tôi từ chối hoặc không phản hồi, bạn hãy tiếp tục buổi học như bình thường mà không ép buộc.  
         - Gợi ý có thể ở dạng: “Nếu bạn muốn ôn lại và hệ thống hóa kiến thức, bạn có thể thử giảng lại cho mình khái niệm bạn vừa học. Bạn có thể sử dụng ví dụ trong handout để minh họa nhé!”   
+
+# Định dạng câu hỏi trắc nghiệm do tutor đưa ra cho người học:
+    - Câu hỏi phải được đánh số rõ ràng, ví dụ: "Câu 1:", "Câu 2:", v.v.
+    - Các lựa chọn A, B, C, D phải được trình bày trên **các dòng riêng biệt**, theo định dạng sau:
+        Câu 1: Nội dung câu hỏi
+        A. Lựa chọn A
+        B. Lựa chọn B
+        C. Lựa chọn C
+        D. Lựa chọn D
+    - KHÔNG được viết tất cả các lựa chọn A, B, C, D liền nhau trên cùng một dòng.
+    - Nếu nội dung trong handout có sẵn trắc nghiệm, chỉ được sử dụng các câu đó, không được tự sáng tạo mới.
+    - Nếu sinh viên cần luyện tập thêm, có thể chọn lại các câu đã học từ handout để đưa ra với định dạng chuẩn ở trên.
     
 # Ràng buộc nội dung:
 	- Gia sư AI chỉ được tạo nội dung (câu hỏi, gợi ý, phản hồi, ví dụ, bài tập) dựa trên nội dung có sẵn trong handout đính kèm.
@@ -535,26 +577,59 @@ SYSTEM_PROMPT_Tutor_AI = f"""
 	- Trước khi đưa ra bất kỳ câu hỏi, ví dụ, phản hồi, hoặc bài tập nào, gia sư AI PHẢI kiểm tra và xác minh rằng nội dung đó có xuất hiện rõ ràng trong tài liệu handout đính kèm. Nếu không tìm thấy, KHÔNG được tự tạo mới hoặc suy diễn thêm.
 	- Mọi đề bài, câu hỏi, ví dụ hoặc phản hồi đều cần bám sát nội dung đã được liệt kê trong tài liệu đính kèm, nếu không thì phải từ chối thực hiện.
 
+# Math and Code Presentation Style:
+    1. Default to Rendered LaTeX: Always use LaTeX for math. Use double dollar signs for display equations (equations intended to be on their own separate lines) and single dollar signs for inline math within text. Ensure math renders properly and not as raw code. Use the backslash-mathbf command for vectors where appropriate (e.g., for r). Formatting Display Math Within Lists: When a display math equation (using double dollar signs) belongs to a list item (like a numbered or bullet point), follow this specific structure: First, write the text part of the list item. Then, start the display math equation on a completely new line immediately following that text. Critically, this new line containing the display math equation MUST begin at the absolute start of the line, with ZERO leading spaces or any indentation. Explicitly, do NOT add spaces or tabs before the opening double dollar sign to visually align it with the list item's text. This strict zero-indentation rule for display math lines within lists is essential for ensuring correct rendering.
+    2. No Math in Code Blocks: Do NOT put LaTeX or purely mathematical formulas inside code blocks (triple backticks).
+    3. Code Blocks for Implementation ONLY: Use code blocks exclusively for actual programming code (e.g., Python, NumPy). Math-related API calls are acceptable only when discussing specific code implementations.
+    4. Goal: Prioritize clean, readable, professional presentation resembling scientific documents. Ensure clear separation between math notation, text explanations, and code.
+    5. Inline vs. Display for Brevity: Prefer inline math (`$ ... $`) for short equations fitting naturally in text to improve readability and flow. Reserve display math (`$$ ... $$`) for longer/complex equations or those requiring standalone emphasis.
+    6. Spacing After Display Math: For standard paragraph separation after display math (`$$...$$`), ensure exactly one blank line (two newlines in Markdown source) exists between the closing `$$` line and the subsequent paragraph text.
+    7. After rendering with MathJax, review all math expressions. If any formula still appears as raw text or fails to render, rewrite it in a readable and correct LaTeX format.
+    8. Prefer inline math (`$...$`, `\(...\)`) for short expressions. Use display math (`$$...$$`, `\[...\]`) for complex or emphasized expressions needing standalone display.
+    9. Include support for additional math delimiters such as \(...\), \\(...\\), and superscripts like ^, as commonly used in MathJax and LaTeX.
+    10. Avoid mixing different math delimiters in the same expression. For example, the input "\(mx + p\)\\(nx + q\\) = 0" uses both \(...\) and \\(...\\), which is incorrect. Use consistent delimiters for the entire expression, such as \((mx + p)(nx + q) = 0\) or \\((mx + p)(nx + q) = 0\\).    
 """
 
 # Gọi API Gemini, gửi cả lịch sử trò chuyện
-def chat_with_gemini(messages):
+def chat_with_gemini(messages, retry_count=0, max_retries=3):
+    global API_KEY
+
     headers = {"Content-Type": "application/json"}
     params = {"key": API_KEY}
     data = {"contents": messages}
 
-    response = requests.post(GEMINI_API_URL, headers=headers, params=params, json=data)
+    try:
+        response = requests.post(GEMINI_API_URL, headers=headers, params=params, json=data, timeout=12)
+    except requests.exceptions.Timeout:
+        return "⚠️ Hệ thống phản hồi quá chậm. Vui lòng thử lại sau.", None
 
     if response.status_code == 200:
         try:
-            return response.json()["candidates"][0]["content"]["parts"][0]["text"]
+            return response.json()["candidates"][0]["content"]["parts"][0]["text"], None
         except Exception as e:
-            return f"Lỗi phân tích phản hồi: {e}"
-    else:
-        #return f"Lỗi API: {response.status_code} - {response.text}"
-        if response.status_code == 429 and "quota" in response.text.lower():
-            return "⚠️ Mã API của bạn đã hết hạn hoặc vượt quá giới hạn sử dụng. Vui lòng lấy mã API mới để tiếp tục việc học."
-        return f"Lỗi API: {response.status_code} - {response.text}"
+            return f"Lỗi phân tích phản hồi: {e}", None
+
+    # ⚠️ Nếu lỗi có liên quan đến API
+    if "api" in response.text.lower() and retry_count < max_retries:
+        api_list = st.session_state.get("api_list", [])
+
+        if not api_list:
+            return "⚠️ Không tìm thấy danh sách API trong session_state. Vui lòng tải file .txt chứa các key.", None
+
+        current_key = API_KEY
+        try:
+            current_index = api_list.index(current_key)
+        except ValueError:
+            current_index = -1
+
+        next_index = (current_index + 1) % len(api_list)
+        new_key = api_list[next_index]
+        API_KEY = new_key
+
+        # Gọi lại chính mình với key mới
+        return chat_with_gemini(messages, retry_count=retry_count + 1)
+
+    return f"Lỗi API: {response.status_code} - {response.text}", None
 
 # Giao diện Streamlit
 #st.set_page_config(page_title="Tutor AI", page_icon="🎓")
@@ -681,7 +756,11 @@ if user_input:
 
     # Gọi Gemini phản hồi
     with st.spinner("🤖 Đang phản hồi..."):
-        reply = chat_with_gemini(st.session_state.messages)
+        reply, new_api_key = chat_with_gemini(st.session_state.messages)
+
+        # Nếu có API mới được dùng → cập nhật session_state bên ngoài
+        if new_api_key:
+            st.session_state["GEMINI_API_KEY"] = new_api_key
 
         # Nếu có thể xuất HTML (như <p>...</p>)
         reply = clean_html_to_text(reply)
