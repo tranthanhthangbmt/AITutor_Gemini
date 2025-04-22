@@ -105,17 +105,6 @@ def extract_text_from_uploaded_file(uploaded_file):
     except Exception as e:
         return f"❌ Lỗi đọc file: {e}"
 
-#Tạo hàm đọc danh sách API từ file upload
-def load_api_list_from_uploaded_file(api_file):
-    if api_file is not None:
-        try:
-            content = api_file.read().decode("utf-8")
-            keys = [line.strip() for line in content.splitlines() if line.strip()]
-            return keys
-        except Exception as e:
-            st.error(f"❌ Lỗi khi đọc file API: {e}")
-    return []
-    
 # Xác thực API bằng request test
 def is_valid_gemini_key(key):
     try:
@@ -153,7 +142,7 @@ with st.sidebar:
     #for logo
     # Thay link này bằng logo thật của bạn (link raw từ GitHub)
     logo_url = "https://raw.githubusercontent.com/tranthanhthangbmt/AITutor_Gemini/main/LOGO_UDA_2023_VN_EN_chuan2.png"
-    
+
     st.sidebar.markdown(
         f"""
         <div style='text-align: center; margin-bottom: 10px;'>
@@ -233,12 +222,6 @@ with st.sidebar:
     })();
     """)
     "[Lấy API key tại đây](https://aistudio.google.com/app/apikey)"
-    
-    #lấy các API từ file
-    api_file = st.file_uploader("📄 Tải file .txt chứa danh sách Gemini API", type=["txt"], key="api_list_file")
-    if api_file:
-        st.session_state["api_list_file_obj"] = api_file
-	
     if st.session_state.get("show_sidebar_inputs", False):
         st.markdown("📚 **Chọn bài học hoặc tải lên bài học**")
         
@@ -595,8 +578,7 @@ def chat_with_gemini(messages):
             return f"Lỗi phân tích phản hồi: {e}", None
     else:
         if "api" in response.text.lower():
-            #api_list = load_api_list_from_github()
-            api_list = load_api_list_from_uploaded_file(st.session_state.get("api_list_file_obj"))
+            api_list = load_api_list_from_github()
             current_key = API_KEY
             if current_key in api_list:
                 current_index = api_list.index(current_key)
@@ -785,4 +767,3 @@ if user_input:
 
     # Lưu lại phản hồi gốc
     st.session_state.messages.append({"role": "model", "parts": [{"text": reply}]})
- 
