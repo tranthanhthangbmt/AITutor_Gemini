@@ -237,7 +237,10 @@ with st.sidebar:
     #lấy các API từ file
     api_file = st.file_uploader("📄 Tải file .txt chứa danh sách Gemini API", type=["txt"], key="api_list_file")
     if api_file:
-        st.session_state["api_list_file_obj"] = api_file
+        content = api_file.read().decode("utf-8")
+        api_list = [line.strip() for line in content.splitlines() if line.strip()]
+        st.session_state["api_list"] = api_list
+        st.session_state["api_list_file_obj"] = api_file  # nếu vẫn muốn giữ
 	
     if st.session_state.get("show_sidebar_inputs", False):
         st.markdown("📚 **Chọn bài học hoặc tải lên bài học**")
@@ -605,8 +608,11 @@ def chat_with_gemini(messages):
             return f"Lỗi phân tích phản hồi: {e}", None
     else:
         if "api" in response.text.lower():
-            #api_list = load_api_list_from_github()
-            api_list = load_api_list_from_uploaded_file(st.session_state.get("api_list_file_obj"))
+            # ⚠️ KHÔNG đọc lại file — lấy từ session_state
+            api_list = st.session_state.get("api_list", [])
+            if not api_list:
+                return "⚠️ Không tìm thấy danh sách API trong session_state. Vui lòng tải lại file .txt.", None
+
             current_key = API_KEY
             if current_key in api_list:
                 current_index = api_list.index(current_key)
@@ -615,10 +621,11 @@ def chat_with_gemini(messages):
 
             next_index = (current_index + 1) % len(api_list)
             new_key = api_list[next_index]
-            API_KEY = new_key  # ✅ Cập nhật nội bộ, KHÔNG gán vào session_state tại đây
+            API_KEY = new_key
 
-            # Gọi lại sau khi đổi key
-            return chat_with_gemini(messages)  # Giữ nguyên logic gọi lại
+            # Gọi lại hàm với key mới
+            return chat_with_gemini(messages)
+
         return f"Lỗi API: {response.status_code} - {response.text}", None
 
 # Giao diện Streamlit
