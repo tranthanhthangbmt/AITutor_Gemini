@@ -777,11 +777,11 @@ if user_input:
 
     # Gọi Gemini phản hồi
     with st.spinner("🤖 Đang phản hồi..."):
-        reply, new_api_key = chat_with_gemini(st.session_state.messages)
+        reply = chat_with_gemini(st.session_state.messages)
 
         # Nếu có API mới được dùng → cập nhật session_state bên ngoài
-        if new_api_key:
-            st.session_state["GEMINI_API_KEY"] = new_api_key
+        #if new_api_key:
+        #    st.session_state["GEMINI_API_KEY"] = new_api_key
 
         # Nếu có thể xuất HTML (như <p>...</p>)
         reply = clean_html_to_text(reply)
