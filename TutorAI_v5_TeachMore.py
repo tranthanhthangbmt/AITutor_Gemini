@@ -33,17 +33,6 @@ input_key = st.session_state.get("GEMINI_API_KEY", "")
 # Lấy từ localStorage
 key_from_local = st_javascript("JSON.parse(window.localStorage.getItem('gemini_api_key') || '\"\"')")
 
-#tải APi từ file:
-def load_api_list_from_github(url="https://raw.githubusercontent.com/tranthanhthangbmt/AITutor_Gemini/main/ListAPI.txt"):
-    try:
-        response = requests.get(url)
-        if response.status_code == 200:
-            keys = [line.strip() for line in response.text.strip().splitlines() if line.strip()]
-            return keys
-    except Exception as e:
-        print(f"Lỗi khi tải danh sách API: {e}")
-    return []
-    
 # Nếu chưa có thì gán
 if not input_key and key_from_local:
     st.session_state["GEMINI_API_KEY"] = key_from_local
@@ -563,8 +552,6 @@ SYSTEM_PROMPT_Tutor_AI = f"""
 
 # Gọi API Gemini, gửi cả lịch sử trò chuyện
 def chat_with_gemini(messages):
-    global API_KEY
-
     headers = {"Content-Type": "application/json"}
     params = {"key": API_KEY}
     data = {"contents": messages}
@@ -573,25 +560,14 @@ def chat_with_gemini(messages):
 
     if response.status_code == 200:
         try:
-            return response.json()["candidates"][0]["content"]["parts"][0]["text"], None
+            return response.json()["candidates"][0]["content"]["parts"][0]["text"]
         except Exception as e:
-            return f"Lỗi phân tích phản hồi: {e}", None
+            return f"Lỗi phân tích phản hồi: {e}"
     else:
-        if "api" in response.text.lower():
-            api_list = load_api_list_from_github()
-            current_key = API_KEY
-            if current_key in api_list:
-                current_index = api_list.index(current_key)
-            else:
-                current_index = -1
-
-            next_index = (current_index + 1) % len(api_list)
-            new_key = api_list[next_index]
-            API_KEY = new_key  # ✅ Cập nhật nội bộ, KHÔNG gán vào session_state tại đây
-
-            # Gọi lại sau khi đổi key
-            return chat_with_gemini(messages)  # Giữ nguyên logic gọi lại
-        return f"Lỗi API: {response.status_code} - {response.text}", None
+        #return f"Lỗi API: {response.status_code} - {response.text}"
+        if response.status_code == 429 and "quota" in response.text.lower():
+            return "⚠️ Mã API của bạn đã hết hạn hoặc vượt quá giới hạn sử dụng. Vui lòng lấy mã API mới để tiếp tục việc học."
+        return f"Lỗi API: {response.status_code} - {response.text}"
 
 # Giao diện Streamlit
 #st.set_page_config(page_title="Tutor AI", page_icon="🎓")
@@ -718,11 +694,7 @@ if user_input:
 
     # Gọi Gemini phản hồi
     with st.spinner("🤖 Đang phản hồi..."):
-        reply, new_api_key = chat_with_gemini(st.session_state.messages)
-
-        # Nếu có API mới được dùng → cập nhật session_state bên ngoài
-        if new_api_key:
-            st.session_state["GEMINI_API_KEY"] = new_api_key
+        reply = chat_with_gemini(st.session_state.messages)
 
         # Nếu có thể xuất HTML (như <p>...</p>)
         reply = clean_html_to_text(reply)
