@@ -563,6 +563,7 @@ SYSTEM_PROMPT_Tutor_AI = f"""
 
 # Gọi API Gemini, gửi cả lịch sử trò chuyện
 def chat_with_gemini(messages):
+    global API_KEY  # 🔄 Đặt ở đầu để tránh lỗi "used prior to global"
     headers = {"Content-Type": "application/json"}
     params = {"key": API_KEY}
     data = {"contents": messages}
