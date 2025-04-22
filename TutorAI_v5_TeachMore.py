@@ -17,15 +17,33 @@ import tempfile
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 
+from gtts import gTTS #for audio
+import base64
+import uuid
+import os
+
 # Đảm bảo st.set_page_config là lệnh đầu tiên
 # Giao diện Streamlit
 st.set_page_config(page_title="Tutor AI", page_icon="🎓")
+
+uploaded_files = []  # ✅ đảm bảo biến tồn tại trong mọi trường hợp
 
 input_key = st.session_state.get("GEMINI_API_KEY", "")
 
 # Lấy từ localStorage
 key_from_local = st_javascript("JSON.parse(window.localStorage.getItem('gemini_api_key') || '\"\"')")
 
+#tải APi từ file:
+def load_api_list_from_github(url="https://raw.githubusercontent.com/tranthanhthangbmt/AITutor_Gemini/main/ListAPI.txt"):
+    try:
+        response = requests.get(url)
+        if response.status_code == 200:
+            keys = [line.strip() for line in response.text.strip().splitlines() if line.strip()]
+            return keys
+    except Exception as e:
+        print(f"Lỗi khi tải danh sách API: {e}")
+    return []
+    
 # Nếu chưa có thì gán
 if not input_key and key_from_local:
     st.session_state["GEMINI_API_KEY"] = key_from_local
@@ -87,6 +105,17 @@ def extract_text_from_uploaded_file(uploaded_file):
     except Exception as e:
         return f"❌ Lỗi đọc file: {e}"
 
+#Tạo hàm đọc danh sách API từ file upload
+def load_api_list_from_uploaded_file(api_file):
+    if api_file is not None:
+        try:
+            content = api_file.read().decode("utf-8")
+            keys = [line.strip() for line in content.splitlines() if line.strip()]
+            return keys
+        except Exception as e:
+            st.error(f"❌ Lỗi khi đọc file API: {e}")
+    return []
+    
 # Xác thực API bằng request test
 def is_valid_gemini_key(key):
     try:
@@ -101,6 +130,10 @@ def is_valid_gemini_key(key):
     except Exception:
         return False
 
+#thiết lập ẩn phần bài học
+if "show_sidebar_inputs" not in st.session_state:
+    st.session_state["show_sidebar_inputs"] = False  # hoặc True nếu bạn muốn bật mặc định
+    
 # ⬇ Lấy input từ người dùng ở sidebar trước
 with st.sidebar:
     st.markdown("""
@@ -120,11 +153,11 @@ with st.sidebar:
     #for logo
     # Thay link này bằng logo thật của bạn (link raw từ GitHub)
     logo_url = "https://raw.githubusercontent.com/tranthanhthangbmt/AITutor_Gemini/main/LOGO_UDA_2023_VN_EN_chuan2.png"
-
+    
     st.sidebar.markdown(
         f"""
         <div style='text-align: center; margin-bottom: 10px;'>
-            <img src="{logo_url}" width="120" style="border-radius: 10px;" />
+            <img src="{logo_url}" width="200" style="border-radius: 10px;" />
         </div>
         """,
         unsafe_allow_html=True
@@ -201,13 +234,30 @@ with st.sidebar:
     """)
     "[Lấy API key tại đây](https://aistudio.google.com/app/apikey)"
     
-    st.markdown("📚 **Chọn bài học hoặc tải lên bài học**")
+    #lấy các API từ file
+    api_file = st.file_uploader("📄 Tải file .txt chứa danh sách Gemini API", type=["txt"], key="api_list_file")
+    if api_file:
+        content = api_file.read().decode("utf-8")
+        api_list = [line.strip() for line in content.splitlines() if line.strip()]
+        st.session_state["api_list"] = api_list
+	
+    if st.session_state.get("show_sidebar_inputs", False):
+        st.markdown("📚 **Chọn bài học hoặc tải lên bài học**")
+        
+        selected_lesson = st.selectbox("📖 Chọn bài học", list(available_lessons.keys()))
+        default_link = available_lessons[selected_lesson]
+        selected_lesson_link = available_lessons.get(selected_lesson, "").strip()
+        
+        if selected_lesson != "👉 Chọn bài học..." and selected_lesson_link:
+            st.markdown(f"🔗 **Tài liệu:** [Xem bài học]({selected_lesson_link})", unsafe_allow_html=True)
 
-    # 📖 Chọn bài học
-    selected_lesson = st.selectbox("📖 Chọn bài học", list(available_lessons.keys()))
+        uploaded_files = st.file_uploader("📤 Tải lên nhiều file bài học (PDF, TXT, DOCX)", type=["pdf", "txt", "docx"], accept_multiple_files=True)
+    else:
+        # uploaded_file = None #bỏ vì bạn có thể xóa dòng này nếu đã chuyển sang uploaded_files:
+        selected_lesson = "👉 Chọn bài học..."        
+        selected_lesson_link = "" #available_lessons.get(selected_lesson, "").strip() """
+
     default_link = available_lessons[selected_lesson]
-    selected_lesson_link = available_lessons.get(selected_lesson, "").strip()
-    
     # 📤 Tải file tài liệu (mục tiêu là đặt bên dưới link)
     uploaded_file = None  # Khởi tạo trước để dùng điều kiện bên trên
     
@@ -216,13 +266,23 @@ with st.sidebar:
         st.markdown(f"🔗 **Tài liệu:** [Xem bài học]({selected_lesson_link})", unsafe_allow_html=True)
     
     # 📤 Sau khi hiện link (nếu có), hiển thị phần upload
-    uploaded_file = st.file_uploader("📤 Tải lên file tài liệu (PDF, TXT, DOCX...)", type=["pdf", "txt", "docx"])
+    #uploaded_file = st.file_uploader("📤 Tải lên file tài liệu (PDF, TXT, DOCX...)", type=["pdf", "txt", "docx"])
+    uploaded_files = st.file_uploader(
+        "📤 Tải lên nhiều file bài học (PDF, TXT, DOCX)", 
+        type=["pdf", "txt", "docx"], 
+        accept_multiple_files=True
+    )
     
     # ✅ Nếu người dùng upload tài liệu riêng → ẩn link (từ vòng sau trở đi)
-    if uploaded_file:
+    if uploaded_files:
         # Có thể xoá dòng link bằng session hoặc không hiển thị ở các phần sau
         pass
-
+    #hiển thị danh sách các files đã upload lên
+    if uploaded_files:
+        st.markdown("📄 **Các file đã tải lên:**")
+        for f in uploaded_files:
+            st.markdown(f"- {f.name}")
+        
     # 🔄 Nút reset
     if st.button("🔄 Bắt đầu lại buổi học"):
         if "messages" in st.session_state:
@@ -389,7 +449,8 @@ if not API_KEY:
     st.stop()
 
 #input file bài học
-if selected_lesson == "👉 Chọn bài học..." and uploaded_file is None:
+#if selected_lesson == "👉 Chọn bài học..." and uploaded_file is None:
+if selected_lesson == "👉 Chọn bài học..." and not uploaded_files: #kiểm tra là đã tải liên nhiều file
     st.info("📥 Hãy tải lên tài liệu PDF/TXT hoặc chọn một bài học từ danh sách bên trên để bắt đầu.")
     st.stop()
 
@@ -468,6 +529,16 @@ SYSTEM_PROMPT_Tutor_AI = f"""
     - Trong cùng một phiên học, nếu tôi lặp lại một lỗi sai đã được góp ý trước đó, hãy chủ động nhắc lại lỗi sai đó, chỉ rõ rằng tôi đã từng hiểu sai và mời tôi tự sửa lại.  
         - Ví dụ: “Bạn từng nhầm lẫn khái niệm này trong câu hỏi trước. Bạn có thể xem lại phần [mục trong handout] để điều chỉnh không?”  
     - Hãy theo dõi các lỗi sai hoặc điểm yếu đã được nhắc đến từ đầu phiên để tránh tôi lặp lại cùng một sai lầm. Nếu cần, đưa ra bài tập luyện tập bổ sung để khắc phục điểm yếu đó, nhưng vẫn **phải lấy từ tài liệu đính kèm**.  
+    - Hỗ trợ tăng tính chủ động của người học:
+        - Sau khi hoàn thành một phần nội dung (ví dụ: một khái niệm lý thuyết, một phần bài đọc hoặc bài giải), trước khi chuyển sang câu hỏi mới, gia sư AI phải đưa ra ít nhất 2–3 lựa chọn rõ ràng để người học quyết định hướng đi tiếp theo, ví dụ:
+            1. “Bạn có muốn tôi tóm tắt lại nội dung [tên phần/mục cụ thể] để bạn nắm rõ hơn không?”
+            2. “Bạn có muốn tôi gợi ý một vài điểm chính hoặc lỗi thường gặp ở phần này?”
+            3. “Hay bạn muốn chuyển sang câu hỏi tiếp theo để kiểm tra mức độ hiểu?”
+        - Người học chỉ cần gõ số tương ứng (1, 2 hoặc 3) để chọn hướng đi tiếp theo, không cần gõ lại nội dung câu hỏi.
+        - Việc đưa lựa chọn giúp người học kiểm soát tiến độ học và tránh bỏ sót các điểm quan trọng nếu chưa nắm rõ.
+        - Nếu người học chọn “muốn nhắc lại nội dung”, hãy chỉ tóm tắt đúng phần đó, không mở rộng hoặc suy diễn thêm.
+        - Nếu người học không phản hồi sau 10–15 giây (tùy nền tảng), có thể nhắc lại nhẹ nhàng:
+            - “Mình có thể nhắc lại nội dung, đưa gợi ý, hoặc tiếp tục phần tiếp theo — bạn chọn nhé (1, 2 hoặc 3)?”
  	
 # Định dạng phản hồi của gia sư AI:
 	- Trước mỗi phản hồi hoặc đề bài, LUÔN kiểm tra tài liệu handout đính kèm để xác minh rằng nội dung đã có trong đó.
@@ -487,53 +558,54 @@ SYSTEM_PROMPT_Tutor_AI = f"""
     - Sau khi tôi hoàn thành một phần học (ví dụ: một khái niệm lý thuyết hoặc một bài tập), bạn có thể gợi ý tôi thực hiện một lượt **"teach-back" – giảng lại cho bạn như thể tôi là người dạy**. Tuy nhiên, đây chỉ là lựa chọn mở, **không bắt buộc**.  
         - Nếu tôi từ chối hoặc không phản hồi, bạn hãy tiếp tục buổi học như bình thường mà không ép buộc.  
         - Gợi ý có thể ở dạng: “Nếu bạn muốn ôn lại và hệ thống hóa kiến thức, bạn có thể thử giảng lại cho mình khái niệm bạn vừa học. Bạn có thể sử dụng ví dụ trong handout để minh họa nhé!”   
-
-# Định dạng câu hỏi trắc nghiệm do tutor đưa ra cho người học:
-    - Câu hỏi phải được đánh số rõ ràng, ví dụ: "Câu 1:", "Câu 2:", v.v.
-    - Các lựa chọn A, B, C, D phải được trình bày trên **các dòng riêng biệt**, theo định dạng sau:
-        Câu 1: Nội dung câu hỏi
-        A. Lựa chọn A
-        B. Lựa chọn B
-        C. Lựa chọn C
-        D. Lựa chọn D
-    - KHÔNG được viết tất cả các lựa chọn A, B, C, D liền nhau trên cùng một dòng.
-    - Nếu nội dung trong handout có sẵn trắc nghiệm, chỉ được sử dụng các câu đó, không được tự sáng tạo mới.
-    - Nếu sinh viên cần luyện tập thêm, có thể chọn lại các câu đã học từ handout để đưa ra với định dạng chuẩn ở trên.
     
 # Ràng buộc nội dung:
 	- Gia sư AI chỉ được tạo nội dung (câu hỏi, gợi ý, phản hồi, ví dụ, bài tập) dựa trên nội dung có sẵn trong handout đính kèm.
 	- Nếu người học hỏi ngoài phạm vi handout, gia sư AI cần từ chối lịch sự và nhắc lại: "Câu hỏi này nằm ngoài nội dung buổi học. Hãy tham khảo tài liệu mở rộng từ giảng viên."
 	- Trước khi đưa ra bất kỳ câu hỏi, ví dụ, phản hồi, hoặc bài tập nào, gia sư AI PHẢI kiểm tra và xác minh rằng nội dung đó có xuất hiện rõ ràng trong tài liệu handout đính kèm. Nếu không tìm thấy, KHÔNG được tự tạo mới hoặc suy diễn thêm.
 	- Mọi đề bài, câu hỏi, ví dụ hoặc phản hồi đều cần bám sát nội dung đã được liệt kê trong tài liệu đính kèm, nếu không thì phải từ chối thực hiện.
-
-# Math and Code Presentation Style:
-    1. Default to Rendered LaTeX: Always use LaTeX for math. Use double dollar signs for display equations (equations intended to be on their own separate lines) and single dollar signs for inline math within text. Ensure math renders properly and not as raw code. Use the backslash-mathbf command for vectors where appropriate (e.g., for r). Formatting Display Math Within Lists: When a display math equation (using double dollar signs) belongs to a list item (like a numbered or bullet point), follow this specific structure: First, write the text part of the list item. Then, start the display math equation on a completely new line immediately following that text. Critically, this new line containing the display math equation MUST begin at the absolute start of the line, with ZERO leading spaces or any indentation. Explicitly, do NOT add spaces or tabs before the opening double dollar sign to visually align it with the list item's text. This strict zero-indentation rule for display math lines within lists is essential for ensuring correct rendering.
-    2. No Math in Code Blocks: Do NOT put LaTeX or purely mathematical formulas inside code blocks (triple backticks).
-    3. Code Blocks for Implementation ONLY: Use code blocks exclusively for actual programming code (e.g., Python, NumPy). Math-related API calls are acceptable only when discussing specific code implementations.
-    4. Goal: Prioritize clean, readable, professional presentation resembling scientific documents. Ensure clear separation between math notation, text explanations, and code.
-    5. Inline vs. Display for Brevity: Prefer inline math (`$ ... $`) for short equations fitting naturally in text to improve readability and flow. Reserve display math (`$$ ... $$`) for longer/complex equations or those requiring standalone emphasis.
-    6. Spacing After Display Math: For standard paragraph separation after display math (`$$...$$`), ensure exactly one blank line (two newlines in Markdown source) exists between the closing `$$` line and the subsequent paragraph text.
-    7. After rendering with MathJax, review all math expressions. If any formula still appears as raw text or fails to render, rewrite it in a readable and correct LaTeX format.
-    8. Prefer inline math (`$...$`, `\(...\)`) for short expressions. Use display math (`$$...$$`, `\[...\]`) for complex or emphasized expressions needing standalone display.
-    9. Include support for additional math delimiters such as \(...\), \\(...\\), and superscripts like ^, as commonly used in MathJax and LaTeX.
-    10. Avoid mixing different math delimiters in the same expression. For example, the input "\(mx + p\)\\(nx + q\\) = 0" uses both \(...\) and \\(...\\), which is incorrect. Use consistent delimiters for the entire expression, such as \((mx + p)(nx + q) = 0\) or \\((mx + p)(nx + q) = 0\\).    
 """
 
 # Gọi API Gemini, gửi cả lịch sử trò chuyện
-def chat_with_gemini(messages):
+def chat_with_gemini(messages, retry_count=0, max_retries=3):
+    global API_KEY
+
     headers = {"Content-Type": "application/json"}
     params = {"key": API_KEY}
     data = {"contents": messages}
 
-    response = requests.post(GEMINI_API_URL, headers=headers, params=params, json=data)
+    try:
+        response = requests.post(GEMINI_API_URL, headers=headers, params=params, json=data, timeout=12)
+    except requests.exceptions.Timeout:
+        return "⚠️ Hệ thống phản hồi quá chậm. Vui lòng thử lại sau.", None
 
     if response.status_code == 200:
         try:
-            return response.json()["candidates"][0]["content"]["parts"][0]["text"]
+            return response.json()["candidates"][0]["content"]["parts"][0]["text"], None
         except Exception as e:
-            return f"Lỗi phân tích phản hồi: {e}"
-    else:
-        return f"Lỗi API: {response.status_code} - {response.text}"
+            return f"Lỗi phân tích phản hồi: {e}", None
+
+    # ⚠️ Nếu lỗi có liên quan đến API
+    if "api" in response.text.lower() and retry_count < max_retries:
+        api_list = st.session_state.get("api_list", [])
+
+        if not api_list:
+            return "⚠️ Không tìm thấy danh sách API trong session_state. Vui lòng tải file .txt chứa các key.", None
+
+        current_key = API_KEY
+        try:
+            current_index = api_list.index(current_key)
+        except ValueError:
+            current_index = -1
+
+        next_index = (current_index + 1) % len(api_list)
+        new_key = api_list[next_index]
+        API_KEY = new_key
+
+        # Gọi lại chính mình với key mới
+        return chat_with_gemini(messages, retry_count=retry_count + 1)
+
+    return f"Lỗi API: {response.status_code} - {response.text}", None
 
 # Giao diện Streamlit
 #st.set_page_config(page_title="Tutor AI", page_icon="🎓")
@@ -547,10 +619,20 @@ if "messages" not in st.session_state:
     ]
 
 # Bước 2: Ưu tiên tài liệu từ upload, nếu không thì dùng tài liệu từ link
-if uploaded_file:
-    pdf_context = extract_text_from_uploaded_file(uploaded_file)
-    lesson_title = uploaded_file.name
-    current_source = f"upload::{uploaded_file.name}"
+if uploaded_files:
+    #pdf_context = extract_text_from_uploaded_file(uploaded_file)
+    #gộp các file pdf lại 
+    pdf_context_list = []
+    for file in uploaded_files:
+        text = extract_text_from_uploaded_file(file)
+        pdf_context_list.append(f"\n--- File: {file.name} ---\n{text.strip()}")
+
+    pdf_context = "\n".join(pdf_context_list)
+    lesson_title = " + ".join([file.name for file in uploaded_files])
+    current_source = f"upload::{lesson_title}"
+    
+    #lesson_title = uploaded_file.name
+    #current_source = f"upload::{uploaded_file.name}"
 elif selected_lesson != "👉 Chọn bài học..." and default_link.strip():
     pdf_context = extract_pdf_text_from_url(default_link)
     lesson_title = selected_lesson
@@ -609,10 +691,10 @@ if pdf_context:
 
     # Reset session nếu file/tài liệu mới
     if "lesson_source" not in st.session_state or st.session_state.lesson_source != current_source:
-        greeting = f"📘 Mình đã đọc xong tài liệu: **{lesson_title}**."
+        greeting = "📘 Mình đã sẵn sàng để bắt đầu buổi học dựa trên tài liệu bạn đã cung cấp."
         if lesson_summary:
             greeting += f"\n\n{lesson_summary}"
-        greeting += "\n\nBạn đã sẵn sàng bắt đầu buổi học chưa?"
+        greeting += "\n\nBạn đã sẵn sàng chưa?"
 
         st.session_state.messages = [
             {"role": "user", "parts": [{"text": PROMPT_LESSON_CONTEXT}]},
@@ -634,13 +716,6 @@ if pdf_context:
     {pdf_context}
     --- END OF HANDBOOK CONTENT ---
     """
-    
-    if "lesson_source" not in st.session_state or st.session_state.lesson_source != current_source:
-        st.session_state.messages = [
-            {"role": "user", "parts": [{"text": PROMPT_LESSON_CONTEXT}]},
-            {"role": "model", "parts": [{"text": f"📘 Mình đã đọc xong tài liệu: **{lesson_title}**. Bạn đã sẵn sàng bắt đầu buổi học chưa?"}]}
-        ]
-        st.session_state.lesson_source = current_source
 
 # Hiển thị lịch sử chat
 for msg in st.session_state.messages[1:]:
@@ -657,7 +732,11 @@ if user_input:
 
     # Gọi Gemini phản hồi
     with st.spinner("🤖 Đang phản hồi..."):
-        reply = chat_with_gemini(st.session_state.messages)
+        reply, new_api_key = chat_with_gemini(st.session_state.messages)
+
+        # Nếu có API mới được dùng → cập nhật session_state bên ngoài
+        if new_api_key:
+            st.session_state["GEMINI_API_KEY"] = new_api_key
 
         # Nếu có thể xuất HTML (như <p>...</p>)
         reply = clean_html_to_text(reply)
@@ -667,6 +746,30 @@ if user_input:
         
         # Hiển thị
         st.chat_message("🤖 Gia sư AI").markdown(reply)
+        # Tạo file âm thanh tạm
+        tts = gTTS(text=reply, lang='vi')
+        temp_filename = f"temp_{uuid.uuid4().hex}.mp3"
+        tts.save(temp_filename)
+        
+        # Đọc và encode base64
+        with open(temp_filename, "rb") as f:
+            audio_bytes = f.read()
+            b64 = base64.b64encode(audio_bytes).decode()
+        
+        # Xoá file tạm sau khi encode
+        os.remove(temp_filename)
+        
+        # Hiển thị nút nghe
+        st.markdown("""
+        <details>
+        <summary>🔊 Nghe lại phản hồi</summary>
+        <br>
+        <audio controls>
+            <source src="data:audio/mp3;base64,{b64}" type="audio/mp3">
+            Trình duyệt của bạn không hỗ trợ phát âm thanh.
+        </audio>
+        </details>
+        """.format(b64=b64), unsafe_allow_html=True)
 
     # Chuyển biểu thức toán trong ngoặc đơn => LaTeX inline
     #reply = convert_parentheses_to_latex(reply)
