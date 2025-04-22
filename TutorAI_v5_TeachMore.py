@@ -697,7 +697,7 @@ if pdf_context:
     fallback_name = uploaded_file.name if uploaded_file else selected_lesson
     lesson_title = lesson_title_extracted or fallback_name or "Bài học"
 
-    # Gọi Gemini để tóm tắt tài liệu
+    if "lesson_summary" not in st.session_state:
     try:
         response = requests.post(
             GEMINI_API_URL,
@@ -707,33 +707,15 @@ if pdf_context:
                 "contents": [
                     {"parts": [{"text": f"Tóm tắt ngắn gọn (2-3 câu) nội dung sau, dùng văn phong thân thiện, không liệt kê gạch đầu dòng:\n\n{pdf_context[:2500]}"}]}
                 ]
-            }
+            },
+            timeout=15
         )
         if response.status_code == 200:
-            #lesson_summary = response.json()["candidates"][0]["content"]["parts"][0]["text"]
-            if "lesson_summary" not in st.session_state:
-                try:
-                    response = requests.post(
-                        GEMINI_API_URL,
-                        headers={"Content-Type": "application/json"},
-                        params={"key": API_KEY},
-                        json={
-                            "contents": [
-                                {"parts": [{"text": f"Tóm tắt ngắn gọn (2-3 câu) nội dung sau, dùng văn phong thân thiện, không liệt kê gạch đầu dòng:\n\n{pdf_context[:2500]}"}]}
-                            ]
-                        },
-                        timeout=15
-                    )
-                    if response.status_code == 200:
-                        st.session_state.lesson_summary = response.json()["candidates"][0]["content"]["parts"][0]["text"]
-                    else:
-                        st.session_state.lesson_summary = ""
-                except Exception as e:
-                    st.session_state.lesson_summary = ""
+            st.session_state.lesson_summary = response.json()["candidates"][0]["content"]["parts"][0]["text"]
         else:
-            lesson_summary = ""
+            st.session_state.lesson_summary = ""
     except Exception as e:
-        lesson_summary = ""
+        st.session_state.lesson_summary = ""
 
     # Gửi toàn bộ tài liệu vào PROMPT khởi tạo
     PROMPT_LESSON_CONTEXT = f"""
