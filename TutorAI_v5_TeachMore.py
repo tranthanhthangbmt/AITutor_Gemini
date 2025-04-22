@@ -300,6 +300,8 @@ with st.sidebar:
             del st.session_state.messages
         if "lesson_loaded" in st.session_state:
             del st.session_state.lesson_loaded
+        if "lesson_initialized" in st.session_state:
+            del st.session_state.lesson_initialized  # 🔁 Cho phép khởi tạo lại
         st.rerun()
 
 	#nhấn nút kết thúc buổi học
@@ -678,6 +680,9 @@ else:
 # Nếu người học đã cung cấp tài liệu → Ghi đè để bắt đầu buổi học
 #if (selected_lesson != "👉 Chọn bài học..." or file_url.strip()) and pdf_context:
 if pdf_context:
+    # Thêm dòng sau để đảm bảo cờ kiểm soát đã được khởi tạo
+    if "lesson_initialized" not in st.session_state:
+        st.session_state.lesson_initialized = False
     # Ưu tiên lấy dòng tiêu đề từ tài liệu
     lesson_title_extracted = None
     for line in pdf_context.splitlines():
@@ -723,17 +728,18 @@ if pdf_context:
     """
 
     # Reset session nếu file/tài liệu mới
-    if "lesson_source" not in st.session_state or st.session_state.lesson_source != current_source:
+    if not st.session_state.lesson_initialized:
         greeting = "📘 Mình đã sẵn sàng để bắt đầu buổi học dựa trên tài liệu bạn đã cung cấp."
         if lesson_summary:
             greeting += f"\n\n{lesson_summary}"
         greeting += "\n\nBạn đã sẵn sàng chưa?"
-
+    
         st.session_state.messages = [
             {"role": "user", "parts": [{"text": PROMPT_LESSON_CONTEXT}]},
             {"role": "model", "parts": [{"text": greeting}]}
         ]
         st.session_state.lesson_source = current_source
+        st.session_state.lesson_initialized = True  # 🔑 Đánh dấu đã khởi tạo
         
     #Phần chọn bài học
     lesson_title = selected_lesson if selected_lesson != "👉 Chọn bài học..." else "Bài học tùy chỉnh"
