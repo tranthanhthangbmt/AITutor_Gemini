@@ -296,6 +296,8 @@ with st.sidebar:
         
     # 🔄 Nút reset
     if st.button("🔄 Bắt đầu lại buổi học"):
+        if "lesson_summary" in st.session_state:
+            del st.session_state.lesson_summary
         if "messages" in st.session_state:
             del st.session_state.messages
         if "lesson_loaded" in st.session_state:
@@ -708,7 +710,26 @@ if pdf_context:
             }
         )
         if response.status_code == 200:
-            lesson_summary = response.json()["candidates"][0]["content"]["parts"][0]["text"]
+            #lesson_summary = response.json()["candidates"][0]["content"]["parts"][0]["text"]
+            if "lesson_summary" not in st.session_state:
+                try:
+                    response = requests.post(
+                        GEMINI_API_URL,
+                        headers={"Content-Type": "application/json"},
+                        params={"key": API_KEY},
+                        json={
+                            "contents": [
+                                {"parts": [{"text": f"Tóm tắt ngắn gọn (2-3 câu) nội dung sau, dùng văn phong thân thiện, không liệt kê gạch đầu dòng:\n\n{pdf_context[:2500]}"}]}
+                            ]
+                        },
+                        timeout=15
+                    )
+                    if response.status_code == 200:
+                        st.session_state.lesson_summary = response.json()["candidates"][0]["content"]["parts"][0]["text"]
+                    else:
+                        st.session_state.lesson_summary = ""
+                except Exception as e:
+                    st.session_state.lesson_summary = ""
         else:
             lesson_summary = ""
     except Exception as e:
@@ -730,8 +751,8 @@ if pdf_context:
     # Reset session nếu file/tài liệu mới
     if not st.session_state.lesson_initialized:
         greeting = "📘 Mình đã sẵn sàng để bắt đầu buổi học dựa trên tài liệu bạn đã cung cấp."
-        if lesson_summary:
-            greeting += f"\n\n{lesson_summary}"
+        if st.session_state.get("lesson_summary"):
+            greeting += f"\n\n{st.session_state.lesson_summary}"
         greeting += "\n\nBạn đã sẵn sàng chưa?"
     
         st.session_state.messages = [
