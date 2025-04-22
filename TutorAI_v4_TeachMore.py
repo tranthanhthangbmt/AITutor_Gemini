@@ -33,6 +33,17 @@ input_key = st.session_state.get("GEMINI_API_KEY", "")
 # Lấy từ localStorage
 key_from_local = st_javascript("JSON.parse(window.localStorage.getItem('gemini_api_key') || '\"\"')")
 
+#tải APi từ file:
+def load_api_list_from_github(url="https://raw.githubusercontent.com/tranthanhthangbmt/AITutor_Gemini/main/ListAPI.txt"):
+    try:
+        response = requests.get(url)
+        if response.status_code == 200:
+            keys = [line.strip() for line in response.text.strip().splitlines() if line.strip()]
+            return keys
+    except Exception as e:
+        print(f"Lỗi khi tải danh sách API: {e}")
+    return []
+    
 # Nếu chưa có thì gán
 if not input_key and key_from_local:
     st.session_state["GEMINI_API_KEY"] = key_from_local
@@ -564,9 +575,28 @@ def chat_with_gemini(messages):
         except Exception as e:
             return f"Lỗi phân tích phản hồi: {e}"
     else:
-        #return f"Lỗi API: {response.status_code} - {response.text}"
-        if response.status_code == 429 and "quota" in response.text.lower():
-            return "⚠️ Mã API của bạn đã hết hạn hoặc vượt quá giới hạn sử dụng. Vui lòng lấy mã API mới để tiếp tục việc học."
+        if "api" in response.text.lower():
+            # Tải danh sách API từ GitHub
+            api_list = load_api_list_from_github()
+            current_key = st.session_state.get("GEMINI_API_KEY", "")
+            if current_key in api_list:
+                current_index = api_list.index(current_key)
+            else:
+                current_index = -1
+
+            # Tìm API kế tiếp
+            next_index = (current_index + 1) % len(api_list)
+            new_key = api_list[next_index]
+
+            # Cập nhật key
+            st.session_state["GEMINI_API_KEY"] = new_key
+            global API_KEY
+            API_KEY = new_key
+
+            #return "⚠️ Mã API hiện tại bị lỗi. Đã tự động chuyển sang mã API khác để tiếp tục hoạt động."
+            # ✅ Gọi lại hàm sau khi đổi API
+            return chat_with_gemini(messages)
+        
         return f"Lỗi API: {response.status_code} - {response.text}"
 
 # Giao diện Streamlit
