@@ -563,7 +563,7 @@ SYSTEM_PROMPT_Tutor_AI = f"""
 
 # Gọi API Gemini, gửi cả lịch sử trò chuyện
 def chat_with_gemini(messages):
-    global API_KEY  # ✅ Đặt ngay đầu hàm trước khi dùng API_KEY
+    global API_KEY
 
     headers = {"Content-Type": "application/json"}
     params = {"key": API_KEY}
@@ -573,31 +573,25 @@ def chat_with_gemini(messages):
 
     if response.status_code == 200:
         try:
-            return response.json()["candidates"][0]["content"]["parts"][0]["text"]
+            return response.json()["candidates"][0]["content"]["parts"][0]["text"], None
         except Exception as e:
-            return f"Lỗi phân tích phản hồi: {e}"
+            return f"Lỗi phân tích phản hồi: {e}", None
     else:
         if "api" in response.text.lower():
-            # Tải danh sách API từ GitHub
             api_list = load_api_list_from_github()
-            current_key = st.session_state.get("GEMINI_API_KEY", "")
+            current_key = API_KEY
             if current_key in api_list:
                 current_index = api_list.index(current_key)
             else:
                 current_index = -1
 
-            # Tìm API kế tiếp
             next_index = (current_index + 1) % len(api_list)
             new_key = api_list[next_index]
+            API_KEY = new_key  # ✅ Cập nhật nội bộ, KHÔNG gán vào session_state tại đây
 
-            # Cập nhật API mới
-            st.session_state["GEMINI_API_KEY"] = new_key
-            API_KEY = new_key
-
-            # 🔁 Gọi lại hàm sau khi đổi key
-            return chat_with_gemini(messages)
-
-        return f"Lỗi API: {response.status_code} - {response.text}"
+            # Gọi lại sau khi đổi key
+            return chat_with_gemini(messages)  # Giữ nguyên logic gọi lại
+        return f"Lỗi API: {response.status_code} - {response.text}", None
 
 # Giao diện Streamlit
 #st.set_page_config(page_title="Tutor AI", page_icon="🎓")
@@ -724,7 +718,11 @@ if user_input:
 
     # Gọi Gemini phản hồi
     with st.spinner("🤖 Đang phản hồi..."):
-        reply = chat_with_gemini(st.session_state.messages)
+        reply, new_api_key = chat_with_gemini(st.session_state.messages)
+
+        # Nếu có API mới được dùng → cập nhật session_state bên ngoài
+        if new_api_key:
+            st.session_state["GEMINI_API_KEY"] = new_api_key
 
         # Nếu có thể xuất HTML (như <p>...</p>)
         reply = clean_html_to_text(reply)
