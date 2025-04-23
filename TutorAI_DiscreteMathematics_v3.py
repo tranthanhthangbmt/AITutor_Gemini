@@ -193,6 +193,18 @@ with st.sidebar:
     # ✅ Tạo textbox với giá trị đúng
     input_key = st.text_input("🔑 Gemini API Key", value=input_key, type="password", key="GEMINI_API_KEY")
 
+    # 🔄 Chọn mô hình Gemini
+    model_options = {
+        "⚡ Gemini 2.0 Flash (nhanh, nhẹ)": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent",
+        "🧠 Gemini 2.5 Pro (mạnh, thông minh)": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro-preview-03-25:generateContent"
+    }
+    
+    # ✅ Hiển thị selectbox
+    selected_model_name = st.selectbox("🤖 Chọn mô hình Gemini", list(model_options.keys()), index=0)
+    
+    # ✅ Gán URL tương ứng vào session_state (để dùng sau)
+    st.session_state["GEMINI_API_URL"] = model_options[selected_model_name]
+
     st_javascript("""
     (() => {
         const inputEl = window.parent.document.querySelector('input[data-testid="stTextInput"][type="password"]');
@@ -447,8 +459,9 @@ if selected_lesson == "👉 Chọn bài học..." and not uploaded_files: #kiể
     st.stop()
 
 # Endpoint API Gemini
-GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent" 
+#GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent" 
 #GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro-preview-03-25:generateContent"
+GEMINI_API_URL = st.session_state.get("GEMINI_API_URL", "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent")
 
 #read file PDF
 def extract_pdf_text_from_url(url):
