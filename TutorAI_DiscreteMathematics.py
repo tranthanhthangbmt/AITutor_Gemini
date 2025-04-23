@@ -253,14 +253,6 @@ with st.sidebar:
     if selected_lesson != "👉 Chọn bài học..." and selected_lesson_link:
         st.markdown(f"🔗 **Tài liệu:** [Xem bài học]({selected_lesson_link})", unsafe_allow_html=True)
     
-    # 📤 Sau khi hiện link (nếu có), hiển thị phần upload
-    #uploaded_file = st.file_uploader("📤 Tải lên file tài liệu (PDF, TXT, DOCX...)", type=["pdf", "txt", "docx"])
-    uploaded_files = st.file_uploader(
-        "📤 Tải lên nhiều file bài học (PDF, TXT, DOCX)", 
-        type=["pdf", "txt", "docx"], 
-        accept_multiple_files=True
-    )
-    
     # ✅ Nếu người dùng upload tài liệu riêng → ẩn link (từ vòng sau trở đi)
     if uploaded_files:
         # Có thể xoá dòng link bằng session hoặc không hiển thị ở các phần sau
