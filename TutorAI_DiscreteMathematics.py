@@ -145,7 +145,14 @@ with st.sidebar:
     )
 
     # 📌 Lựa chọn chế độ nhập bài học
-    mode = st.radio("📘 Chế độ nhập bài học:", ["Tải lên thủ công", "Chọn từ danh sách"])
+    #cho upload file trước
+    #mode = st.radio("📘 Chế độ nhập bài học:", ["Tải lên thủ công", "Chọn từ danh sách"])
+    #chọn bài học trước
+    mode = st.radio(
+        "📘 Chế độ nhập bài học:", 
+        ["Tải lên thủ công", "Chọn từ danh sách"],
+        index=1  # ✅ Mặc định chọn "Chọn từ danh sách"
+    )
     st.session_state["show_sidebar_inputs"] = (mode == "Chọn từ danh sách")
 
     # ✅ Nhúng script JS duy nhất để tự động điền & lưu API key
