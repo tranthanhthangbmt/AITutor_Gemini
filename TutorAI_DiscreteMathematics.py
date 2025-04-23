@@ -26,6 +26,9 @@ import os
 # Giao diện Streamlit
 st.set_page_config(page_title="Tutor AI", page_icon="🎓")
 
+#mở lại danh sách các bài học
+st.session_state["show_sidebar_inputs"] = True
+
 uploaded_files = []  # ✅ đảm bảo biến tồn tại trong mọi trường hợp
 
 input_key = st.session_state.get("GEMINI_API_KEY", "")
@@ -110,7 +113,7 @@ def is_valid_gemini_key(key):
 
 #thiết lập ẩn phần bài học
 if "show_sidebar_inputs" not in st.session_state:
-    st.session_state["show_sidebar_inputs"] = False  # hoặc True nếu bạn muốn bật mặc định
+    st.session_state["show_sidebar_inputs"] = True  # ← bật mặc định
     
 # ⬇ Lấy input từ người dùng ở sidebar trước
 with st.sidebar:
@@ -140,6 +143,10 @@ with st.sidebar:
         """,
         unsafe_allow_html=True
     )
+
+    # 📌 Lựa chọn chế độ nhập bài học
+    mode = st.radio("📘 Chế độ nhập bài học:", ["Tải lên thủ công", "Chọn từ danh sách"])
+    st.session_state["show_sidebar_inputs"] = (mode == "Chọn từ danh sách")
 
     # ✅ Nhúng script JS duy nhất để tự động điền & lưu API key
     key_from_local = st_javascript("""
