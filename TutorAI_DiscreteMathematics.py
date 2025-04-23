@@ -228,15 +228,26 @@ with st.sidebar:
         if selected_lesson != "👉 Chọn bài học..." and selected_lesson_link:
             st.markdown(f"🔗 **Tài liệu:** [Xem bài học]({selected_lesson_link})", unsafe_allow_html=True)
 
-        uploaded_files = st.file_uploader("📤 Tải lên nhiều file bài học (PDF, TXT, DOCX)", type=["pdf", "txt", "docx"], accept_multiple_files=True)
+        uploaded_files = st.file_uploader(
+            "📤 Tải lên nhiều file bài học (PDF, TXT, DOCX)", 
+            type=["pdf", "txt", "docx"], 
+            accept_multiple_files=True,
+            key="file_uploader_danhsach"  # 🔑 đặt key riêng cho chế độ chọn bài
+        )
     else:
         # uploaded_file = None #bỏ vì bạn có thể xóa dòng này nếu đã chuyển sang uploaded_files:
         selected_lesson = "👉 Chọn bài học..."        
         selected_lesson_link = "" #available_lessons.get(selected_lesson, "").strip() """
+        uploaded_files = st.file_uploader(
+            "📤 Tải lên nhiều file bài học (PDF, TXT, DOCX)", 
+            type=["pdf", "txt", "docx"], 
+            accept_multiple_files=True,
+            key="file_uploader_thutay"  # 🔑 đặt key riêng cho chế độ thủ công
+        )
 
     default_link = available_lessons[selected_lesson]
     # 📤 Tải file tài liệu (mục tiêu là đặt bên dưới link)
-    uploaded_file = None  # Khởi tạo trước để dùng điều kiện bên trên
+    #uploaded_file = None  # Khởi tạo trước để dùng điều kiện bên trên
     
     # 🔗 Hiển thị link NGAY BÊN DƯỚI selectbox, nếu thỏa điều kiện
     if selected_lesson != "👉 Chọn bài học..." and selected_lesson_link:
