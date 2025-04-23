@@ -227,13 +227,6 @@ with st.sidebar:
         
         if selected_lesson != "👉 Chọn bài học..." and selected_lesson_link:
             st.markdown(f"🔗 **Tài liệu:** [Xem bài học]({selected_lesson_link})", unsafe_allow_html=True)
-
-        uploaded_files = st.file_uploader(
-            "📤 Tải lên nhiều file bài học (PDF, TXT, DOCX)", 
-            type=["pdf", "txt", "docx"], 
-            accept_multiple_files=True,
-            key="file_uploader_danhsach"  # 🔑 đặt key riêng cho chế độ chọn bài
-        )
     else:
         # uploaded_file = None #bỏ vì bạn có thể xóa dòng này nếu đã chuyển sang uploaded_files:
         selected_lesson = "👉 Chọn bài học..."        
