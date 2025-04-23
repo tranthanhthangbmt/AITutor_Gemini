@@ -251,8 +251,8 @@ with st.sidebar:
     #uploaded_file = None  # Khởi tạo trước để dùng điều kiện bên trên
     
     # 🔗 Hiển thị link NGAY BÊN DƯỚI selectbox, nếu thỏa điều kiện
-    if selected_lesson != "👉 Chọn bài học..." and selected_lesson_link:
-        st.markdown(f"🔗 **Tài liệu:** [Xem bài học]({selected_lesson_link})", unsafe_allow_html=True)
+    #if selected_lesson != "👉 Chọn bài học..." and selected_lesson_link:
+    #    st.markdown(f"🔗 **Tài liệu:** [Xem bài học]({selected_lesson_link})", unsafe_allow_html=True)
     
     # ✅ Nếu người dùng upload tài liệu riêng → ẩn link (từ vòng sau trở đi)
     if uploaded_files:
