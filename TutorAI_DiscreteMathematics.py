@@ -44,7 +44,8 @@ if not input_key and key_from_local:
 @st.cache_data
 def load_available_lessons_from_txt(url):
     try:
-        response = requests.get(url)
+        #response = requests.get(url)
+        response = requests.get(url, allow_redirects=True)
         if response.status_code == 200:
             lines = response.text.strip().splitlines()
             lessons = {"👉 Chọn bài học...": ""}
