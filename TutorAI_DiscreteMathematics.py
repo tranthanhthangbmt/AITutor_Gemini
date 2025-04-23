@@ -139,7 +139,7 @@ with st.sidebar:
     st.sidebar.markdown(
         f"""
         <div style='text-align: center; margin-bottom: 10px;'>
-            <img src="{logo_url}" width="120" style="border-radius: 10px;" />
+            <img src="{logo_url}" width="200" style="border-radius: 10px;" />
         </div>
         """,
         unsafe_allow_html=True
