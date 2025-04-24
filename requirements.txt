@@ -9,4 +9,5 @@ streamlit-javascript
 streamlit
 reportlab
 gTTS
+firebase-admin
 
