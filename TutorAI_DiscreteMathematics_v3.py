@@ -22,10 +22,49 @@ import base64
 import uuid
 import os
 
+from firebase_config import init_firestore
+from firebase_admin import firestore  # ✨ Thêm dòng này ở đầu file chính
+
+db = init_firestore()
+
+from datetime import datetime
+from google.cloud.firestore_v1 import ArrayUnion
+
+def save_exchange_to_firestore(user_id, lesson_source, question, answer, session_id):
+    doc_id = f"{user_id}_{lesson_source.replace('::', '_')}_{session_id}"
+    doc_ref = db.collection("sessions").document(doc_id)
+
+    # Tạo document nếu chưa tồn tại (KHÔNG gán answer_history ở đây)
+    doc_ref.set({
+        "user_id": user_id,
+        "lesson_source": lesson_source,
+        "session_id": session_id,
+        "timestamp": firestore.SERVER_TIMESTAMP
+    }, merge=True)
+
+    # Append vào mảng answer_history
+    doc_ref.update({
+        "answer_history": firestore.ArrayUnion([{
+            "question": question,
+            "answer": answer,
+            "timestamp": datetime.utcnow()
+        }])
+    })
+
 # Đảm bảo st.set_page_config là lệnh đầu tiên
 # Giao diện Streamlit
 st.set_page_config(page_title="Tutor AI", page_icon="🎓")
 
+import uuid
+import time
+
+if "session_id" not in st.session_state:
+    # dùng timestamp hoặc uuid ngắn gọn
+    st.session_state["session_id"] = f"{int(time.time())}"  # hoặc uuid.uuid4().hex[:8]
+
+if "user_id" not in st.session_state:
+    st.session_state["user_id"] = f"user_{uuid.uuid4().hex[:8]}"
+    
 #mở lại danh sách các bài học
 st.session_state["show_sidebar_inputs"] = True
 
@@ -746,6 +785,15 @@ if user_input:
         
         # Xử lý trắc nghiệm tách dòng
         reply = format_mcq_options(reply)
+
+        # Sau khi có phản hồi
+        save_exchange_to_firestore(
+            user_id="sinhvien_01",
+            lesson_source=st.session_state.get("lesson_source", "Chua_xac_dinh"),
+            question=user_input,
+            answer=reply,
+            session_id=st.session_state.get("session_id", "default")
+        )
         
         # Hiển thị
         st.chat_message("🤖 Gia sư AI").markdown(reply)
