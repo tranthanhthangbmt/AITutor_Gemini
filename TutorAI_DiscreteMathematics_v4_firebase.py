@@ -41,6 +41,11 @@ def save_exchange_to_firestore(user_id, lesson_source, question, answer):
 # Giao diện Streamlit
 st.set_page_config(page_title="Tutor AI", page_icon="🎓")
 
+import uuid
+
+if "user_id" not in st.session_state:
+    st.session_state["user_id"] = f"user_{uuid.uuid4().hex[:8]}"
+    
 #mở lại danh sách các bài học
 st.session_state["show_sidebar_inputs"] = True
 
