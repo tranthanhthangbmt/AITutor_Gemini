@@ -27,14 +27,28 @@ from firebase_admin import firestore  # ✨ Thêm dòng này ở đầu file ch�
 
 db = init_firestore()
 
-def save_exchange_to_firestore(user_id, lesson_source, question, answer):
-    doc_ref = db.collection("sessions").document()
+from google.cloud.firestore_v1 import ArrayUnion
+
+def save_exchange_to_firestore(user_id, lesson_source, question, answer, session_id):
+    doc_id = f"{user_id}_{lesson_source.replace('::', '_')}_{session_id}"
+    doc_ref = db.collection("sessions").document(doc_id)
+
+    # Tạo nếu chưa có
     doc_ref.set({
         "user_id": user_id,
         "lesson_source": lesson_source,
-        "question": question,
-        "answer": answer,
-        "timestamp": firestore.SERVER_TIMESTAMP  # ✅ Giờ không lỗi nữa
+        "session_id": session_id,
+        "answer_history": [],
+        "timestamp": firestore.SERVER_TIMESTAMP
+    }, merge=True)
+
+    # Thêm câu hỏi & trả lời vào mảng
+    doc_ref.update({
+        "answer_history": firestore.ArrayUnion([{
+            "question": question,
+            "answer": answer,
+            "timestamp": firestore.SERVER_TIMESTAMP
+        }])
     })
 
 # Đảm bảo st.set_page_config là lệnh đầu tiên
@@ -42,6 +56,11 @@ def save_exchange_to_firestore(user_id, lesson_source, question, answer):
 st.set_page_config(page_title="Tutor AI", page_icon="🎓")
 
 import uuid
+import time
+
+if "session_id" not in st.session_state:
+    # dùng timestamp hoặc uuid ngắn gọn
+    st.session_state["session_id"] = f"{int(time.time())}"  # hoặc uuid.uuid4().hex[:8]
 
 if "user_id" not in st.session_state:
     st.session_state["user_id"] = f"user_{uuid.uuid4().hex[:8]}"
@@ -769,10 +788,11 @@ if user_input:
 
         # Sau khi có phản hồi
         save_exchange_to_firestore(
-            user_id=st.session_state["user_id"],  # ✅ Dùng user_id được tạo từ session
+            user_id="sinhvien_01",
             lesson_source=st.session_state.get("lesson_source", "Chua_xac_dinh"),
             question=user_input,
-            answer=reply
+            answer=reply,
+            session_id=st.session_state.get("session_id", "default")
         )
         
         # Hiển thị
