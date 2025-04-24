@@ -788,7 +788,7 @@ if user_input:
 
         # Sau khi có phản hồi
         save_exchange_to_firestore(
-            user_id="sinhvien_01",
+            user_id=st.session_state.get("user_id", f"user_{uuid.uuid4().hex[:8]}"),
             lesson_source=st.session_state.get("lesson_source", "Chua_xac_dinh"),
             question=user_input,
             answer=reply,
