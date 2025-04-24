@@ -27,24 +27,22 @@ from firebase_admin import firestore  # ✨ Thêm dòng này ở đầu file ch�
 
 db = init_firestore()
 
+from datetime import datetime
 from google.cloud.firestore_v1 import ArrayUnion
 
 def save_exchange_to_firestore(user_id, lesson_source, question, answer, session_id):
     doc_id = f"{user_id}_{lesson_source.replace('::', '_')}_{session_id}"
     doc_ref = db.collection("sessions").document(doc_id)
 
-    # Tạo nếu chưa có
+    # Tạo document nếu chưa tồn tại (KHÔNG gán answer_history ở đây)
     doc_ref.set({
         "user_id": user_id,
         "lesson_source": lesson_source,
         "session_id": session_id,
-        "answer_history": [],
         "timestamp": firestore.SERVER_TIMESTAMP
     }, merge=True)
 
-    # Thêm câu hỏi & trả lời vào mảng
-    from datetime import datetime
-
+    # Append vào mảng answer_history
     doc_ref.update({
         "answer_history": firestore.ArrayUnion([{
             "question": question,
