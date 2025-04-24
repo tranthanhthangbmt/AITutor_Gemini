@@ -23,6 +23,7 @@ import uuid
 import os
 
 from firebase_config import init_firestore
+from firebase_admin import firestore  # ✨ Thêm dòng này ở đầu file chính
 
 db = init_firestore()
 
@@ -33,7 +34,7 @@ def save_exchange_to_firestore(user_id, lesson_source, question, answer):
         "lesson_source": lesson_source,
         "question": question,
         "answer": answer,
-        "timestamp": firestore.SERVER_TIMESTAMP
+        "timestamp": firestore.SERVER_TIMESTAMP  # ✅ Giờ không lỗi nữa
     })
 
 # Đảm bảo st.set_page_config là lệnh đầu tiên
