@@ -43,11 +43,13 @@ def save_exchange_to_firestore(user_id, lesson_source, question, answer, session
     }, merge=True)
 
     # Thêm câu hỏi & trả lời vào mảng
+    from datetime import datetime
+
     doc_ref.update({
         "answer_history": firestore.ArrayUnion([{
             "question": question,
             "answer": answer,
-            "timestamp": firestore.SERVER_TIMESTAMP
+            "timestamp": datetime.utcnow()
         }])
     })
 
