@@ -1,0 +1,16 @@
+Buổi 01_ Tổng quan về lập trình hướng đối tượng|https://raw.githubusercontent.com/tranthanhthangbmt/AITutor_Gemini/main/Data/Handout_OOP/Buổi 01_ Tổng quan về lập trình hướng đối tượng.pdf
+Buổi 02_Các khái niệm & Kỹ thuật lập trình hướng đối tượng_A4|https://raw.githubusercontent.com/tranthanhthangbmt/AITutor_Gemini/main/Data/Handout_OOP/Buổi 02_Các khái niệm & Kỹ thuật lập trình hướng đối tượng_A4.pdf
+Buổi 03_Lớp và đối tượng _ Phần 1|https://raw.githubusercontent.com/tranthanhthangbmt/AITutor_Gemini/main/Data/Handout_OOP/Buổi 03_Lớp và đối tượng _ Phần 1.pdf
+Buổi 04_Lớp và đối tượng _ Phần 2|https://raw.githubusercontent.com/tranthanhthangbmt/AITutor_Gemini/main/Data/Handout_OOP/Buổi 04_Lớp và đối tượng _ Phần 2.pdf
+Buổi 05_Thực hành Lớp và Đối tượng|https://raw.githubusercontent.com/tranthanhthangbmt/AITutor_Gemini/main/Data/Handout_OOP/Buổi 05_Thực hành Lớp và Đối tượng.pdf
+Buổi 06_Tính đóng gói|https://raw.githubusercontent.com/tranthanhthangbmt/AITutor_Gemini/main/Data/Handout_OOP/Buổi 06_Tính đóng gói.pdf
+Buổi 07_Luyện tập Tính đóng gói|https://raw.githubusercontent.com/tranthanhthangbmt/AITutor_Gemini/main/Data/Handout_OOP/Buổi 07_Luyện tập Tính đóng gói.pdf
+Buổi 08-09_Tính kế thường|https://raw.githubusercontent.com/tranthanhthangbmt/AITutor_Gemini/main/Data/Handout_OOP/Buổi 08-09_Tính kế thường.pdf
+Buổi 10-11_Tính trườu tượng|https://raw.githubusercontent.com/tranthanhthangbmt/AITutor_Gemini/main/Data/Handout_OOP/Buổi 10-11_Tính trườu tượng.pdf
+Buổi 12_Tính đa hình|https://raw.githubusercontent.com/tranthanhthangbmt/AITutor_Gemini/main/Data/Handout_OOP/Buổi 12_Tính đa hình.pdf
+Buổi 13_Java collection framework|https://raw.githubusercontent.com/tranthanhthangbmt/AITutor_Gemini/main/Data/Handout_OOP/Buổi 13_Java collection framework.pdf
+Buổi 14_Giới thiệu một số mẫu design pattern cơ bản|https://raw.githubusercontent.com/tranthanhthangbmt/AITutor_Gemini/main/Data/Handout_OOP/Buổi 14_Giới thiệu một số mẫu design pattern cơ bản.pdf
+Buổi 15_Hướng dẫn làm bài kiểm tra cuối kỳ|https://raw.githubusercontent.com/tranthanhthangbmt/AITutor_Gemini/main/Data/Handout_OOP/Buổi 15_Hướng dẫn làm bài kiểm tra cuối kỳ.pdf
+Buổi 15_Ôn tập Phần 1_Lý thuyết|https://raw.githubusercontent.com/tranthanhthangbmt/AITutor_Gemini/main/Data/Handout_OOP/Buổi 15_Ôn tập Phần 1_Lý thuyết.pdf
+Buổi 15_Ôn tập Đề 1_Tutor AI|https://raw.githubusercontent.com/tranthanhthangbmt/AITutor_Gemini/main/Data/Handout_OOP/Buổi 15_Ôn tập Đề 1_Tutor AI.pdf
+Buổi 15_Ôn tập Đề 2_Tutor AI|https://raw.githubusercontent.com/tranthanhthangbmt/AITutor_Gemini/main/Data/Handout_OOP/Buổi 15_Ôn tập Đề 2_Tutor AI.pdf
