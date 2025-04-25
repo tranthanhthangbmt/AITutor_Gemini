@@ -8,6 +8,7 @@ def init_firestore():
         # ✅ Đúng cách trên Streamlit Cloud
         #service_account_info = json.loads(st.secrets["FIREBASE_CREDENTIALS"])
         service_account_info = st.secrets["FIREBASE_CREDENTIALS"]
-        cred = credentials.Certificate(service_account_info)
+        #cred = credentials.Certificate(service_account_info)
+        cred = credentials.Certificate.from_json(service_account_info) 
         firebase_admin.initialize_app(cred)
     return firestore.client()
