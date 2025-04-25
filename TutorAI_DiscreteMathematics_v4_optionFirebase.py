@@ -102,7 +102,7 @@ def load_available_lessons_from_txt(url):
         st.error(f"Lỗi khi đọc danh sách bài học: {e}")
         return {"👉 Chọn bài học...": ""}
         
-LESSON_LIST_URL = "https://raw.githubusercontent.com/tranthanhthangbmt/AITutor_Gemini/main/Data/DiscreteMathematicsLesson2.txt" 
+LESSON_LIST_URL = "https://raw.githubusercontent.com/tranthanhthangbmt/AITutor_Gemini/main/Data/OOP_Lesson.txt" 
 available_lessons = load_available_lessons_from_txt(LESSON_LIST_URL) 
 
 def clean_html_to_text(text):
