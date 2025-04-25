@@ -789,16 +789,6 @@ if user_input:
         # Xử lý trắc nghiệm tách dòng
         reply = format_mcq_options(reply)
 
-        # Sau khi có phản hồi
-        """
-        save_exchange_to_firestore(
-            user_id=st.session_state.get("user_id", f"user_{uuid.uuid4().hex[:8]}"),
-            lesson_source=st.session_state.get("lesson_source", "Chua_xac_dinh"),
-            question=user_input,
-            answer=reply,
-            session_id=st.session_state.get("session_id", "default")
-        )
-        """
         if st.session_state.get("firebase_enabled", False):
             save_exchange_to_firestore(
                 user_id=st.session_state.get("user_id", f"user_{uuid.uuid4().hex[:8]}"),
