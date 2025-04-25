@@ -54,7 +54,9 @@ def save_exchange_to_firestore(user_id, lesson_source, question, answer, session
 # Đảm bảo st.set_page_config là lệnh đầu tiên
 # Giao diện Streamlit
 st.set_page_config(page_title="Tutor AI", page_icon="🎓")
-
+if "firebase_enabled" not in st.session_state:
+    st.session_state["firebase_enabled"] = False  # hoặc True nếu muốn mặc định bật
+    
 import uuid
 import time
 
@@ -328,7 +330,8 @@ with st.sidebar:
         st.markdown("📄 **Các file đã tải lên:**")
         for f in uploaded_files:
             st.markdown(f"- {f.name}")
-        
+
+    st.session_state["firebase_enabled"] = st.checkbox("💾 Lưu dữ liệu lên Firebase", value=st.session_state["firebase_enabled"])
     # 🔄 Nút reset
     if st.button("🔄 Bắt đầu lại buổi học"):
         if "messages" in st.session_state:
@@ -787,6 +790,7 @@ if user_input:
         reply = format_mcq_options(reply)
 
         # Sau khi có phản hồi
+        """
         save_exchange_to_firestore(
             user_id=st.session_state.get("user_id", f"user_{uuid.uuid4().hex[:8]}"),
             lesson_source=st.session_state.get("lesson_source", "Chua_xac_dinh"),
@@ -794,6 +798,15 @@ if user_input:
             answer=reply,
             session_id=st.session_state.get("session_id", "default")
         )
+        """
+        if st.session_state.get("firebase_enabled", False):
+            save_exchange_to_firestore(
+                user_id=st.session_state.get("user_id", f"user_{uuid.uuid4().hex[:8]}"),
+                lesson_source=st.session_state.get("lesson_source", "Chua_xac_dinh"),
+                question=user_input,
+                answer=reply,
+                session_id=st.session_state.get("session_id", "default")
+            )
         
         # Hiển thị
         st.chat_message("🤖 Gia sư AI").markdown(reply)
