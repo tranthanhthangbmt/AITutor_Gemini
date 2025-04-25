@@ -193,7 +193,7 @@ with st.sidebar:
     mode = st.radio(
         "📘 Chế độ nhập bài học:", 
         ["Tải lên thủ công", "Chọn từ danh sách"],
-        index=1  # ✅ Mặc định chọn "Chọn từ danh sách"
+        index=0  # ✅ Mặc định chọn "Tải lên thủ công"
     )
     st.session_state["show_sidebar_inputs"] = (mode == "Chọn từ danh sách")
 
