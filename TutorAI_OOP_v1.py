@@ -220,6 +220,7 @@ with st.sidebar:
         inputEl?.addEventListener("keydown", e => {
             if (e.key === "Enter") saveAPI();
         });
+        inputEl?.addEventListener("input", saveAPI);
     
         return storedKey ? JSON.parse(storedKey) : "";
     })()
