@@ -33,6 +33,30 @@ db = init_firestore()
 from datetime import datetime
 from google.cloud.firestore_v1 import ArrayUnion
 
+def generate_and_encode_audio(text, voice="vi-VN-HoaiMyNeural"):
+    """
+    Sinh file audio từ văn bản, encode base64 để nhúng HTML
+    """
+    import edge_tts
+    import asyncio
+    import base64
+    import uuid
+    import os
+
+    async def _generate_audio(text, filename, voice):
+        communicate = edge_tts.Communicate(text, voice)
+        await communicate.save(filename)
+
+    temp_filename = f"temp_{uuid.uuid4().hex}.mp3"
+    asyncio.run(_generate_audio(text, temp_filename, voice))
+
+    with open(temp_filename, "rb") as f:
+        audio_bytes = f.read()
+        b64 = base64.b64encode(audio_bytes).decode()
+
+    os.remove(temp_filename)
+    return b64
+    
 def save_exchange_to_firestore(user_id, lesson_source, question, answer, session_id):
     doc_id = f"{user_id}_{lesson_source.replace('::', '_')}_{session_id}"
     doc_ref = db.collection("sessions").document(doc_id)
@@ -770,6 +794,9 @@ if pdf_context:
             greeting += f"\n\n{lesson_summary}"
         greeting += "\n\nBạn đã sẵn sàng chưa?"
 
+        greeting_audio_b64 = generate_and_encode_audio(greeting)
+        st.session_state["greeting_audio_b64"] = greeting_audio_b64
+
         st.session_state.messages = [
             {"role": "user", "parts": [{"text": PROMPT_LESSON_CONTEXT}]},
             {"role": "model", "parts": [{"text": greeting}]}
@@ -827,22 +854,7 @@ if user_input:
         # Hiển thị
         st.chat_message("🤖 Gia sư AI").markdown(reply)
         
-        async def generate_audio(text, filename):
-            communicate = edge_tts.Communicate(text, "vi-VN-HoaiMyNeural")  # Giọng nữ tiếng Việt rất tự nhiên
-            #Bạn cũng có thể đổi "vi-VN-HoaiMyNeural" thành "vi-VN-NamMinhNeural" nếu muốn giọng nam.
-            await communicate.save(filename)
-        
-        # Tạo file âm thanh bằng Edge-TTS
-        temp_filename = f"temp_{uuid.uuid4().hex}.mp3"
-        asyncio.run(generate_audio(reply, temp_filename))
-        
-        # Đọc và encode base64
-        with open(temp_filename, "rb") as f:
-            audio_bytes = f.read()
-            b64 = base64.b64encode(audio_bytes).decode()
-        
-        # Xoá file tạm sau khi encode
-        os.remove(temp_filename)
+        b64 = generate_and_encode_audio(reply)
         
         # Hiển thị nút nghe
         st.markdown("""
