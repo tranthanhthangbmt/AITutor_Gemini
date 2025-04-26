@@ -10,4 +10,5 @@ streamlit
 reportlab
 gTTS
 firebase-admin
+edge-tts
 
