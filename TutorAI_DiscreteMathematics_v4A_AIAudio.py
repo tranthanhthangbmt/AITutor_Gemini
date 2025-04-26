@@ -17,7 +17,10 @@ import tempfile
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 
-from gtts import gTTS #for audio
+#from gtts import gTTS #for audio
+import edge_tts #AI audio
+import asyncio  #AI audio 
+
 import base64
 import uuid
 import os
@@ -823,10 +826,15 @@ if user_input:
         
         # Hiển thị
         st.chat_message("🤖 Gia sư AI").markdown(reply)
-        # Tạo file âm thanh tạm
-        tts = gTTS(text=reply, lang='vi')
+        
+        async def generate_audio(text, filename):
+            communicate = edge_tts.Communicate(text, "vi-VN-HoaiMyNeural")  # Giọng nữ tiếng Việt rất tự nhiên
+            #Bạn cũng có thể đổi "vi-VN-HoaiMyNeural" thành "vi-VN-NamMinhNeural" nếu muốn giọng nam.
+            await communicate.save(filename)
+        
+        # Tạo file âm thanh bằng Edge-TTS
         temp_filename = f"temp_{uuid.uuid4().hex}.mp3"
-        tts.save(temp_filename)
+        asyncio.run(generate_audio(reply, temp_filename))
         
         # Đọc và encode base64
         with open(temp_filename, "rb") as f:
