@@ -821,9 +821,22 @@ if pdf_context:
     """
 
 # Hiển thị lịch sử chat
-for msg in st.session_state.messages[1:]:
+for idx, msg in enumerate(st.session_state.messages[1:]):  # bỏ prompt hệ thống
     role = "🧑‍🎓 Học sinh" if msg["role"] == "user" else "🤖 Gia sư AI"
     st.chat_message(role).write(msg["parts"][0]["text"])
+
+    # Nếu là greeting lần đầu tiên và có audio
+    if idx == 0 and role == "🤖 Gia sư AI" and "greeting_audio_b64" in st.session_state:
+        st.markdown(f"""
+        <details>
+        <summary>🔊 Nghe lời chào</summary>
+        <br>
+        <audio controls>
+            <source src="data:audio/mp3;base64,{st.session_state['greeting_audio_b64']}" type="audio/mp3">
+            Trình duyệt của bạn không hỗ trợ phát âm thanh.
+        </audio>
+        </details>
+        """, unsafe_allow_html=True)
 
 # Ô nhập câu hỏi mới
 user_input = st.chat_input("Nhập câu trả lời hoặc câu hỏi...")
