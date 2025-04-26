@@ -805,8 +805,9 @@ if pdf_context:
         st.session_state.lesson_loaded = current_source  # đánh dấu đã load
 
         #xuất ra dạng audio
-        greeting_audio_b64 = generate_and_encode_audio(greeting)
-        st.session_state["greeting_audio_b64"] = greeting_audio_b64
+        if st.session_state.get("enable_audio_playback", True):
+            greeting_audio_b64 = generate_and_encode_audio(greeting)
+            st.session_state["greeting_audio_b64"] = greeting_audio_b64
         
     #Phần chọn bài học
     lesson_title = selected_lesson if selected_lesson != "👉 Chọn bài học..." else "Bài học tùy chỉnh"
@@ -868,16 +869,20 @@ if user_input:
         # Hiển thị
         st.chat_message("🤖 Gia sư AI").markdown(reply)
         
-        b64 = generate_and_encode_audio(reply)
+        #b64 = generate_and_encode_audio(reply)
+        b64 = None
+        if st.session_state.get("enable_audio_playback", True):
+            b64 = generate_and_encode_audio(reply)
         
         # Hiển thị nút nghe
-        autoplay_attr = "autoplay" if st.session_state.get("enable_audio_playback", True) else ""
-        st.markdown(f"""
-        <audio controls {autoplay_attr}>
-            <source src="data:audio/mp3;base64,{b64}" type="audio/mp3">
-            Trình duyệt của bạn không hỗ trợ phát âm thanh.
-        </audio>
-        """, unsafe_allow_html=True)
+        if b64:
+            autoplay_attr = "autoplay" if st.session_state.get("enable_audio_playback", True) else ""
+            st.markdown(f"""
+            <audio controls {autoplay_attr}>
+                <source src="data:audio/mp3;base64,{b64}" type="audio/mp3">
+                Trình duyệt của bạn không hỗ trợ phát âm thanh.
+            </audio>
+            """, unsafe_allow_html=True)
 
     # Chuyển biểu thức toán trong ngoặc đơn => LaTeX inline
     #reply = convert_parentheses_to_latex(reply)
