@@ -331,7 +331,9 @@ with st.sidebar:
         for f in uploaded_files:
             st.markdown(f"- {f.name}")
 
-    st.session_state["firebase_enabled"] = st.checkbox("💾 Lưu dữ liệu lên Firebase", value=st.session_state["firebase_enabled"])
+    #st.session_state["firebase_enabled"] = st.checkbox("💾 Lưu dữ liệu lên Firebase", value=st.session_state["firebase_enabled"])
+    st.session_state["firebase_enabled"] = True
+    
     # 🔄 Nút reset
     if st.button("🔄 Bắt đầu lại buổi học"):
         if "messages" in st.session_state:
