@@ -55,7 +55,7 @@ def save_exchange_to_firestore(user_id, lesson_source, question, answer, session
 # Giao diện Streamlit
 st.set_page_config(page_title="Tutor AI", page_icon="🎓")
 if "firebase_enabled" not in st.session_state:
-    st.session_state["firebase_enabled"] = False  # hoặc True nếu muốn mặc định bật
+    st.session_state["firebase_enabled"] = True # False  # hoặc True nếu muốn mặc định bật
     
 import uuid
 import time
