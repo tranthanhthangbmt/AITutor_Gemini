@@ -828,14 +828,10 @@ for idx, msg in enumerate(st.session_state.messages[1:]):  # bỏ prompt hệ th
     # Nếu là greeting lần đầu tiên và có audio
     if idx == 0 and role == "🤖 Gia sư AI" and "greeting_audio_b64" in st.session_state:
         st.markdown(f"""
-        <details>
-        <summary>🔊 Nghe lời chào</summary>
-        <br>
-        <audio controls>
+        <audio controls autoplay>
             <source src="data:audio/mp3;base64,{st.session_state['greeting_audio_b64']}" type="audio/mp3">
             Trình duyệt của bạn không hỗ trợ phát âm thanh.
         </audio>
-        </details>
         """, unsafe_allow_html=True)
 
 # Ô nhập câu hỏi mới
@@ -871,16 +867,12 @@ if user_input:
         b64 = generate_and_encode_audio(reply)
         
         # Hiển thị nút nghe
-        st.markdown("""
-        <details>
-        <summary>🔊 Nghe lại phản hồi</summary>
-        <br>
-        <audio controls>
+        st.markdown(f"""
+        <audio controls autoplay>
             <source src="data:audio/mp3;base64,{b64}" type="audio/mp3">
             Trình duyệt của bạn không hỗ trợ phát âm thanh.
         </audio>
-        </details>
-        """.format(b64=b64), unsafe_allow_html=True)
+        """, unsafe_allow_html=True)
 
     # Chuyển biểu thức toán trong ngoặc đơn => LaTeX inline
     #reply = convert_parentheses_to_latex(reply)
