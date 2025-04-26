@@ -833,7 +833,7 @@ for idx, msg in enumerate(st.session_state.messages[1:]):  # bỏ prompt hệ th
         autoplay_attr = "autoplay" if st.session_state.get("enable_audio_playback", True) else ""
         st.markdown(f"""
         <audio controls {autoplay_attr}>
-            <source src="data:audio/mp3;base64,{b64}" type="audio/mp3">
+            <source src="data:audio/mp3;base64,{st.session_state['greeting_audio_b64']}" type="audio/mp3">
             Trình duyệt của bạn không hỗ trợ phát âm thanh.
         </audio>
         """, unsafe_allow_html=True)
