@@ -25,7 +25,7 @@ import os
 from firebase_config import init_firestore
 from firebase_admin import firestore  # ✨ Thêm dòng này ở đầu file chính
 
-#db = init_firestore()
+db = init_firestore()
 
 from datetime import datetime
 from google.cloud.firestore_v1 import ArrayUnion
