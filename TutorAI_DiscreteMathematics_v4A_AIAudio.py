@@ -309,6 +309,9 @@ with st.sidebar:
     })();
     """)
     "[Lấy API key tại đây](https://aistudio.google.com/app/apikey)"
+    # 🔊 Cho phép bật/tắt tự động phát audio
+    enable_audio_default = True  # ✅ Mặc định: Bật nghe audio
+    st.session_state["enable_audio_playback"] = st.sidebar.checkbox("🔊 Tự động phát âm thanh", value=enable_audio_default)
     if st.session_state.get("show_sidebar_inputs", False):
         st.markdown("📚 **Chọn bài học hoặc tải lên bài học**")
         
@@ -827,9 +830,10 @@ for idx, msg in enumerate(st.session_state.messages[1:]):  # bỏ prompt hệ th
 
     # Nếu là greeting lần đầu tiên và có audio
     if idx == 0 and role == "🤖 Gia sư AI" and "greeting_audio_b64" in st.session_state:
+        autoplay_attr = "autoplay" if st.session_state.get("enable_audio_playback", True) else ""
         st.markdown(f"""
-        <audio controls autoplay>
-            <source src="data:audio/mp3;base64,{st.session_state['greeting_audio_b64']}" type="audio/mp3">
+        <audio controls {autoplay_attr}>
+            <source src="data:audio/mp3;base64,{b64}" type="audio/mp3">
             Trình duyệt của bạn không hỗ trợ phát âm thanh.
         </audio>
         """, unsafe_allow_html=True)
@@ -867,8 +871,9 @@ if user_input:
         b64 = generate_and_encode_audio(reply)
         
         # Hiển thị nút nghe
+        autoplay_attr = "autoplay" if st.session_state.get("enable_audio_playback", True) else ""
         st.markdown(f"""
-        <audio controls autoplay>
+        <audio controls {autoplay_attr}>
             <source src="data:audio/mp3;base64,{b64}" type="audio/mp3">
             Trình duyệt của bạn không hỗ trợ phát âm thanh.
         </audio>
