@@ -823,12 +823,14 @@ elif selected_lesson != "👉 Chọn bài học..." and default_link.strip():
     response = requests.get(default_link)
     if response.status_code == 200:
         with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmpfile:
-            tmpfile.write(response.content)
+            tmpfile.write(file_bytes_or_response_content)
             tmpfile_path = tmpfile.name
-
-        # Tách nội dung bằng TOC
-        parts = tach_noi_dung_bai_hoc_tong_quat(tmpfile_path)
-        all_parts.extend(parts)
+        try:
+            parts = tach_noi_dung_bai_hoc_tong_quat(tmpfile_path)
+            all_parts.extend(parts)
+        finally:
+            if os.path.exists(tmpfile_path):
+                os.remove(tmpfile_path)
 
         lesson_title = selected_lesson
         current_source = f"lesson::{selected_lesson}"
