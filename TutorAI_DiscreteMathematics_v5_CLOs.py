@@ -948,10 +948,6 @@ if all_parts:
     if "lesson_progress_initialized" not in st.session_state or not st.session_state["lesson_progress_initialized"]:
         init_lesson_progress(all_parts)
         # Nếu có file json thì bây giờ mới merge tiến độ
-        if uploaded_json:
-            loaded_progress = json.load(uploaded_json)
-            merge_lesson_progress(st.session_state["lesson_progress"], loaded_progress)
-            st.success(f"✅ Đã khôi phục tiến độ học từ {uploaded_json.name}.")
         st.session_state["lesson_progress_initialized"] = True
 
         # Sau khi upload file
@@ -962,9 +958,10 @@ if all_parts:
                 break
         
         if uploaded_json:
+            uploaded_json.seek(0)  # 👈 phải thêm dòng này!
             loaded_progress = json.load(uploaded_json)
             merge_lesson_progress(st.session_state["lesson_progress"], loaded_progress)
-            st.success("✅ Đã khôi phục tiến độ học từ file JSON.")
+            st.success(f"✅ Đã khôi phục tiến độ học từ {uploaded_json.name}.")
 
     # 🚀 Đảm bảo current_part_index luôn có
     if "current_part_index" not in st.session_state:
