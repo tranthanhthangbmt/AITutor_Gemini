@@ -1059,27 +1059,6 @@ if pdf_context:
         if st.session_state.get("enable_audio_playback", True):
             greeting_audio_b64 = generate_and_encode_audio(greeting)
             st.session_state["greeting_audio_b64"] = greeting_audio_b64
-        
-    #Phần chọn bài học
-    # 📚 Xác định tên bài học đúng
-    if uploaded_files:
-        lesson_title = " + ".join([file.name for file in uploaded_files])
-    elif selected_lesson != "👉 Chọn bài học...":
-        lesson_title = selected_lesson
-    else:
-        lesson_title = "Bài học tùy chỉnh"
-
-    PROMPT_LESSON_CONTEXT = f"""
-    {SYSTEM_PROMPT_Tutor_AI}
-    
-    # Bạn sẽ hướng dẫn buổi học hôm nay với tài liệu sau:
-    
-    ## Bài học: {lesson_title}
-    
-    --- START OF HANDBOOK CONTENT ---
-    {pdf_context}
-    --- END OF HANDBOOK CONTENT ---
-    """
 
 # Hiển thị lịch sử chat
 for idx, msg in enumerate(st.session_state.messages[1:]):  # bỏ prompt hệ thống
