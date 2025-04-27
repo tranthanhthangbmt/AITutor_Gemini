@@ -34,81 +34,88 @@ from datetime import datetime
 from google.cloud.firestore_v1 import ArrayUnion
 
 #tự động nhận diện loại nội dung:
-def tach_noi_dung_bai_hoc_tong_quat(text):
+def tach_noi_dung_bai_hoc_tong_quat(file_path):
     """
-    Phiên bản nâng cấp:
-    - Tách theo cả 5 phần lớn (PHẦN I, II, III, IV, V)
-    - Trong mỗi phần, tách thêm các đề mục nhỏ:
-        - Dạng số: 1. GIỚI THIỆU, 2. ĐỊNH NGHĨA...
-        - Bài tập: Bài 1., Bài 2., Bài 3. ...
-        - Câu hỏi trắc nghiệm: Câu 1, Câu 2...
+    Tách nội dung bài học từ PDF có Table of Content (TOC).
+    Yêu cầu: File PDF phải có Heading/mục lục (TOC) chuẩn.
     """
-    parts = []
-    id_counter = {
-        "ly_thuyet": 0,
-        "bai_tap_co_giai": 0,
-        "trac_nghiem": 0,
-        "luyen_tap": 0,
-        "du_an": 0,
-        "khac": 0
-    }
 
-    # Regex tìm PHẦN lớn
-    part_pattern = r"(PHẦN\s+[IVXLCDM]+:?.+)"
-    part_matches = list(re.finditer(part_pattern, text, re.IGNORECASE))
+    doc = fitz.open(file_path)
+    toc = doc.get_toc()
 
-    if not part_matches:
-        return [{"id": "LT1", "loai": "ly_thuyet", "tieu_de": "Toàn bộ nội dung", "noi_dung": text}]
+    pages_text = [page.get_text("text") for page in doc]
+    results = []
 
-    for idx, match in enumerate(part_matches):
-        start = match.end()
-        end = part_matches[idx + 1].start() if idx + 1 < len(part_matches) else len(text)
-        section_text = text[start:end].strip()
-        title = match.group(1).strip().upper()
-
-        # Xác định loại phần
-        if "LÝ THUYẾT" in title:
-            loai = "ly_thuyet"
-        elif "BÀI TẬP CÓ GIẢI" in title:
-            loai = "bai_tap_co_giai"
-        elif "TRḮC NGHIỆM" in title:
-            loai = "trac_nghiem"
-        elif "LUYỆN TẬP" in title:
-            loai = "luyen_tap"
-        elif "DỰ ÁN" in title:
-            loai = "du_an"
+    # Phân loại loại phần
+    def classify_section(title):
+        title_upper = title.upper()
+        if "PHẦN I" in title_upper:
+            return 'ly_thuyet'
+        elif "PHẦN 2" in title_upper:
+            return 'bai_tap_co_giai'
+        elif "PHẦN 3" in title_upper:
+            return 'trac_nghiem'
+        elif "PHẦN 4" in title_upper:
+            return 'luyen_tap'
+        elif "PHẦN 5" in title_upper:
+            return 'du_an'
         else:
-            loai = "khac"
+            return 'khac'
 
-        id_counter[loai] += 1
-        part_id = id_counter[loai]
-        
-        # Tách các mục nhỏ bên trong
-        sub_pattern = r"((?:Bài|Câu)?\s*\d+[.]?\s+.+)"
-        sub_matches = list(re.finditer(sub_pattern, section_text))
+    # Tạo ID tự động
+    def make_id(loai, stt):
+        prefix = {
+            'ly_thuyet': 'LYTHUYET',
+            'bai_tap_co_giai': 'BAITAPCOGIAI',
+            'trac_nghiem': 'TRACNGHIEM',
+            'luyen_tap': 'LUYENTAP',
+            'du_an': 'DUAN',
+            'khac': 'KHAC'
+        }.get(loai, 'KHAC')
+        return f"{prefix}_{stt}"
 
-        if not sub_matches:
-            parts.append({
-                "id": f"{loai.upper()}{part_id}",
-                "loai": loai,
-                "tieu_de": title,
-                "noi_dung": section_text
-            })
+    # Xóa rác như "Page 2 of 48"
+    def clean_text(text):
+        import re
+        text = re.sub(r'Page \\d+ of \\d+', '', text)
+        return text.strip()
+
+    for idx, (level, title, page_num) in enumerate(toc):
+        page_idx = page_num - 1
+
+        start_text = pages_text[page_idx]
+
+        if idx + 1 < len(toc):
+            next_page_num = toc[idx + 1][2] - 1
+            if page_idx == next_page_num:
+                start_title = title.strip()
+                next_title = toc[idx + 1][1].strip()
+                try:
+                    start_pos = start_text.index(start_title)
+                    end_pos = start_text.index(next_title)
+                    extracted_text = start_text[start_pos:end_pos]
+                except ValueError:
+                    extracted_text = start_text
+            else:
+                extracted_text = start_text
+                for i in range(page_idx + 1, next_page_num):
+                    extracted_text += '\n' + pages_text[i]
         else:
-            for sub_idx, sub_match in enumerate(sub_matches):
-                sub_start = sub_match.start()
-                sub_end = sub_matches[sub_idx + 1].start() if sub_idx + 1 < len(sub_matches) else len(section_text)
-                sub_text = section_text[sub_start:sub_end].strip()
-                sub_title = sub_match.group(1).strip()
+            extracted_text = start_text
+            for i in range(page_idx + 1, len(pages_text)):
+                extracted_text += '\n' + pages_text[i]
 
-                parts.append({
-                    "id": f"{loai.upper()}{part_id}_{sub_idx + 1}",
-                    "loai": loai,
-                    "tieu_de": sub_title,
-                    "noi_dung": sub_text
-                })
+        loai = classify_section(title)
+        id_ = make_id(loai, idx + 1)
 
-    return parts
+        results.append({
+            'id': id_,
+            'loai': loai,
+            'tieu_de': title.strip(),
+            'noi_dung': clean_text(extracted_text)
+        })
+
+    return results
 
 def generate_and_encode_audio(text, voice="vi-VN-HoaiMyNeural"):
     """
