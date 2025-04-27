@@ -838,7 +838,8 @@ if pdf_context:
     import streamlit as st
     
     # Đổi danh sách thành DataFrame
-    df = pd.DataFrame(ds_noi_dung)
+    #df = pd.DataFrame(ds_noi_dung)
+    df = pd.DataFrame(parts_sorted)
     
     # Chỉ hiện cột id, loai, tieu_de
     st.dataframe(df[["id", "loai", "tieu_de"]])
