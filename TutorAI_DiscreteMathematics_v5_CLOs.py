@@ -823,7 +823,7 @@ elif selected_lesson != "👉 Chọn bài học..." and default_link.strip():
     response = requests.get(default_link)
     if response.status_code == 200:
         with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmpfile:
-            tmpfile.write(file_bytes_or_response_content)
+            tmpfile.write(response.content)
             tmpfile_path = tmpfile.name
         try:
             parts = tach_noi_dung_bai_hoc_tong_quat(tmpfile_path)
