@@ -846,7 +846,27 @@ else:
 #if (selected_lesson != "👉 Chọn bài học..." or file_url.strip()) and pdf_context:
 if pdf_context:
     #hiển thị TOC ở đây
+    import pandas as pd
 
+    if all_parts:
+        # Sắp xếp theo loại nội dung (ly_thuyet, trac_nghiem, ...)
+        thu_tu_muc = {
+            "ly_thuyet": 1,
+            "bai_tap_co_giai": 2,
+            "trac_nghiem": 3,
+            "luyen_tap": 4,
+            "du_an": 5
+        }
+        parts_sorted = sorted(all_parts, key=lambda x: thu_tu_muc.get(x["loai"], 999))
+    
+        # Hiển thị bảng
+        df = pd.DataFrame(parts_sorted)
+        st.markdown("### 📚 **Mục lục bài học**")
+        st.dataframe(df[["id", "loai", "tieu_de"]])
+    
+        # Lưu parts_sorted vào session để sử dụng sau
+        st.session_state["lesson_parts"] = parts_sorted
+        
     # Ưu tiên lấy dòng tiêu đề từ tài liệu
     lesson_title_extracted = None
     for line in pdf_context.splitlines():
