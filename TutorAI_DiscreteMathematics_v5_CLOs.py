@@ -1069,7 +1069,8 @@ if user_input:
 	    Câu trả lời: {user_input}
 	    ---
 	    """
-	    diem_raw = chat_with_gemini([
+     
+        diem_raw = chat_with_gemini([
 	        {"role": "user", "parts": [{"text": scoring_prompt}]}
 	    ])
 	    
