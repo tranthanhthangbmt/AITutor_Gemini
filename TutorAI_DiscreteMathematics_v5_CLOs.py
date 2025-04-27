@@ -1073,8 +1073,8 @@ if user_input:
         diem_raw = chat_with_gemini([
 	        {"role": "user", "parts": [{"text": scoring_prompt}]}
 	    ])
-	    
-	    try:
+     
+        try:
 	        diem_so = int(re.findall(r"\d+", diem_raw)[0])
 	    except:
 	        diem_so = 90  # fallback nếu có lỗi
