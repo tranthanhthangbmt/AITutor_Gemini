@@ -974,6 +974,15 @@ if all_parts:
             else:
                 st.session_state["current_part_index"] = len(st.session_state["lesson_progress"])  # đã hoàn thành hết
 
+        # Sau khi merge tiến độ, tìm phần học tiếp theo
+        uncompleted_parts = [item for item in st.session_state["lesson_progress"] if item["trang_thai"] != "hoan_thanh"]
+        
+        if uncompleted_parts:
+            current_part = uncompleted_parts[0]
+            # → Dùng current_part để sinh câu hỏi tiếp theo
+        else:
+            st.success("🎉 Bạn đã hoàn thành toàn bộ bài học!")
+
     # 🚀 Đảm bảo current_part_index luôn có
     if "current_part_index" not in st.session_state:
         st.session_state["current_part_index"] = 0
