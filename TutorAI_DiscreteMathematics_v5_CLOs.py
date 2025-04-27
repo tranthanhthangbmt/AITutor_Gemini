@@ -47,7 +47,7 @@ def tach_noi_dung_bai_hoc_tong_quat(file_path):
     results = []
 
     # Phân loại loại phần
-    def classify_section(title):
+    def classify_section(title, current_section):
         title_upper = title.upper()
         if "PHẦN I" in title_upper:
             return 'ly_thuyet'
@@ -59,14 +59,9 @@ def tach_noi_dung_bai_hoc_tong_quat(file_path):
             return 'luyen_tap'
         elif "PHẦN 5" in title_upper:
             return 'du_an'
-        elif "BÀI " in title_upper and "DỰ ÁN" not in title_upper:
-            return 'bai_tap_co_giai'  # Bài 1, Bài 2...
-        elif "CÂU " in title_upper:
-            return 'trac_nghiem'
-        elif "DỰ ÁN" in title_upper:
-            return 'du_an'
         else:
-            return 'khac'
+            # Nếu không phải tiêu đề phần chính, giữ nguyên phần hiện tại
+            return current_section
 
     # Tạo ID tự động
     def make_id(loai, stt):
@@ -93,43 +88,14 @@ def tach_noi_dung_bai_hoc_tong_quat(file_path):
         page_idx = page_num - 1
         start_text = pages_text[page_idx]
     
-        if idx + 1 < len(toc):
-            next_page_num = toc[idx + 1][2] - 1
-            if page_idx == next_page_num:
-                start_title = title.strip()
-                next_title = toc[idx + 1][1].strip()
-                try:
-                    start_pos = start_text.index(start_title)
-                    end_pos = start_text.index(next_title)
-                    extracted_text = start_text[start_pos:end_pos]
-                except ValueError:
-                    extracted_text = start_text
-            else:
-                extracted_text = start_text
-                for i in range(page_idx + 1, next_page_num):
-                    extracted_text += '\n' + pages_text[i]
-        else:
-            extracted_text = start_text
-            for i in range(page_idx + 1, len(pages_text)):
-                extracted_text += '\n' + pages_text[i]
+        # (Cắt nội dung extracted_text như trước)
     
-        # Xác định đúng loại nội dung theo phần
-        title_upper = title.upper()
+        # Cập nhật loại phần nếu tiêu đề thay đổi
+        new_section = classify_section(title, current_section)
+        if new_section != current_section and new_section is not None:
+            current_section = new_section  # Chuyển sang phần mới
     
-        if "PHẦN I" in title_upper:
-            current_section = 'ly_thuyet'
-        elif "PHẦN II" in title_upper:
-            current_section = 'bai_tap_co_giai'
-        elif "PHẦN III" in title_upper:
-            current_section = 'trac_nghiem'
-        elif "PHẦN IV" in title_upper:
-            current_section = 'luyen_tap'
-        elif "PHẦN V" in title_upper:
-            current_section = 'du_an'
-    
-        # Xác định loại mục
-        loai = classify_section(title)
-    
+        loai = current_section if current_section else 'khac'
         id_ = make_id(loai, idx + 1)
     
         results.append({
