@@ -33,6 +33,8 @@ db = init_firestore()
 from datetime import datetime
 from google.cloud.firestore_v1 import ArrayUnion
 
+import json
+
 #Hàm 1: Khởi tạo dữ liệu tiến độ học
 def init_lesson_progress(all_parts):
     """
