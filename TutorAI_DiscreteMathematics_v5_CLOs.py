@@ -864,33 +864,28 @@ if "messages" not in st.session_state:
 import tempfile
 import requests
 
+# 1. Đọc các file upload vào
 all_parts = []
+uploaded_json = None
 
-if uploaded_files:
-    for uploaded_file in uploaded_files:
-        file_name = uploaded_file.name.lower()
-        uploaded_file.seek(0)  # 🚨 Reset lại đầu file để đảm bảo đọc đúng
-    
-        if file_name.endswith(".json"):
-            # ➡ File JSON: merge tiến độ học
-            loaded_progress = json.load(uploaded_file)
-            merge_lesson_progress(st.session_state["lesson_progress"], loaded_progress)
-            st.success(f"✅ Đã cập nhật tiến độ từ {file_name}.")
-    
-        elif file_name.endswith(".pdf"):
-            # ➡ File PDF: tách nội dung bài học
-            file_bytes = uploaded_file.read()
-    
-            with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmpfile:
-                tmpfile.write(file_bytes)
-                tmpfile_path = tmpfile.name
-    
-            parts = tach_noi_dung_bai_hoc_tong_quat(tmpfile_path)
-            all_parts.extend(parts)
-    
-        else:
-            # ➡ Các loại file khác (txt, docx,...) có thể xử lý riêng hoặc bỏ qua
-            st.warning(f"⚠️ File {file_name} không hỗ trợ tự động đọc nội dung bài học.")
+for uploaded_file in uploaded_files:
+    file_name = uploaded_file.name.lower()
+    uploaded_file.seek(0)
+
+    if file_name.endswith(".json"):
+        uploaded_json = uploaded_file  # chỉ lưu lại file json, chưa đọc vội
+
+    elif file_name.endswith(".pdf"):
+        file_bytes = uploaded_file.read()
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmpfile:
+            tmpfile.write(file_bytes)
+            tmpfile_path = tmpfile.name
+
+        parts = tach_noi_dung_bai_hoc_tong_quat(tmpfile_path)
+        all_parts.extend(parts)
+
+    else:
+        st.warning(f"⚠️ File {file_name} không hỗ trợ tự động đọc nội dung bài học.")
 
     lesson_title = " + ".join([file.name for file in uploaded_files])
     current_source = f"upload::{lesson_title}"
@@ -951,6 +946,11 @@ if all_parts:
     # Khởi tạo tiến độ học chỉ 1 lần duy nhất
     if "lesson_progress_initialized" not in st.session_state or not st.session_state["lesson_progress_initialized"]:
         init_lesson_progress(all_parts)
+        # Nếu có file json thì bây giờ mới merge tiến độ
+        if uploaded_json:
+            loaded_progress = json.load(uploaded_json)
+            merge_lesson_progress(st.session_state["lesson_progress"], loaded_progress)
+            st.success(f"✅ Đã khôi phục tiến độ học từ {uploaded_json.name}.")
         st.session_state["lesson_progress_initialized"] = True
 
         # Sau khi upload file
