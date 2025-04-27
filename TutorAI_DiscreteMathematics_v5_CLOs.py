@@ -966,6 +966,13 @@ if all_parts:
             loaded_progress = json.load(uploaded_json)
             merge_lesson_progress(st.session_state["lesson_progress"], loaded_progress)
             st.session_state["progress_restored"] = uploaded_json.name  # 👉 Ghi tên file đã restore
+            # 👉 Sau khi merge xong, phải tìm phần đầu tiên chưa hoàn thành
+            for idx, item in enumerate(st.session_state["lesson_progress"]):
+                if item["trang_thai"] != "hoan_thanh":
+                    st.session_state["current_part_index"] = idx
+                    break
+            else:
+                st.session_state["current_part_index"] = len(st.session_state["lesson_progress"])  # đã hoàn thành hết
 
     # 🚀 Đảm bảo current_part_index luôn có
     if "current_part_index" not in st.session_state:
