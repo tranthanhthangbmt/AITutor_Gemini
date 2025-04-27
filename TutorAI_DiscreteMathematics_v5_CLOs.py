@@ -33,6 +33,53 @@ db = init_firestore()
 from datetime import datetime
 from google.cloud.firestore_v1 import ArrayUnion
 
+#Hàm 1: Khởi tạo dữ liệu tiến độ học
+def init_lesson_progress(all_parts):
+    """
+    Tạo danh sách lesson_progress từ all_parts, thêm trạng thái mặc định.
+    """
+    lesson_progress = []
+    for part in all_parts:
+        lesson_progress.append({
+            "id": part["id"],
+            "loai": part["loai"],
+            "tieu_de": part["tieu_de"],
+            "noi_dung": part["noi_dung"],
+            "trang_thai": "chua_hoan_thanh",  # mặc định
+            "diem_so": 0  # mặc định
+        })
+    st.session_state["lesson_progress"] = lesson_progress
+
+#Hàm 2: Lưu tiến độ học ra file JSON
+def save_lesson_progress(filename="tien_do_bai_hoc.json"):
+    """
+    Lưu lesson_progress hiện tại thành file JSON để tải về.
+    """
+    if "lesson_progress" in st.session_state:
+        json_data = json.dumps(st.session_state["lesson_progress"], ensure_ascii=False, indent=2)
+        st.download_button(
+            label="📥 Tải file tiến độ (.json)",
+            data=json_data,
+            file_name=filename,
+            mime="application/json"
+        )
+    else:
+        st.warning("⚠️ Chưa có tiến độ học nào để lưu.")
+
+#Hàm 3: Cập nhật trạng thái sau mỗi phần học
+def update_progress(part_id, trang_thai="hoan_thanh", diem_so=100):
+    """
+    Cập nhật trạng thái và điểm số cho một phần học theo ID.
+    """
+    if "lesson_progress" not in st.session_state:
+        st.warning("⚠️ Chưa có dữ liệu tiến độ để cập nhật.")
+        return
+
+    for item in st.session_state["lesson_progress"]:
+        if item["id"] == part_id:
+            item["trang_thai"] = trang_thai
+            item["diem_so"] = diem_so
+            break
 #tự động nhận diện loại nội dung:
 def tach_noi_dung_bai_hoc_tong_quat(file_path):
     doc = fitz.open(file_path)
@@ -427,7 +474,11 @@ with st.sidebar:
 
     #st.session_state["firebase_enabled"] = st.checkbox("💾 Lưu dữ liệu lên Firebase", value=st.session_state["firebase_enabled"])
     st.session_state["firebase_enabled"] = True
-    
+
+	#Lưu tiến độ học ra file JSON
+	if st.button("💾 Lưu tiến độ học"):
+    	save_lesson_progress()
+	
     # 🔄 Nút reset
     if st.button("🔄 Bắt đầu lại buổi học"):
         if "messages" in st.session_state:
@@ -436,6 +487,10 @@ with st.sidebar:
             del st.session_state.lesson_loaded
         st.rerun()
 
+    #Lưu tiến độ học ra file JSON
+    if st.button("💾 Lưu tiến độ học"):
+        save_lesson_progress()
+    
 	#nhấn nút kết thúc buổi học
     with st.expander("📥 Kết thúc buổi học"):
         if st.button("✅ Kết xuất nội dung buổi học thành file .txt và PDF"):
@@ -866,6 +921,9 @@ if all_parts:
     # 3. Lưu session để dùng tiếp
     st.session_state["lesson_parts"] = parts_sorted
 
+    #Hàm 1: Khởi tạo dữ liệu tiến độ học
+    init_lesson_progress(all_parts)
+
 else:
     st.warning("⚠️ Không tìm thấy nội dung bài học phù hợp!")
     
@@ -978,11 +1036,11 @@ for idx, msg in enumerate(st.session_state.messages[1:]):  # bỏ prompt hệ th
 user_input = st.chat_input("Nhập câu trả lời hoặc câu hỏi...")
 
 if user_input:
-    # Hiển thị câu hỏi học sinh
+    # 1. Hiển thị câu trả lời học sinh
     st.chat_message("🧑‍🎓 Học sinh").write(user_input)
     st.session_state.messages.append({"role": "user", "parts": [{"text": user_input}]})
 
-    # Gọi Gemini phản hồi
+    # 2. Gọi AI phản hồi
     with st.spinner("🤖 Đang phản hồi..."):
         reply = chat_with_gemini(st.session_state.messages)
 
@@ -1001,8 +1059,31 @@ if user_input:
                 session_id=st.session_state.get("session_id", "default")
             )
         
-        # Hiển thị
+        # 3. Hiển thị phản hồi
         st.chat_message("🤖 Gia sư AI").markdown(reply)
+
+  		# 🚀 TỰ ĐỘNG CHẤM ĐIỂM
+	    scoring_prompt = f"""
+	    Chấm điểm câu trả lời sau trên thang điểm 0–100, chỉ trả về số, không giải thích.
+	    ---
+	    Câu trả lời: {user_input}
+	    ---
+	    """
+	    diem_raw = chat_with_gemini([
+	        {"role": "user", "parts": [{"text": scoring_prompt}]}
+	    ])
+	    
+	    try:
+	        diem_so = int(re.findall(r"\d+", diem_raw)[0])
+	    except:
+	        diem_so = 90  # fallback nếu có lỗi
+	
+	    # Cập nhật tiến độ
+	    update_progress(
+	        part_id=st.session_state.get("current_part_id", "UNKNOWN_PART"),
+	        trang_thai="hoan_thanh",
+	        diem_so=diem_so
+	    )
         
         #b64 = generate_and_encode_audio(reply)
         b64 = None
