@@ -1099,7 +1099,8 @@ if user_input:
         
 	    # Cập nhật tiến độ
         update_progress(
-            part_id=st.session_state.get("current_part_id", "UNKNOWN_PART"),
+            #part_id=st.session_state.get("current_part_id", "UNKNOWN_PART"),
+            part_id=current_part["id"],
             trang_thai="hoan_thanh",
             diem_so=diem_so
         )
