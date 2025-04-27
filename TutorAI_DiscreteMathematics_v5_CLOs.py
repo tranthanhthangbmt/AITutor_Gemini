@@ -474,10 +474,10 @@ with st.sidebar:
 
     #st.session_state["firebase_enabled"] = st.checkbox("💾 Lưu dữ liệu lên Firebase", value=st.session_state["firebase_enabled"])
     st.session_state["firebase_enabled"] = True
-
-	#Lưu tiến độ học ra file JSON
-	if st.button("💾 Lưu tiến độ học"):
-    	save_lesson_progress()
+    
+    #Lưu tiến độ học ra file JSON
+    if st.button("💾 Lưu tiến độ học"):
+        save_lesson_progress()
 	
     # 🔄 Nút reset
     if st.button("🔄 Bắt đầu lại buổi học"):
