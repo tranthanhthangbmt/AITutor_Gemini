@@ -1030,7 +1030,11 @@ if pdf_context:
     """
 
     # Reset session nếu file/tài liệu mới
-    if "lesson_source" not in st.session_state or st.session_state.lesson_source != current_source:
+    #if "lesson_source" not in st.session_state or st.session_state.lesson_source != current_source:
+    if (
+        "lesson_source" not in st.session_state
+        or st.session_state.lesson_source != current_source
+    ) and not st.session_state.get("progress_restored", False):
         greeting = "📘 Mình đã sẵn sàng để bắt đầu buổi học dựa trên tài liệu bạn đã cung cấp."
         if lesson_summary:
             greeting += f"\n\n{lesson_summary}"
