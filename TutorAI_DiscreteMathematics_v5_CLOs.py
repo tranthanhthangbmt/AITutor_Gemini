@@ -807,11 +807,32 @@ else:
 #if (selected_lesson != "👉 Chọn bài học..." or file_url.strip()) and pdf_context:
 if pdf_context:
     # Gọi hàm phân tích nội dung bài học
-    ds_noi_dung = tach_noi_dung_bai_hoc_tong_quat(pdf_context)
+    #ds_noi_dung = tach_noi_dung_bai_hoc_tong_quat(pdf_context)
     
     # Kiểm tra kết quả phân tích
-    for part in ds_noi_dung:
-        print(part["id"], part["loai"], "-", part["tieu_de"])
+    #for part in ds_noi_dung:
+    #    print(part["id"], part["loai"], "-", part["tieu_de"])
+    
+    #1. Gọi tách nội dung:
+    parts = tach_noi_dung_bai_hoc_tong_quat(text)
+    
+    #2. Định nghĩa thứ tự mong muốn:    
+    thu_tu_muc = {
+        "ly_thuyet": 1,
+        "bai_tap_co_giai": 2,
+        "trac_nghiem": 3,
+        "luyen_tap": 4,
+        "du_an": 5
+    }
+
+    #3. sắp xếp lại:
+    parts_sorted = sorted(parts, key=lambda x: thu_tu_muc.get(x["loai"], 999))
+
+    #4. Xuất ra màn hình:
+    for part in parts_sorted:
+        print(f"=== {part['tieu_de']} ===\n")
+        print(part['noi_dung'])
+        print("\n\n")
 
     import pandas as pd
     import streamlit as st
