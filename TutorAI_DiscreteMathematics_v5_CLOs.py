@@ -82,6 +82,18 @@ def update_progress(part_id, trang_thai="hoan_thanh", diem_so=100):
             item["trang_thai"] = trang_thai
             item["diem_so"] = diem_so
             break
+#cập nhật trạng thái từ file JSON vào bài học mới:
+def merge_lesson_progress(existing_progress, loaded_progress):
+    """
+    Ghép dữ liệu tiến độ cũ vào tiến độ hiện tại.
+    """
+    loaded_dict = {item["id"]: item for item in loaded_progress}
+
+    for item in existing_progress:
+        if item["id"] in loaded_dict:
+            item["trang_thai"] = loaded_dict[item["id"]]["trang_thai"]
+            item["diem_so"] = loaded_dict[item["id"]]["diem_so"]
+            
 #tự động nhận diện loại nội dung:
 def tach_noi_dung_bai_hoc_tong_quat(file_path):
     doc = fitz.open(file_path)
@@ -928,6 +940,18 @@ if all_parts:
     if "lesson_progress_initialized" not in st.session_state or not st.session_state["lesson_progress_initialized"]:
         init_lesson_progress(all_parts)
         st.session_state["lesson_progress_initialized"] = True
+
+        # Sau khi upload file
+        uploaded_json = None
+        for file in uploaded_files:
+            if file.name.endswith(".json"):
+                uploaded_json = file
+                break
+        
+        if uploaded_json:
+            loaded_progress = json.load(uploaded_json)
+            merge_lesson_progress(st.session_state["lesson_progress"], loaded_progress)
+            st.success("✅ Đã khôi phục tiến độ học từ file JSON.")
 
     # 🚀 Đảm bảo current_part_index luôn có
     if "current_part_index" not in st.session_state:
