@@ -880,7 +880,13 @@ if pdf_context:
 
     # Xác định tên bài học hợp lý
     #fallback_name = uploaded_file.name if uploaded_file else selected_lesson
-    fallback_name = uploaded_files[0].name if uploaded_files else selected_lesson
+    #fallback_name = uploaded_files[0].name if uploaded_files else selected_lesson
+    if uploaded_files:
+        fallback_name = " + ".join([f.name for f in uploaded_files])
+    elif selected_lesson != "👉 Chọn bài học...":
+        fallback_name = selected_lesson
+    else:
+        fallback_name = "Bài học"
     lesson_title = lesson_title_extracted or fallback_name or "Bài học"
 
     # Gọi Gemini để tóm tắt tài liệu
