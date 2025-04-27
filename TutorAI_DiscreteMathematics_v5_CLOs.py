@@ -35,19 +35,14 @@ from google.cloud.firestore_v1 import ArrayUnion
 
 #tự động nhận diện loại nội dung:
 def tach_noi_dung_bai_hoc_tong_quat(file_path):
-    """
-    Tách nội dung bài học từ PDF có Table of Content (TOC).
-    Yêu cầu: File PDF phải có Heading/mục lục (TOC) chuẩn.
-    """
-
     doc = fitz.open(file_path)
     toc = doc.get_toc()
 
     pages_text = [page.get_text("text") for page in doc]
     results = []
 
-    # Phân loại loại phần
-    def classify_section(title, current_section):
+    # Phân loại phần
+    def classify_section(title):
         title_upper = title.upper()
         if "PHẦN I" in title_upper:
             return 'ly_thuyet'
@@ -60,10 +55,10 @@ def tach_noi_dung_bai_hoc_tong_quat(file_path):
         elif "PHẦN 5" in title_upper:
             return 'du_an'
         else:
-            # Nếu không phải tiêu đề phần chính, giữ nguyên phần hiện tại
-            return current_section
+            return None  # Không thay đổi nếu không phải tiêu đề phần chính
 
-    # Tạo ID tự động
+    current_section = None
+
     def make_id(loai, stt):
         prefix = {
             'ly_thuyet': 'LYTHUYET',
@@ -75,39 +70,24 @@ def tach_noi_dung_bai_hoc_tong_quat(file_path):
         }.get(loai, 'KHAC')
         return f"{prefix}_{stt}"
 
-    # Xóa rác như "Page 2 of 48"
     def clean_text(text):
         import re
-        text = re.sub(r'Page \\d+ of \\d+', '', text)
+        text = re.sub(r'Page \d+ of \d+', '', text)
         return text.strip()
 
-    # Khi quét TOC
-    current_section = None
-    
     for idx, (level, title, page_num) in enumerate(toc):
         page_idx = page_num - 1
         start_text = pages_text[page_idx]
         
-        # Xác định điểm kết thúc: tiêu đề kế tiếp
-        if idx + 1 < len(toc):
-            next_page_num = toc[idx + 1][2] - 1
-            next_start_text = pages_text[next_page_num]
-        else:
-            next_start_text = ""  # mục cuối cùng, không có trang kế tiếp
-    
-        # extracted_text: hiện tại mình sẽ lấy toàn bộ trang chứa tiêu đề đó
-        extracted_text = start_text  # đơn giản hóa: chỉ lấy nội dung trang hiện tại
-    
-        # Nếu cần tinh vi hơn: cắt start_text đến đoạn kế tiếp (có thể regex, tùy nhu cầu)
-    
-        # Cập nhật loại phần nếu tiêu đề thay đổi
-        new_section = classify_section(title, current_section)
-        if new_section != current_section and new_section is not None:
-            current_section = new_section  # Chuyển sang phần mới
-    
+        extracted_text = start_text  # Tạm thời, để tránh lỗi
+        
+        new_section = classify_section(title)
+        if new_section:
+            current_section = new_section
+
         loai = current_section if current_section else 'khac'
         id_ = make_id(loai, idx + 1)
-    
+
         results.append({
             'id': id_,
             'loai': loai,
