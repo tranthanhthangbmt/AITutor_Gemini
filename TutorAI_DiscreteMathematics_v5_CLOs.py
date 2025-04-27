@@ -945,20 +945,19 @@ if all_parts:
         st.session_state["current_part_index"] = 0  # 👉 Reset chỉ số phần học về 0
 
     # Khởi tạo tiến độ học chỉ 1 lần duy nhất
+    uploaded_json = None
+    for file in uploaded_files:
+        if file.name.endswith(".json"):
+            uploaded_json = file
+            break
+    
     if "lesson_progress_initialized" not in st.session_state or not st.session_state["lesson_progress_initialized"]:
         init_lesson_progress(all_parts)
-        # Nếu có file json thì bây giờ mới merge tiến độ
         st.session_state["lesson_progress_initialized"] = True
-
-        # Sau khi upload file
-        uploaded_json = None
-        for file in uploaded_files:
-            if file.name.endswith(".json"):
-                uploaded_json = file
-                break
-        
+    
+        # 👉 Merge ngay sau init
         if uploaded_json:
-            uploaded_json.seek(0)  # 👈 phải thêm dòng này!
+            uploaded_json.seek(0)
             loaded_progress = json.load(uploaded_json)
             merge_lesson_progress(st.session_state["lesson_progress"], loaded_progress)
             st.success(f"✅ Đã khôi phục tiến độ học từ {uploaded_json.name}.")
