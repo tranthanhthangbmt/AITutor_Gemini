@@ -919,13 +919,19 @@ if all_parts:
     # 3. Lưu session để dùng tiếp
     st.session_state["lesson_parts"] = parts_sorted
 
-    #Hàm 1: Khởi tạo dữ liệu tiến độ học
-    init_lesson_progress(all_parts)
+    # Nếu tài liệu mới, reset
+    if st.session_state.get("lesson_source") != current_source:
+        st.session_state["lesson_progress_initialized"] = False
+        st.session_state["current_part_index"] = 0  # 👉 Reset chỉ số phần học về 0
 
-    # 🚀 Khởi tạo chỉ số phần học đầu tiên
+    # Khởi tạo tiến độ học chỉ 1 lần duy nhất
+    if "lesson_progress_initialized" not in st.session_state or not st.session_state["lesson_progress_initialized"]:
+        init_lesson_progress(all_parts)
+        st.session_state["lesson_progress_initialized"] = True
+
+    # 🚀 Đảm bảo current_part_index luôn có
     if "current_part_index" not in st.session_state:
         st.session_state["current_part_index"] = 0
-
 else:
     st.warning("⚠️ Không tìm thấy nội dung bài học phù hợp!")
     
