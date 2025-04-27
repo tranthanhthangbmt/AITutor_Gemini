@@ -939,10 +939,15 @@ if all_parts:
     # 3. Lưu session để dùng tiếp
     st.session_state["lesson_parts"] = parts_sorted
 
+    # ✅ Nếu vừa khôi phục tiến độ, thông báo ra
+    if st.session_state.get("progress_restored"):
+        st.success(f"✅ Đã khôi phục tiến độ học từ {st.session_state['progress_restored']}.")
+        del st.session_state["progress_restored"]
+
     # Nếu tài liệu mới, reset
     if st.session_state.get("lesson_source") != current_source:
         st.session_state["lesson_progress_initialized"] = False
-        st.session_state["current_part_index"] = 0  # 👉 Reset chỉ số phần học về 0
+        st.session_state["current_part_index"] = 0
 
     # Khởi tạo tiến độ học chỉ 1 lần duy nhất
     uploaded_json = None
