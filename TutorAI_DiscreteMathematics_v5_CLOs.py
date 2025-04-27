@@ -957,29 +957,19 @@ if all_parts:
             break
     
     if "lesson_progress_initialized" not in st.session_state or not st.session_state["lesson_progress_initialized"]:
-        # 👉 Bước 1: Khởi tạo tiến độ bài học mới
         init_lesson_progress(all_parts)
         st.session_state["lesson_progress_initialized"] = True
     
-        # 👉 Bước 2: Nếu có file JSON đã upload ➔ Merge tiến độ cũ vào
+        # 👉 Merge ngay sau init
         if uploaded_json:
             uploaded_json.seek(0)
             loaded_progress = json.load(uploaded_json)
             merge_lesson_progress(st.session_state["lesson_progress"], loaded_progress)
-            st.session_state["progress_restored"] = uploaded_json.name  # Ghi lại tên file đã restore thành công
-    
-        # 👉 Bước 3: Sau khi merge, tìm phần chưa hoàn thành đầu tiên
-        for idx, item in enumerate(st.session_state["lesson_progress"]):
-            if item["trang_thai"] != "hoan_thanh":
-                st.session_state["current_part_index"] = idx
-                break
-        else:
-            # Nếu tất cả đều hoàn thành
-            st.session_state["current_part_index"] = len(st.session_state["lesson_progress"])
+            st.session_state["progress_restored"] = uploaded_json.name  # 👉 Ghi tên file đã restore
 
     # 🚀 Đảm bảo current_part_index luôn có
-    #if "current_part_index" not in st.session_state:
-    #    st.session_state["current_part_index"] = 0
+    if "current_part_index" not in st.session_state:
+        st.session_state["current_part_index"] = 0
 else:
     st.warning("⚠️ Không tìm thấy nội dung bài học phù hợp!")
     
@@ -1039,26 +1029,39 @@ if pdf_context:
     --- END OF HANDBOOK CONTENT ---
     """
 
-    # Nếu file tiến độ vừa được khôi phục ➔ Không tạo lại greeting
-    if not st.session_state.get("progress_restored") and (
-        "lesson_source" not in st.session_state or st.session_state.lesson_source != current_source
-    ):
+    # Reset session nếu file/tài liệu mới
+    if "lesson_source" not in st.session_state or st.session_state.lesson_source != current_source:
         greeting = "📘 Mình đã sẵn sàng để bắt đầu buổi học dựa trên tài liệu bạn đã cung cấp."
         if lesson_summary:
             greeting += f"\n\n{lesson_summary}"
         greeting += "\n\nBạn đã sẵn sàng chưa?"
-    
+
         st.session_state.messages = [
             {"role": "user", "parts": [{"text": PROMPT_LESSON_CONTEXT}]},
             {"role": "model", "parts": [{"text": greeting}]}
         ]
         st.session_state.lesson_source = current_source
         st.session_state.lesson_loaded = current_source  # đánh dấu đã load
-    
-        #xuất ra dạng audio nếu bật chế độ tự động phát
+
+        #xuất ra dạng audio
         if st.session_state.get("enable_audio_playback", True):
             greeting_audio_b64 = generate_and_encode_audio(greeting)
             st.session_state["greeting_audio_b64"] = greeting_audio_b64
+        
+    #Phần chọn bài học
+    lesson_title = selected_lesson if selected_lesson != "👉 Chọn bài học..." else "Bài học tùy chỉnh"
+
+    PROMPT_LESSON_CONTEXT = f"""
+    {SYSTEM_PROMPT_Tutor_AI}
+    
+    # Bạn sẽ hướng dẫn buổi học hôm nay với tài liệu sau:
+    
+    ## Bài học: {lesson_title}
+    
+    --- START OF HANDBOOK CONTENT ---
+    {pdf_context}
+    --- END OF HANDBOOK CONTENT ---
+    """
 
 # Hiển thị lịch sử chat
 for idx, msg in enumerate(st.session_state.messages[1:]):  # bỏ prompt hệ thống
