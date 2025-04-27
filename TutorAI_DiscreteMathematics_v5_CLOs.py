@@ -960,7 +960,7 @@ if all_parts:
             uploaded_json.seek(0)
             loaded_progress = json.load(uploaded_json)
             merge_lesson_progress(st.session_state["lesson_progress"], loaded_progress)
-            st.success(f"✅ Đã khôi phục tiến độ học từ {uploaded_json.name}.")
+            st.session_state["progress_restored"] = uploaded_json.name  # 👉 Ghi tên file đã restore
 
     # 🚀 Đảm bảo current_part_index luôn có
     if "current_part_index" not in st.session_state:
