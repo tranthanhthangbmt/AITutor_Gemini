@@ -80,9 +80,10 @@ def tach_noi_dung_bai_hoc_tong_quat(file_path):
         text = re.sub(r'Page \\d+ of \\d+', '', text)
         return text.strip()
 
+    current_section = None
+
     for idx, (level, title, page_num) in enumerate(toc):
         page_idx = page_num - 1
-
         start_text = pages_text[page_idx]
 
         if idx + 1 < len(toc):
@@ -105,7 +106,21 @@ def tach_noi_dung_bai_hoc_tong_quat(file_path):
             for i in range(page_idx + 1, len(pages_text)):
                 extracted_text += '\n' + pages_text[i]
 
-        loai = classify_section(title)
+        # Xác định section hiện tại
+        title_upper = title.upper()
+        if "PHẦN I" in title_upper:
+            current_section = 'ly_thuyet'
+        elif "PHẦN II" in title_upper:
+            current_section = 'bai_tap_co_giai'
+        elif "PHẦN III" in title_upper:
+            current_section = 'trac_nghiem'
+        elif "PHẦN IV" in title_upper:
+            current_section = 'luyen_tap'
+        elif "PHẦN V" in title_upper:
+            current_section = 'du_an'
+        # Các tiêu đề nhỏ cũng gán theo current_section
+
+        loai = current_section if current_section else 'khac'
         id_ = make_id(loai, idx + 1)
 
         results.append({
