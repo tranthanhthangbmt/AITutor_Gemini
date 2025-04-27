@@ -1014,9 +1014,9 @@ if pdf_context:
     except Exception as e:
         lesson_summary = ""
 
-    # Giới hạn dung lượng tài liệu đưa vào prompt khởi tạo
-    LIMITED_PDF_CONTEXT = pdf_context[:4000]  # hoặc dùng tokenizer nếu muốn chính xác hơn
-    
+    #Phần chọn bài học
+    lesson_title = selected_lesson if selected_lesson != "👉 Chọn bài học..." else "Bài học tùy chỉnh"
+
     PROMPT_LESSON_CONTEXT = f"""
     {SYSTEM_PROMPT_Tutor_AI}
     
@@ -1025,7 +1025,7 @@ if pdf_context:
     ## Bài học: {lesson_title}
     
     --- START OF HANDBOOK CONTENT ---
-    {LIMITED_PDF_CONTEXT}
+    {pdf_context}
     --- END OF HANDBOOK CONTENT ---
     """
 
@@ -1054,20 +1054,7 @@ if pdf_context:
         # 💬 Reset trạng thái progress_restored sau khi greeting
         st.session_state["progress_restored"] = False
         
-    #Phần chọn bài học
-    lesson_title = selected_lesson if selected_lesson != "👉 Chọn bài học..." else "Bài học tùy chỉnh"
-
-    PROMPT_LESSON_CONTEXT = f"""
-    {SYSTEM_PROMPT_Tutor_AI}
     
-    # Bạn sẽ hướng dẫn buổi học hôm nay với tài liệu sau:
-    
-    ## Bài học: {lesson_title}
-    
-    --- START OF HANDBOOK CONTENT ---
-    {pdf_context}
-    --- END OF HANDBOOK CONTENT ---
-    """
 
 # Hiển thị lịch sử chat
 for idx, msg in enumerate(st.session_state.messages[1:]):  # bỏ prompt hệ thống
