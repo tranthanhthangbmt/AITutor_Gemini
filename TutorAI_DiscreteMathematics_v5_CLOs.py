@@ -36,82 +36,63 @@ from google.cloud.firestore_v1 import ArrayUnion
 #tự động nhận diện loại nội dung:
 def tach_noi_dung_bai_hoc_tong_quat(text):
     """
-    Phân tích file bài học thành các phần nhỏ (lý thuyết, mục tiêu, bài tập có giải, trắc nghiệm, bài tập luyện tập, dự án).
+    Phân tích nội dung bài học theo đúng 5 phần chính:
+    - PHẦN I: LÝ THUYẾT
+    - PHẦN II: BÀI TẬP CÓ GIẢI
+    - PHẦN III: TRẮC NGHIỆM
+    - PHẦN IV: BÀI TẬP LUYỆN TẬP
+    - PHẦN V: BÀI TẬP DỰ ÁN
     """
     parts = []
+    id_counter = {"ly_thuyet": 0, "bai_tap_co_giai": 0, "trac_nghiem": 0, "luyen_tap": 0, "du_an": 0}
     current_part = None
-    id_counter = {"ly_thuyet": 0, "muc_tieu": 0, "bai_tap_co_giai": 0, "trac_nghiem": 0, "luyen_tap": 0, "du_an": 0}
+
+    # Regex để tìm các tiêu đề phần
+    pattern = r"(PHẦN\s+[IVXLCDM]+:?\s*.+)"
+    matches = list(re.finditer(pattern, text, re.IGNORECASE))
+
+    # Nếu không tìm thấy, trả ra 1 phần duy nhất
+    if not matches:
+        return [{"id": "LT1", "loai": "ly_thuyet", "tieu_de": "Toàn bộ nội dung", "noi_dung": text}]
     
-    lines = text.splitlines()
-    for line in lines:
-        line = line.strip()
-        if not line:
-            continue
+    # Xử lý từng phần
+    for idx, match in enumerate(matches):
+        start = match.end()
+        end = matches[idx+1].start() if idx + 1 < len(matches) else len(text)
+        section_text = text[start:end].strip()
+        title = match.group(1).strip().upper()
 
-        # Nhận diện từng loại
-        if re.search(r"^(CHƯƠNG|[0-9]+\.)", line):
+        # Xác định loại phần
+        if "LÝ THUYẾT" in title:
+            loai = "ly_thuyet"
             id_counter["ly_thuyet"] += 1
-            current_part = {
-                "id": f"LT{id_counter['ly_thuyet']}",
-                "loai": "ly_thuyet",
-                "tieu_de": line,
-                "noi_dung": ""
-            }
-            parts.append(current_part)
-
-        elif re.search(r"^Mục tiêu", line, re.IGNORECASE):
-            id_counter["muc_tieu"] += 1
-            current_part = {
-                "id": f"MT{id_counter['muc_tieu']}",
-                "loai": "muc_tieu",
-                "tieu_de": line,
-                "noi_dung": ""
-            }
-            parts.append(current_part)
-
-        elif re.search(r"^(BÀI TẬP CÓ GIẢI|Bài [0-9]+\.)", line, re.IGNORECASE):
+            id_part = f"LT{id_counter['ly_thuyet']}"
+        elif "BÀI TẬP CÓ GIẢI" in title:
+            loai = "bai_tap_co_giai"
             id_counter["bai_tap_co_giai"] += 1
-            current_part = {
-                "id": f"BTG{id_counter['bai_tap_co_giai']}",
-                "loai": "bai_tap_co_giai",
-                "tieu_de": line,
-                "noi_dung": ""
-            }
-            parts.append(current_part)
-
-        elif re.search(r"^TRẮC NGHIỆM|^Câu [0-9]+", line, re.IGNORECASE):
+            id_part = f"BTG{id_counter['bai_tap_co_giai']}"
+        elif "TRẮC NGHIỆM" in title:
+            loai = "trac_nghiem"
             id_counter["trac_nghiem"] += 1
-            current_part = {
-                "id": f"TN{id_counter['trac_nghiem']}",
-                "loai": "trac_nghiem",
-                "tieu_de": line,
-                "noi_dung": ""
-            }
-            parts.append(current_part)
-
-        elif re.search(r"^(BÀI TẬP LUYỆN TẬP|Phần [IVXLC]+\s?–)", line, re.IGNORECASE):
+            id_part = f"TN{id_counter['trac_nghiem']}"
+        elif "LUYỆN TẬP" in title:
+            loai = "luyen_tap"
             id_counter["luyen_tap"] += 1
-            current_part = {
-                "id": f"LTAP{id_counter['luyen_tap']}",
-                "loai": "luyen_tap",
-                "tieu_de": line,
-                "noi_dung": ""
-            }
-            parts.append(current_part)
-
-        elif re.search(r"^(BÀI TẬP DỰ ÁN|Dự án [0-9]+)", line, re.IGNORECASE):
+            id_part = f"LTAP{id_counter['luyen_tap']}"
+        elif "DỰ ÁN" in title:
+            loai = "du_an"
             id_counter["du_an"] += 1
-            current_part = {
-                "id": f"DA{id_counter['du_an']}",
-                "loai": "du_an",
-                "tieu_de": line,
-                "noi_dung": ""
-            }
-            parts.append(current_part)
-
+            id_part = f"DA{id_counter['du_an']}"
         else:
-            if current_part:
-                current_part["noi_dung"] += line + "\n"
+            loai = "khac"
+            id_part = f"KHAC{idx+1}"
+
+        parts.append({
+            "id": id_part,
+            "loai": loai,
+            "tieu_de": title,
+            "noi_dung": section_text
+        })
 
     return parts
 
