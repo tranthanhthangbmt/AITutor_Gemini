@@ -922,6 +922,10 @@ if all_parts:
     #Hàm 1: Khởi tạo dữ liệu tiến độ học
     init_lesson_progress(all_parts)
 
+    # 🚀 Khởi tạo chỉ số phần học đầu tiên
+    if "current_part_index" not in st.session_state:
+        st.session_state["current_part_index"] = 0
+
 else:
     st.warning("⚠️ Không tìm thấy nội dung bài học phù hợp!")
     
@@ -1040,6 +1044,22 @@ if user_input:
 
     # 2. Gọi AI phản hồi
     with st.spinner("🤖 Đang phản hồi..."):
+        # Lấy phần học hiện tại
+        current_index = st.session_state["current_part_index"]
+        current_part = st.session_state["lesson_parts"][current_index]
+        
+        # Gán luôn current_part_id
+        st.session_state["current_part_id"] = current_part["id"]
+        
+        # Tạo prompt tutor AI dựa trên nội dung phần hiện tại
+        prompt = f"""
+        Dựa trên nội dung sau, hãy đặt 1 câu hỏi kiểm tra hiểu biết cho học sinh, rồi chờ học sinh trả lời:
+        ---
+        {current_part['noi_dung']}
+        ---
+        Hãy đặt câu hỏi ngắn gọn, rõ ràng, liên quan trực tiếp đến nội dung trên.
+        """
+        
         reply = chat_with_gemini(st.session_state.messages)
 
         # Nếu có thể xuất HTML (như <p>...</p>)
@@ -1109,3 +1129,6 @@ if user_input:
 
     # Lưu lại phản hồi gốc
     st.session_state.messages.append({"role": "model", "parts": [{"text": reply}]})
+
+    #Khi học sinh trả lời xong → chấm điểm → cập nhật tiến độ cho
+    st.session_state["current_part_index"] += 1
