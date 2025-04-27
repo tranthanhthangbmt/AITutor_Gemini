@@ -1039,21 +1039,23 @@ if pdf_context:
     --- END OF HANDBOOK CONTENT ---
     """
 
-    # Reset session nếu file/tài liệu mới
-    if "lesson_source" not in st.session_state or st.session_state.lesson_source != current_source:
+    # Nếu file tiến độ vừa được khôi phục ➔ Không tạo lại greeting
+    if not st.session_state.get("progress_restored") and (
+        "lesson_source" not in st.session_state or st.session_state.lesson_source != current_source
+    ):
         greeting = "📘 Mình đã sẵn sàng để bắt đầu buổi học dựa trên tài liệu bạn đã cung cấp."
         if lesson_summary:
             greeting += f"\n\n{lesson_summary}"
         greeting += "\n\nBạn đã sẵn sàng chưa?"
-
+    
         st.session_state.messages = [
             {"role": "user", "parts": [{"text": PROMPT_LESSON_CONTEXT}]},
             {"role": "model", "parts": [{"text": greeting}]}
         ]
         st.session_state.lesson_source = current_source
         st.session_state.lesson_loaded = current_source  # đánh dấu đã load
-
-        #xuất ra dạng audio
+    
+        #xuất ra dạng audio nếu bật chế độ tự động phát
         if st.session_state.get("enable_audio_playback", True):
             greeting_audio_b64 = generate_and_encode_audio(greeting)
             st.session_state["greeting_audio_b64"] = greeting_audio_b64
