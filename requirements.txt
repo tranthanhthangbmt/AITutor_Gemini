@@ -12,5 +12,4 @@ gTTS
 firebase-admin
 edge-tts
 pandas
-json
 
