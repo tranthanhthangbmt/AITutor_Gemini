@@ -486,10 +486,6 @@ with st.sidebar:
         if "lesson_loaded" in st.session_state:
             del st.session_state.lesson_loaded
         st.rerun()
-
-    #Lưu tiến độ học ra file JSON
-    if st.button("💾 Lưu tiến độ học"):
-        save_lesson_progress()
     
 	#nhấn nút kết thúc buổi học
     with st.expander("📥 Kết thúc buổi học"):
