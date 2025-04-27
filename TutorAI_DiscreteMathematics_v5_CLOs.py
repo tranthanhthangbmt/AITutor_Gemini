@@ -814,7 +814,7 @@ if pdf_context:
     #    print(part["id"], part["loai"], "-", part["tieu_de"])
     
     #1. Gọi tách nội dung:
-    parts = tach_noi_dung_bai_hoc_tong_quat(text)
+    parts = tach_noi_dung_bai_hoc_tong_quat(pdf_context)
     
     #2. Định nghĩa thứ tự mong muốn:    
     thu_tu_muc = {
