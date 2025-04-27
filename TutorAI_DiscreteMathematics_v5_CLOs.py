@@ -957,35 +957,29 @@ if all_parts:
             break
     
     if "lesson_progress_initialized" not in st.session_state or not st.session_state["lesson_progress_initialized"]:
+        # 👉 Bước 1: Khởi tạo tiến độ bài học mới
         init_lesson_progress(all_parts)
         st.session_state["lesson_progress_initialized"] = True
     
-        # 👉 Merge ngay sau init
+        # 👉 Bước 2: Nếu có file JSON đã upload ➔ Merge tiến độ cũ vào
         if uploaded_json:
             uploaded_json.seek(0)
             loaded_progress = json.load(uploaded_json)
             merge_lesson_progress(st.session_state["lesson_progress"], loaded_progress)
-            st.session_state["progress_restored"] = uploaded_json.name  # 👉 Ghi tên file đã restore
-            # 👉 Sau khi merge xong, phải tìm phần đầu tiên chưa hoàn thành
-            for idx, item in enumerate(st.session_state["lesson_progress"]):
-                if item["trang_thai"] != "hoan_thanh":
-                    st.session_state["current_part_index"] = idx
-                    break
-            else:
-                st.session_state["current_part_index"] = len(st.session_state["lesson_progress"])  # đã hoàn thành hết
-
-        # Sau khi merge tiến độ, tìm phần học tiếp theo
-        uncompleted_parts = [item for item in st.session_state["lesson_progress"] if item["trang_thai"] != "hoan_thanh"]
-        
-        if uncompleted_parts:
-            current_part = uncompleted_parts[0]
-            # → Dùng current_part để sinh câu hỏi tiếp theo
+            st.session_state["progress_restored"] = uploaded_json.name  # Ghi lại tên file đã restore thành công
+    
+        # 👉 Bước 3: Sau khi merge, tìm phần chưa hoàn thành đầu tiên
+        for idx, item in enumerate(st.session_state["lesson_progress"]):
+            if item["trang_thai"] != "hoan_thanh":
+                st.session_state["current_part_index"] = idx
+                break
         else:
-            st.success("🎉 Bạn đã hoàn thành toàn bộ bài học!")
+            # Nếu tất cả đều hoàn thành
+            st.session_state["current_part_index"] = len(st.session_state["lesson_progress"])
 
     # 🚀 Đảm bảo current_part_index luôn có
-    if "current_part_index" not in st.session_state:
-        st.session_state["current_part_index"] = 0
+    #if "current_part_index" not in st.session_state:
+    #    st.session_state["current_part_index"] = 0
 else:
     st.warning("⚠️ Không tìm thấy nội dung bài học phù hợp!")
     
