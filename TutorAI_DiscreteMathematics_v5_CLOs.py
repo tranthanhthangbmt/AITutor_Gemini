@@ -451,10 +451,10 @@ with st.sidebar:
         selected_lesson = "👉 Chọn bài học..."        
         selected_lesson_link = "" #available_lessons.get(selected_lesson, "").strip() """
         uploaded_files = st.file_uploader(
-            "📤 Tải lên nhiều file bài học (PDF, TXT, DOCX)", 
-            type=["pdf", "txt", "docx"], 
+            "📤 Tải lên nhiều file bài học (PDF, TXT, DOCX, JSON)", 
+            type=["pdf", "txt", "docx", "json"],  # ➡ thêm "json" vào đây
             accept_multiple_files=True,
-            key="file_uploader_thutay"  # 🔑 đặt key riêng cho chế độ thủ công
+            key="file_uploader_thutay"
         )
 
         # Kiểm tra số file và kích thước tổng cộng
