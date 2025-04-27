@@ -807,12 +807,15 @@ all_parts = []
 
 if uploaded_files:
     for uploaded_file in uploaded_files:
-        # 1. Ghi file PDF tạm
+        # 1. Ghi file tạm đúng cách
+        uploaded_file.seek(0)  # 🚨 Reset lại đầu file để đảm bảo đọc đầy đủ
+        file_bytes = uploaded_file.read()
+
         with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmpfile:
-            tmpfile.write(uploaded_file.read())
+            tmpfile.write(file_bytes)
             tmpfile_path = tmpfile.name
 
-        # 2. Tách nội dung bằng TOC
+        # 2. Mở file tạm bằng fitz
         parts = tach_noi_dung_bai_hoc_tong_quat(tmpfile_path)
         all_parts.extend(parts)
 
