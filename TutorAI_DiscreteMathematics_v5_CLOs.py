@@ -1063,7 +1063,7 @@ if user_input:
         st.chat_message("🤖 Gia sư AI").markdown(reply)
 
   		# 🚀 TỰ ĐỘNG CHẤM ĐIỂM
-	    scoring_prompt = f"""
+        scoring_prompt = f"""
 	    Chấm điểm câu trả lời sau trên thang điểm 0–100, chỉ trả về số, không giải thích.
 	    ---
 	    Câu trả lời: {user_input}
