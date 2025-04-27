@@ -619,8 +619,24 @@ def extract_pdf_text_from_url(url):
     except Exception as e:
         return f"Lỗi khi đọc PDF: {e}"
 
-PDF_URL = "https://raw.githubusercontent.com/tranthanhthangbmt/AITutor_Gemini/main/handoutBuoi4.pdf"
-pdf_context = extract_pdf_text_from_url(PDF_URL)
+#PDF_URL = "https://raw.githubusercontent.com/tranthanhthangbmt/AITutor_Gemini/main/handoutBuoi4.pdf"
+#pdf_context = extract_pdf_text_from_url(PDF_URL)
+pdf_context = ""
+
+# Nếu có file upload thì lấy nội dung từ file upload
+if uploaded_files:
+    pdf_context = ""
+    for uploaded_file in uploaded_files:
+        pdf_context += extract_text_from_uploaded_file(uploaded_file) + "\n"
+
+# Nếu không có upload mà chọn bài học thì tải nội dung từ link
+elif selected_lesson != "👉 Chọn bài học..." and default_link.strip():
+    pdf_context = extract_pdf_text_from_url(default_link)
+
+# Nếu không có gì hết thì báo lỗi
+if not pdf_context:
+    st.error("❌ Bạn cần phải upload tài liệu hoặc chọn một bài học để bắt đầu.")
+    st.stop()
 
 # Prompt hệ thống: Thiết lập vai trò tutor AI
 
