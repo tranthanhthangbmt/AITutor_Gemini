@@ -825,6 +825,22 @@ else:
 # Nếu người học đã cung cấp tài liệu → Ghi đè để bắt đầu buổi học
 #if (selected_lesson != "👉 Chọn bài học..." or file_url.strip()) and pdf_context:
 if pdf_context:
+    # Gọi hàm phân tích nội dung bài học
+    ds_noi_dung = tach_noi_dung_bai_hoc_tong_quat(pdf_context)
+    
+    # Kiểm tra kết quả phân tích
+    for part in ds_noi_dung:
+        print(part["id"], part["loai"], "-", part["tieu_de"])
+
+    import pandas as pd
+    import streamlit as st
+    
+    # Đổi danh sách thành DataFrame
+    df = pd.DataFrame(ds_noi_dung)
+    
+    # Chỉ hiện cột id, loai, tieu_de
+    st.dataframe(df[["id", "loai", "tieu_de"]])
+
     # Ưu tiên lấy dòng tiêu đề từ tài liệu
     lesson_title_extracted = None
     for line in pdf_context.splitlines():
