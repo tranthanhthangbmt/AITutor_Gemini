@@ -868,27 +868,28 @@ import requests
 all_parts = []
 uploaded_json = None
 
-for uploaded_file in uploaded_files:
-    file_name = uploaded_file.name.lower()
-    uploaded_file.seek(0)
-
-    if file_name.endswith(".json"):
-        uploaded_json = uploaded_file  # chỉ lưu lại file json, chưa đọc vội
-
-    elif file_name.endswith(".pdf"):
-        file_bytes = uploaded_file.read()
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmpfile:
-            tmpfile.write(file_bytes)
-            tmpfile_path = tmpfile.name
-
-        parts = tach_noi_dung_bai_hoc_tong_quat(tmpfile_path)
-        all_parts.extend(parts)
-
-    else:
-        st.warning(f"⚠️ File {file_name} không hỗ trợ tự động đọc nội dung bài học.")
-
-    lesson_title = " + ".join([file.name for file in uploaded_files])
-    current_source = f"upload::{lesson_title}"
+if uploaded_files:
+    for uploaded_file in uploaded_files:
+        file_name = uploaded_file.name.lower()
+        uploaded_file.seek(0)
+    
+        if file_name.endswith(".json"):
+            uploaded_json = uploaded_file  # chỉ lưu lại file json, chưa đọc vội
+    
+        elif file_name.endswith(".pdf"):
+            file_bytes = uploaded_file.read()
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmpfile:
+                tmpfile.write(file_bytes)
+                tmpfile_path = tmpfile.name
+    
+            parts = tach_noi_dung_bai_hoc_tong_quat(tmpfile_path)
+            all_parts.extend(parts)
+    
+        else:
+            st.warning(f"⚠️ File {file_name} không hỗ trợ tự động đọc nội dung bài học.")
+    
+        lesson_title = " + ".join([file.name for file in uploaded_files])
+        current_source = f"upload::{lesson_title}"
 
 elif selected_lesson != "👉 Chọn bài học..." and default_link.strip():
     # Tải file PDF từ link về
