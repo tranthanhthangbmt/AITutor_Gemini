@@ -1076,8 +1076,8 @@ if user_input:
      
         try:
 	        diem_so = int(re.findall(r"\d+", diem_raw)[0])
-	    except:
-	        diem_so = 90  # fallback nếu có lỗi
+        except:
+            diem_so = 90  # fallback nếu có lỗi
 	
 	    # Cập nhật tiến độ
 	    update_progress(
