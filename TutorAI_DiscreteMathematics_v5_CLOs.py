@@ -800,70 +800,52 @@ if "messages" not in st.session_state:
         {"role": "model", "parts": [{"text": "Chào bạn! Mình là gia sư AI 🎓\n\nHãy chọn bài học hoặc nhập link tài liệu bên sidebar để mình bắt đầu chuẩn bị nội dung buổi học nhé!"}]}
     ]
 
-# Bước 2: Ưu tiên tài liệu từ upload, nếu không thì dùng tài liệu từ link
-if uploaded_files:
-    #pdf_context = extract_text_from_uploaded_file(uploaded_file)
-    #gộp các file pdf lại 
-    pdf_context_list = []
-    for file in uploaded_files:
-        text = extract_text_from_uploaded_file(file)
-        pdf_context_list.append(f"\n--- File: {file.name} ---\n{text.strip()}")
+import tempfile
+import requests
 
-    pdf_context = "\n".join(pdf_context_list)
+all_parts = []
+
+if uploaded_files:
+    for uploaded_file in uploaded_files:
+        # 1. Ghi file PDF tạm
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmpfile:
+            tmpfile.write(uploaded_file.read())
+            tmpfile_path = tmpfile.name
+
+        # 2. Tách nội dung bằng TOC
+        parts = tach_noi_dung_bai_hoc_tong_quat(tmpfile_path)
+        all_parts.extend(parts)
+
     lesson_title = " + ".join([file.name for file in uploaded_files])
     current_source = f"upload::{lesson_title}"
-    
-    #lesson_title = uploaded_file.name
-    #current_source = f"upload::{uploaded_file.name}"
+
 elif selected_lesson != "👉 Chọn bài học..." and default_link.strip():
-    pdf_context = extract_pdf_text_from_url(default_link)
-    lesson_title = selected_lesson
-    current_source = f"lesson::{selected_lesson}"
+    # Tải file PDF từ link về
+    response = requests.get(default_link)
+    if response.status_code == 200:
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmpfile:
+            tmpfile.write(response.content)
+            tmpfile_path = tmpfile.name
+
+        # Tách nội dung bằng TOC
+        parts = tach_noi_dung_bai_hoc_tong_quat(tmpfile_path)
+        all_parts.extend(parts)
+
+        lesson_title = selected_lesson
+        current_source = f"lesson::{selected_lesson}"
+    else:
+        st.error("Không tải được file PDF từ link.")
+        all_parts = []
+
 else:
-    pdf_context = ""
+    all_parts = []
     lesson_title = "Chưa có bài học"
     current_source = ""
 
 # Nếu người học đã cung cấp tài liệu → Ghi đè để bắt đầu buổi học
 #if (selected_lesson != "👉 Chọn bài học..." or file_url.strip()) and pdf_context:
 if pdf_context:
-    # Gọi hàm phân tích nội dung bài học
-    #ds_noi_dung = tach_noi_dung_bai_hoc_tong_quat(pdf_context)
-    
-    # Kiểm tra kết quả phân tích
-    #for part in ds_noi_dung:
-    #    print(part["id"], part["loai"], "-", part["tieu_de"])
-    
-    #1. Gọi tách nội dung:
-    parts = tach_noi_dung_bai_hoc_tong_quat(pdf_context)
-    
-    #2. Định nghĩa thứ tự mong muốn:    
-    thu_tu_muc = {
-        "ly_thuyet": 1,
-        "bai_tap_co_giai": 2,
-        "trac_nghiem": 3,
-        "luyen_tap": 4,
-        "du_an": 5
-    }
-
-    #3. sắp xếp lại:
-    parts_sorted = sorted(parts, key=lambda x: thu_tu_muc.get(x["loai"], 999))
-
-    #4. Xuất ra màn hình:
-    for part in parts_sorted:
-        print(f"=== {part['tieu_de']} ===\n")
-        print(part['noi_dung'])
-        print("\n\n")
-
-    import pandas as pd
-    import streamlit as st
-    
-    # Đổi danh sách thành DataFrame
-    #df = pd.DataFrame(ds_noi_dung)
-    df = pd.DataFrame(parts_sorted)
-    
-    # Chỉ hiện cột id, loai, tieu_de
-    st.dataframe(df[["id", "loai", "tieu_de"]])
+    #hiển thị TOC ở đây
 
     # Ưu tiên lấy dòng tiêu đề từ tài liệu
     lesson_title_extracted = None
