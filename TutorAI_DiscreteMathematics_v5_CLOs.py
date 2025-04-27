@@ -44,15 +44,15 @@ def tach_noi_dung_bai_hoc_tong_quat(file_path):
     # Phân loại phần
     def classify_section(title):
         title_upper = title.upper()
-        if "PHẦN I" in title_upper:
+        if "PHẦN 1:" in title_upper:
             return 'ly_thuyet'
-        elif "PHẦN 2" in title_upper:
+        elif "PHẦN 2:" in title_upper:
             return 'bai_tap_co_giai'
-        elif "PHẦN 3" in title_upper:
+        elif "PHẦN 3:" in title_upper:
             return 'trac_nghiem'
-        elif "PHẦN 4" in title_upper:
+        elif "PHẦN 4:" in title_upper:
             return 'luyen_tap'
-        elif "PHẦN 5" in title_upper:
+        elif "PHẦN 5:" in title_upper:
             return 'du_an'
         else:
             return None  # Không thay đổi nếu không phải tiêu đề phần chính
