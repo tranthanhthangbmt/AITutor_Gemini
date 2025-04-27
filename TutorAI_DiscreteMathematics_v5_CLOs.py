@@ -36,63 +36,77 @@ from google.cloud.firestore_v1 import ArrayUnion
 #tự động nhận diện loại nội dung:
 def tach_noi_dung_bai_hoc_tong_quat(text):
     """
-    Phân tích nội dung bài học theo đúng 5 phần chính:
-    - PHẦN I: LÝ THUYẾT
-    - PHẦN II: BÀI TẬP CÓ GIẢI
-    - PHẦN III: TRẮC NGHIỆM
-    - PHẦN IV: BÀI TẬP LUYỆN TẬP
-    - PHẦN V: BÀI TẬP DỰ ÁN
+    Phiên bản nâng cấp:
+    - Tách theo cả 5 phần lớn (PHẦN I, II, III, IV, V)
+    - Trong mỗi phần, tách thêm các đề mục nhỏ:
+        - Dạng số: 1. GIỚI THIỆU, 2. ĐỊNH NGHĨA...
+        - Bài tập: Bài 1., Bài 2., Bài 3. ...
+        - Câu hỏi trắc nghiệm: Câu 1, Câu 2...
     """
     parts = []
-    id_counter = {"ly_thuyet": 0, "bai_tap_co_giai": 0, "trac_nghiem": 0, "luyen_tap": 0, "du_an": 0}
-    current_part = None
+    id_counter = {
+        "ly_thuyet": 0,
+        "bai_tap_co_giai": 0,
+        "trac_nghiem": 0,
+        "luyen_tap": 0,
+        "du_an": 0,
+        "khac": 0
+    }
 
-    # Regex để tìm các tiêu đề phần
-    pattern = r"(PHẦN\s+[IVXLCDM]+:?\s*.+)"
-    matches = list(re.finditer(pattern, text, re.IGNORECASE))
+    # Regex tìm PHẦN lớn
+    part_pattern = r"(PHẦN\s+[IVXLCDM]+:?.+)"
+    part_matches = list(re.finditer(part_pattern, text, re.IGNORECASE))
 
-    # Nếu không tìm thấy, trả ra 1 phần duy nhất
-    if not matches:
+    if not part_matches:
         return [{"id": "LT1", "loai": "ly_thuyet", "tieu_de": "Toàn bộ nội dung", "noi_dung": text}]
-    
-    # Xử lý từng phần
-    for idx, match in enumerate(matches):
+
+    for idx, match in enumerate(part_matches):
         start = match.end()
-        end = matches[idx+1].start() if idx + 1 < len(matches) else len(text)
+        end = part_matches[idx + 1].start() if idx + 1 < len(part_matches) else len(text)
         section_text = text[start:end].strip()
         title = match.group(1).strip().upper()
 
         # Xác định loại phần
         if "LÝ THUYẾT" in title:
             loai = "ly_thuyet"
-            id_counter["ly_thuyet"] += 1
-            id_part = f"LT{id_counter['ly_thuyet']}"
         elif "BÀI TẬP CÓ GIẢI" in title:
             loai = "bai_tap_co_giai"
-            id_counter["bai_tap_co_giai"] += 1
-            id_part = f"BTG{id_counter['bai_tap_co_giai']}"
-        elif "TRẮC NGHIỆM" in title:
+        elif "TRḮC NGHIỆM" in title:
             loai = "trac_nghiem"
-            id_counter["trac_nghiem"] += 1
-            id_part = f"TN{id_counter['trac_nghiem']}"
         elif "LUYỆN TẬP" in title:
             loai = "luyen_tap"
-            id_counter["luyen_tap"] += 1
-            id_part = f"LTAP{id_counter['luyen_tap']}"
         elif "DỰ ÁN" in title:
             loai = "du_an"
-            id_counter["du_an"] += 1
-            id_part = f"DA{id_counter['du_an']}"
         else:
             loai = "khac"
-            id_part = f"KHAC{idx+1}"
 
-        parts.append({
-            "id": id_part,
-            "loai": loai,
-            "tieu_de": title,
-            "noi_dung": section_text
-        })
+        id_counter[loai] += 1
+        part_id = id_counter[loai]
+        
+        # Tách các mục nhỏ bên trong
+        sub_pattern = r"((?:Bài|Câu)?\s*\d+[.]?\s+.+)"
+        sub_matches = list(re.finditer(sub_pattern, section_text))
+
+        if not sub_matches:
+            parts.append({
+                "id": f"{loai.upper()}{part_id}",
+                "loai": loai,
+                "tieu_de": title,
+                "noi_dung": section_text
+            })
+        else:
+            for sub_idx, sub_match in enumerate(sub_matches):
+                sub_start = sub_match.start()
+                sub_end = sub_matches[sub_idx + 1].start() if sub_idx + 1 < len(sub_matches) else len(section_text)
+                sub_text = section_text[sub_start:sub_end].strip()
+                sub_title = sub_match.group(1).strip()
+
+                parts.append({
+                    "id": f"{loai.upper()}{part_id}_{sub_idx + 1}",
+                    "loai": loai,
+                    "tieu_de": sub_title,
+                    "noi_dung": sub_text
+                })
 
     return parts
 
