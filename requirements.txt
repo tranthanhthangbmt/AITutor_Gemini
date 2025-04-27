@@ -11,4 +11,5 @@ reportlab
 gTTS
 firebase-admin
 edge-tts
+pandas
 
