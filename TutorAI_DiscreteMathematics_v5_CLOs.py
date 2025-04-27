@@ -59,6 +59,12 @@ def tach_noi_dung_bai_hoc_tong_quat(file_path):
             return 'luyen_tap'
         elif "PHẦN 5" in title_upper:
             return 'du_an'
+        elif "BÀI " in title_upper and "DỰ ÁN" not in title_upper:
+            return 'bai_tap_co_giai'  # Bài 1, Bài 2...
+        elif "CÂU " in title_upper:
+            return 'trac_nghiem'
+        elif "DỰ ÁN" in title_upper:
+            return 'du_an'
         else:
             return 'khac'
 
@@ -121,8 +127,9 @@ def tach_noi_dung_bai_hoc_tong_quat(file_path):
         elif "PHẦN V" in title_upper:
             current_section = 'du_an'
     
-        # Gán id và loai cho từng bài
-        loai = current_section if current_section else 'khac'
+        # Xác định loại mục
+        loai = classify_section(title)
+    
         id_ = make_id(loai, idx + 1)
     
         results.append({
