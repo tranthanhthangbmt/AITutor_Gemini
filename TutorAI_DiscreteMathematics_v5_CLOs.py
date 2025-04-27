@@ -1076,13 +1076,6 @@ if user_input:
 	        diem_so = int(re.findall(r"\d+", diem_raw)[0])
         except:
             diem_so = 90  # fallback nếu có lỗi
-
-        #lấy phần đang được hỏi
-        st.session_state["current_part_id"] = part["id"]
-        
-        # 🚀 Gán ID phần học đầu tiên
-        if parts_sorted:
-            st.session_state["current_part_id"] = parts_sorted[0]["id"]
         
 	    # Cập nhật tiến độ
         update_progress(
