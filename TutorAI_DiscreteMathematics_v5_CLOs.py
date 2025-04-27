@@ -1080,11 +1080,11 @@ if user_input:
             diem_so = 90  # fallback nếu có lỗi
 	
 	    # Cập nhật tiến độ
-	    update_progress(
-	        part_id=st.session_state.get("current_part_id", "UNKNOWN_PART"),
-	        trang_thai="hoan_thanh",
-	        diem_so=diem_so
-	    )
+        update_progress(
+            part_id=st.session_state.get("current_part_id", "UNKNOWN_PART"),
+            trang_thai="hoan_thanh",
+            diem_so=diem_so
+        )
         
         #b64 = generate_and_encode_audio(reply)
         b64 = None
