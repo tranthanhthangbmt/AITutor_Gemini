@@ -1061,7 +1061,6 @@ if pdf_context:
             st.session_state["greeting_audio_b64"] = greeting_audio_b64
         
     #Phần chọn bài học
-    #lesson_title = selected_lesson if selected_lesson != "👉 Chọn bài học..." else "Bài học tùy chỉnh"
     # 📚 Xác định tên bài học đúng
     if uploaded_files:
         lesson_title = " + ".join([file.name for file in uploaded_files])
