@@ -87,8 +87,18 @@ def tach_noi_dung_bai_hoc_tong_quat(file_path):
     for idx, (level, title, page_num) in enumerate(toc):
         page_idx = page_num - 1
         start_text = pages_text[page_idx]
+        
+        # Xác định điểm kết thúc: tiêu đề kế tiếp
+        if idx + 1 < len(toc):
+            next_page_num = toc[idx + 1][2] - 1
+            next_start_text = pages_text[next_page_num]
+        else:
+            next_start_text = ""  # mục cuối cùng, không có trang kế tiếp
     
-        # (Cắt nội dung extracted_text như trước)
+        # extracted_text: hiện tại mình sẽ lấy toàn bộ trang chứa tiêu đề đó
+        extracted_text = start_text  # đơn giản hóa: chỉ lấy nội dung trang hiện tại
+    
+        # Nếu cần tinh vi hơn: cắt start_text đến đoạn kế tiếp (có thể regex, tùy nhu cầu)
     
         # Cập nhật loại phần nếu tiêu đề thay đổi
         new_section = classify_section(title, current_section)
