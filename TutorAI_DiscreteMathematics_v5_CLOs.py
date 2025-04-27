@@ -868,17 +868,29 @@ all_parts = []
 
 if uploaded_files:
     for uploaded_file in uploaded_files:
-        # 1. Ghi file tạm đúng cách
-        uploaded_file.seek(0)  # 🚨 Reset lại đầu file để đảm bảo đọc đầy đủ
-        file_bytes = uploaded_file.read()
-
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmpfile:
-            tmpfile.write(file_bytes)
-            tmpfile_path = tmpfile.name
-
-        # 2. Mở file tạm bằng fitz
-        parts = tach_noi_dung_bai_hoc_tong_quat(tmpfile_path)
-        all_parts.extend(parts)
+        file_name = uploaded_file.name.lower()
+        uploaded_file.seek(0)  # 🚨 Reset lại đầu file để đảm bảo đọc đúng
+    
+        if file_name.endswith(".json"):
+            # ➡ File JSON: merge tiến độ học
+            loaded_progress = json.load(uploaded_file)
+            merge_lesson_progress(st.session_state["lesson_progress"], loaded_progress)
+            st.success(f"✅ Đã cập nhật tiến độ từ {file_name}.")
+    
+        elif file_name.endswith(".pdf"):
+            # ➡ File PDF: tách nội dung bài học
+            file_bytes = uploaded_file.read()
+    
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmpfile:
+                tmpfile.write(file_bytes)
+                tmpfile_path = tmpfile.name
+    
+            parts = tach_noi_dung_bai_hoc_tong_quat(tmpfile_path)
+            all_parts.extend(parts)
+    
+        else:
+            # ➡ Các loại file khác (txt, docx,...) có thể xử lý riêng hoặc bỏ qua
+            st.warning(f"⚠️ File {file_name} không hỗ trợ tự động đọc nội dung bài học.")
 
     lesson_title = " + ".join([file.name for file in uploaded_files])
     current_source = f"upload::{lesson_title}"
