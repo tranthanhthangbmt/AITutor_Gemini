@@ -1075,8 +1075,14 @@ if user_input:
     # 2. Gọi AI phản hồi
     with st.spinner("🤖 Đang phản hồi..."):
         # Lấy phần học hiện tại
-        current_index = st.session_state["current_part_index"]
-        current_part = st.session_state["lesson_parts"][current_index]
+        uncompleted_parts = [part for part in st.session_state["lesson_progress"] if part["trang_thai"] != "hoan_thanh"]
+
+        if not uncompleted_parts:
+            st.success("🎉 Bạn đã hoàn thành toàn bộ bài học! Chúc mừng!")
+            st.stop()
+        
+        # Chọn phần chưa hoàn thành đầu tiên
+        current_part = uncompleted_parts[0]
         
         # Gán luôn current_part_id
         st.session_state["current_part_id"] = current_part["id"]
