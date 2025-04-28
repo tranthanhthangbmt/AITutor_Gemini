@@ -963,6 +963,7 @@ if all_parts:
          # 👉👉 Thêm 2 dòng này NGAY sau init tiến độ
         st.session_state["lesson_loaded"] = True
         st.session_state["lesson_source"] = current_source
+        st.session_state["lesson_mode"] = "upload"
     
         # 👉 Merge ngay sau init
         if uploaded_json:
@@ -1019,7 +1020,12 @@ if pdf_context:
         lesson_summary = ""
 
     #Phần chọn bài học
-    lesson_title = selected_lesson if selected_lesson != "👉 Chọn bài học..." else "Bài học tùy chỉnh"
+    #lesson_title = selected_lesson if selected_lesson != "👉 Chọn bài học..." else "Bài học tùy chỉnh"
+    # Xác định đúng tên bài học:
+    if st.session_state.get("lesson_mode") == "upload":
+        lesson_title = "Bài học từ tài liệu upload"
+    else:
+        lesson_title = selected_lesson if selected_lesson != "👉 Chọn bài học..." else "Bài học tùy chỉnh"
 
     PROMPT_LESSON_CONTEXT = f"""
     {SYSTEM_PROMPT_Tutor_AI}
