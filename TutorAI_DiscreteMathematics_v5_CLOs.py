@@ -959,6 +959,10 @@ if all_parts:
     if "lesson_progress_initialized" not in st.session_state or not st.session_state["lesson_progress_initialized"]:
         init_lesson_progress(all_parts)
         st.session_state["lesson_progress_initialized"] = True
+
+         # 👉👉 Thêm 2 dòng này NGAY sau init tiến độ
+        st.session_state["lesson_loaded"] = True
+        st.session_state["lesson_source"] = current_source
     
         # 👉 Merge ngay sau init
         if uploaded_json:
