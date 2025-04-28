@@ -345,8 +345,21 @@ with st.sidebar:
     mode = st.radio(
         "📘 Chế độ nhập bài học:", 
         ["Tải lên thủ công", "Chọn từ danh sách"],
-        index=1  # ✅ Mặc định chọn "Tải lên thủ công"
+        index=0  # ✅ Mặc định chọn "Tải lên thủ công"
     )
+    if mode == "Tải lên thủ công":
+        uploaded_file = st.file_uploader("📄 Tải file bài học (.pdf, .docx, .txt)", type=["pdf", "docx", "txt"])
+        
+        if uploaded_file:
+            with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
+                tmp_file.write(uploaded_file.read())
+                tmp_file_path = tmp_file.name
+    
+            # 📚 Tự động quét nội dung file mới upload
+            all_parts = tach_noi_dung_bai_hoc_tong_quat(tmp_file_path)
+            init_lesson_progress(all_parts)  # reset bài học
+    
+            st.success("✅ Đã khởi tạo bài học từ tài liệu upload!")
     st.session_state["show_sidebar_inputs"] = (mode == "Chọn từ danh sách")
 
     # ✅ Nhúng script JS duy nhất để tự động điền & lưu API key
