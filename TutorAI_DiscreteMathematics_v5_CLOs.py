@@ -690,6 +690,7 @@ pdf_context = ""
 
 # Nếu có file upload thì lấy nội dung từ file upload
 if uploaded_files:
+    selected_lesson = "👉 Chọn bài học..."  # ✅ reset chọn bài học
     pdf_context = ""
     for uploaded_file in uploaded_files:
         pdf_context += extract_text_from_uploaded_file(uploaded_file) + "\n"
