@@ -1054,8 +1054,8 @@ if pdf_context:
             {"role": "user", "parts": [{"text": PROMPT_LESSON_CONTEXT}]},
             {"role": "model", "parts": [{"text": greeting}]}
         ]
-        st.session_state.lesson_source = current_source
-        st.session_state.lesson_loaded = current_source  # đánh dấu đã load
+        #st.session_state.lesson_source = current_source
+        #st.session_state.lesson_loaded = current_source  # đánh dấu đã load
     
         if st.session_state.get("enable_audio_playback", True):
             greeting_audio_b64 = generate_and_encode_audio(greeting)
