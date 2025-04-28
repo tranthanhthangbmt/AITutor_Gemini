@@ -345,21 +345,8 @@ with st.sidebar:
     mode = st.radio(
         "📘 Chế độ nhập bài học:", 
         ["Tải lên thủ công", "Chọn từ danh sách"],
-        index=0  # ✅ Mặc định chọn "Tải lên thủ công"
+        index=1  # ✅ Mặc định chọn "Tải lên thủ công"
     )
-    if mode == "Tải lên thủ công":
-        uploaded_file = st.file_uploader("📄 Tải file bài học (.pdf, .docx, .txt)", type=["pdf", "docx", "txt"])
-        
-        if uploaded_file:
-            with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
-                tmp_file.write(uploaded_file.read())
-                tmp_file_path = tmp_file.name
-    
-            # 📚 Tự động quét nội dung file mới upload
-            all_parts = tach_noi_dung_bai_hoc_tong_quat(tmp_file_path)
-            init_lesson_progress(all_parts)  # reset bài học
-    
-            st.success("✅ Đã khởi tạo bài học từ tài liệu upload!")
     st.session_state["show_sidebar_inputs"] = (mode == "Chọn từ danh sách")
 
     # ✅ Nhúng script JS duy nhất để tự động điền & lưu API key
@@ -703,7 +690,6 @@ pdf_context = ""
 
 # Nếu có file upload thì lấy nội dung từ file upload
 if uploaded_files:
-    selected_lesson = "👉 Chọn bài học..."  # ✅ reset chọn bài học
     pdf_context = ""
     for uploaded_file in uploaded_files:
         pdf_context += extract_text_from_uploaded_file(uploaded_file) + "\n"
@@ -966,11 +952,6 @@ if all_parts:
     if "lesson_progress_initialized" not in st.session_state or not st.session_state["lesson_progress_initialized"]:
         init_lesson_progress(all_parts)
         st.session_state["lesson_progress_initialized"] = True
-
-         # 👉👉 Thêm 2 dòng này NGAY sau init tiến độ
-        st.session_state["lesson_loaded"] = True
-        st.session_state["lesson_source"] = current_source
-        st.session_state["lesson_mode"] = "upload"
     
         # 👉 Merge ngay sau init
         if uploaded_json:
@@ -1026,13 +1007,42 @@ if pdf_context:
     except Exception as e:
         lesson_summary = ""
 
+    # Giới hạn dung lượng tài liệu đưa vào prompt khởi tạo
+    LIMITED_PDF_CONTEXT = pdf_context[:4000]  # hoặc dùng tokenizer nếu muốn chính xác hơn
+    
+    PROMPT_LESSON_CONTEXT = f"""
+    {SYSTEM_PROMPT_Tutor_AI}
+    
+    # Bạn sẽ hướng dẫn buổi học hôm nay với tài liệu sau:
+    
+    ## Bài học: {lesson_title}
+    
+    --- START OF HANDBOOK CONTENT ---
+    {LIMITED_PDF_CONTEXT}
+    --- END OF HANDBOOK CONTENT ---
+    """
+
+    # Reset session nếu file/tài liệu mới
+    if "lesson_source" not in st.session_state or st.session_state.lesson_source != current_source:
+        greeting = "📘 Mình đã sẵn sàng để bắt đầu buổi học dựa trên tài liệu bạn đã cung cấp."
+        if lesson_summary:
+            greeting += f"\n\n{lesson_summary}"
+        greeting += "\n\nBạn đã sẵn sàng chưa?"
+
+        st.session_state.messages = [
+            {"role": "user", "parts": [{"text": PROMPT_LESSON_CONTEXT}]},
+            {"role": "model", "parts": [{"text": greeting}]}
+        ]
+        st.session_state.lesson_source = current_source
+        st.session_state.lesson_loaded = current_source  # đánh dấu đã load
+
+        #xuất ra dạng audio
+        if st.session_state.get("enable_audio_playback", True):
+            greeting_audio_b64 = generate_and_encode_audio(greeting)
+            st.session_state["greeting_audio_b64"] = greeting_audio_b64
+        
     #Phần chọn bài học
-    #lesson_title = selected_lesson if selected_lesson != "👉 Chọn bài học..." else "Bài học tùy chỉnh"
-    # Xác định đúng tên bài học:
-    if st.session_state.get("lesson_mode") == "upload":
-        lesson_title = "Bài học từ tài liệu upload"
-    else:
-        lesson_title = selected_lesson if selected_lesson != "👉 Chọn bài học..." else "Bài học tùy chỉnh"
+    lesson_title = selected_lesson if selected_lesson != "👉 Chọn bài học..." else "Bài học tùy chỉnh"
 
     PROMPT_LESSON_CONTEXT = f"""
     {SYSTEM_PROMPT_Tutor_AI}
@@ -1045,33 +1055,6 @@ if pdf_context:
     {pdf_context}
     --- END OF HANDBOOK CONTENT ---
     """
-
-    # Reset session nếu file/tài liệu mới
-    #if "lesson_source" not in st.session_state or st.session_state.lesson_source != current_source:
-    if (
-        "lesson_source" not in st.session_state
-        or st.session_state.lesson_source != current_source
-    ) and not st.session_state.get("progress_restored", False):
-        greeting = "📘 Mình đã sẵn sàng để bắt đầu buổi học dựa trên tài liệu bạn đã cung cấp."
-        if lesson_summary:
-            greeting += f"\n\n{lesson_summary}"
-        greeting += "\n\nBạn đã sẵn sàng chưa?"
-    
-        st.session_state.messages = [
-            {"role": "user", "parts": [{"text": PROMPT_LESSON_CONTEXT}]},
-            {"role": "model", "parts": [{"text": greeting}]}
-        ]
-        #st.session_state.lesson_source = current_source
-        #st.session_state.lesson_loaded = current_source  # đánh dấu đã load
-    
-        if st.session_state.get("enable_audio_playback", True):
-            greeting_audio_b64 = generate_and_encode_audio(greeting)
-            st.session_state["greeting_audio_b64"] = greeting_audio_b64
-    
-        # 💬 Reset trạng thái progress_restored sau khi greeting
-        st.session_state["progress_restored"] = False
-        
-    
 
 # Hiển thị lịch sử chat
 for idx, msg in enumerate(st.session_state.messages[1:]):  # bỏ prompt hệ thống
