@@ -943,59 +943,55 @@ if all_parts:
     toc_content = st.session_state.get("toc_html", "<p>📄 Đang tải nội dung mục lục...</p>")
 
     components.html(f"""
-    <style>
-    #popupMenu {{
-      display: none;
-      position: fixed;
-      top: 60px;
-      right: 20px;
-      width: 320px;
-      max-height: 400px;
-      background-color: #f9f9f9;
-      border: 1px solid #ccc;
-      overflow: auto;
-      z-index: 9999;
-      resize: both;
-      padding: 10px;
-      border-radius: 8px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.2);
-    }}
-    </style>
-    
     <script>
-    function insertContentButton() {{
-      const header = window.parent.document.querySelector('[data-testid="stToolbarActions"]');
-      if (!header) return;
-      if (window.parent.document.getElementById("customContentBtn")) return;
+    function insertContentMenu() {{
+        const header = window.parent.document.querySelector('[data-testid="stToolbarActions"]');
+        if (!header) return;
+        
+        // Đã chèn rồi thì không chèn nữa
+        if (window.parent.document.getElementById("customContentBtn")) return;
     
-      const btn = document.createElement("button");
-      btn.innerHTML = "📚";
-      btn.title = "Mục lục bài học";
-      btn.id = "customContentBtn";
-      btn.style.background = "none";
-      btn.style.border = "none";
-      btn.style.cursor = "pointer";
-      btn.style.fontSize = "20px";
-      btn.style.marginRight = "10px";
+        // Tạo nút 📚
+        const btn = document.createElement("button");
+        btn.innerHTML = "📚";
+        btn.title = "Mục lục bài học";
+        btn.id = "customContentBtn";
+        btn.style.background = "none";
+        btn.style.border = "none";
+        btn.style.cursor = "pointer";
+        btn.style.fontSize = "20px";
+        btn.style.marginRight = "10px";
     
-      btn.onclick = () => {{
-        const popup = window.parent.document.getElementById("popupMenu");
-        if (popup) {{
-          popup.style.display = (popup.style.display === "block") ? "none" : "block";
-        }}
-      }};
+        // Tạo popup
+        const popup = document.createElement("div");
+        popup.id = "popupMenu";
+        popup.innerHTML = `<h4>Mục lục bài học</h4>{st.session_state.get("toc_html", "Chưa có nội dung.")}`;
+        popup.style.display = "none";
+        popup.style.position = "fixed";
+        popup.style.top = "60px";
+        popup.style.right = "20px";
+        popup.style.width = "320px";
+        popup.style.maxHeight = "400px";
+        popup.style.backgroundColor = "#f9f9f9";
+        popup.style.border = "1px solid #ccc";
+        popup.style.overflow = "auto";
+        popup.style.zIndex = "9999";
+        popup.style.resize = "both";
+        popup.style.padding = "10px";
+        popup.style.borderRadius = "8px";
+        popup.style.boxShadow = "0 0 10px rgba(0,0,0,0.2)";
+        
+        // Gắn sự kiện cho nút
+        btn.onclick = () => {{
+            popup.style.display = (popup.style.display === "block") ? "none" : "block";
+        }};
     
-      const firstBtn = header.querySelector('div.stToolbarActionButton');
-      header.insertBefore(btn, firstBtn);
+        header.insertBefore(btn, header.firstChild);
+        window.parent.document.body.appendChild(popup);
     }}
     
-    setTimeout(insertContentButton, 1500);
+    setTimeout(insertContentMenu, 1500);
     </script>
-    
-    <div id="popupMenu">
-      <h4>Mục lục bài học</h4>
-      {toc_content}
-    </div>
     """, height=0)
 
     # 2. Hiển thị bảng mục lục
