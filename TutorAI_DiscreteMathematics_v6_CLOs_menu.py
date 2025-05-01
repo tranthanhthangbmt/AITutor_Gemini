@@ -45,20 +45,7 @@ import streamlit.components.v1 as components
 if "toc_html" in st.session_state:
     components.html(f"""
     <style>
-    #menuButton {{
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      z-index: 9999;
-      background-color: #4CAF50;
-      color: white;
-      border: none;
-      padding: 10px 14px;
-      font-size: 14px;
-      cursor: pointer;
-      border-radius: 6px;
-    }}
-
+    /* Popup menu */
     #popupMenu {{
       display: none;
       position: fixed;
@@ -69,29 +56,59 @@ if "toc_html" in st.session_state:
       background-color: #f9f9f9;
       border: 1px solid #ccc;
       overflow: auto;
-      z-index: 9998;
+      z-index: 9999;
       resize: both;
       padding: 10px;
       border-radius: 8px;
       box-shadow: 0 0 10px rgba(0,0,0,0.2);
     }}
     </style>
-
-    <button id="menuButton">📑 Content</button>
-
+    
+    <!-- Nút ẩn trong header -->
+    <script>
+    function insertContentButton() {{
+      const header = window.parent.document.querySelector('[data-testid="stToolbarActions"]');
+      if (!header) {{
+        console.log("❌ Không tìm thấy toolbar header.");
+        return;
+      }}
+    
+      // Kiểm tra nếu nút đã tồn tại thì không chèn nữa
+      if (window.parent.document.getElementById("customContentBtn")) {{
+        return;
+      }}
+    
+      const btn = document.createElement("button");
+      btn.innerHTML = "📚";
+      btn.title = "Mục lục bài học";
+      btn.id = "customContentBtn";
+      btn.style.background = "none";
+      btn.style.border = "none";
+      btn.style.cursor = "pointer";
+      btn.style.fontSize = "20px";
+      btn.style.marginRight = "10px";
+      
+      btn.onclick = () => {{
+        const popup = window.parent.document.getElementById("popupMenu");
+        if (popup) {{
+          popup.style.display = (popup.style.display === "block") ? "none" : "block";
+        }}
+      }};
+    
+      // Chèn vào trước nút Share
+      const firstBtn = header.querySelector('div.stToolbarActionButton');
+      header.insertBefore(btn, firstBtn);
+    }}
+    
+    setTimeout(insertContentButton, 1500);  // đợi DOM của Streamlit sẵn sàng
+    </script>
+    
+    <!-- Menu popup chính -->
     <div id="popupMenu">
       <h4>Mục lục bài học</h4>
-      {st.session_state["toc_html"]}
+      {st.session_state.get("toc_html", "<p>Không có nội dung.</p>")}
     </div>
-
-    <script>
-    const btn = document.getElementById("menuButton");
-    const menu = document.getElementById("popupMenu");
-    btn.onclick = function() {{
-      menu.style.display = (menu.style.display === "block") ? "none" : "block";
-    }};
-    </script>
-    """, height=500)
+    """, height=0)
 
 #Hàm 1: Khởi tạo dữ liệu tiến độ học
 def init_lesson_progress(all_parts):
