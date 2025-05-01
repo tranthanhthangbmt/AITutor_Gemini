@@ -92,7 +92,7 @@ if "toc_html" in st.session_state:
       menu.style.display = (menu.style.display === "block") ? "none" : "block";
     }};
     </script>
-    """, height=0)
+    """, height=500)
 
 #Hàm 1: Khởi tạo dữ liệu tiến độ học
 def init_lesson_progress(all_parts):
