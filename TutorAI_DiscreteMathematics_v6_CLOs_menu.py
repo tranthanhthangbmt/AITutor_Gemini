@@ -921,82 +921,7 @@ else:
 #xuất ra TOC file pdf
 import pandas as pd
 
-# 2. Script JS để đọc nội dung và hiển thị đúng vị trí
-st.info(f"📊 Số phần học: {len(all_parts)}")  # để xác nhận all_parts có dữ liệu
-components.html("""
-<script>
-function insertContentMenu() {
-    const header = document.querySelector('[data-testid="stToolbarActions"]');
-    if (!header) {
-        console.log("❌ Không tìm thấy thanh công cụ.");
-        return;
-    }
 
-    if (document.getElementById("customContentBtn")) {
-        console.log("⏭️ Nút đã có sẵn.");
-        return;
-    }
-
-    // ✅ Tạo button 📚 giống các nút hệ thống
-    const btn = document.createElement("button");
-    btn.id = "customContentBtn";
-    btn.title = "Mục lục bài học";
-    btn.className = "st-emotion-cache-usvq0g eacrzsi17";
-
-    const inner = document.createElement("div");
-    inner.className = "st-emotion-cache-1wbqy5l ekuhni80";
-    const span = document.createElement("span");
-    span.setAttribute("data-testid", "stToolbarActionButtonLabel");
-    span.innerText = "📚";
-    inner.appendChild(span);
-    btn.appendChild(inner);
-
-    // ✅ Gói trong div đúng class
-    const wrapper = document.createElement("div");
-    wrapper.className = "stToolbarActionButton";
-    wrapper.setAttribute("data-testid", "stToolbarActionButton");
-    wrapper.appendChild(btn);
-
-    header.insertBefore(wrapper, header.firstChild); // thêm vào đầu
-
-    // ✅ Tạo popup mục lục
-    const tocDiv = document.getElementById("tocData");
-    const tocHtml = tocDiv ? tocDiv.innerHTML : "<p>Chưa có nội dung mục lục.</p>";
-
-    const popup = document.createElement("div");
-    popup.id = "popupMenu";
-    popup.innerHTML = `<h4>Mục lục bài học</h4>` + tocHtml;
-    popup.style.cssText = `
-        display: none;
-        position: fixed;
-        top: 60px;
-        right: 20px;
-        width: 320px;
-        max-height: 400px;
-        background-color: #f9f9f9;
-        border: 1px solid #ccc;
-        overflow: auto;
-        z-index: 9999;
-        resize: both;
-        padding: 10px;
-        border-radius: 8px;
-        box-shadow: 0 0 10px rgba(0,0,0,0.2);
-    `;
-
-    btn.onclick = () => {
-        popup.style.display = (popup.style.display === "block") ? "none" : "block";
-    };
-
-    document.body.appendChild(popup);
-    console.log("✅ Nút 📚 đã được thêm thành công");
-}
-
-setTimeout(insertContentMenu, 2000);
-</script>
-""", height=0)
-
-console.log("✅ Đang tìm header...");
-console.log("✅ Số phần học hiện tại: ", document.getElementById("tocData")?.innerHTML.length);
 
 # Sau khi lấy all_parts xong
 if all_parts:
@@ -1020,12 +945,71 @@ if all_parts:
     toc_content = st.session_state.get("toc_html", "<p>📄 Đang tải nội dung mục lục...</p>")
 
     # 1. Chèn sẵn nội dung HTML mục lục vào một thẻ hidden trong body
+    # Chèn nội dung toc_html vào thẻ ẩn
     st.markdown(f"""
     <div id="tocData" style="display:none">{st.session_state.get("toc_html", "Chưa có nội dung.")}</div>
     """, unsafe_allow_html=True)
-
-    #st.markdown(st.session_state.get("toc_html", "Chưa có nội dung."))
     
+    # Floating button + popup
+    components.html("""
+    <script>
+    function addFloatingContentButton() {
+        if (document.getElementById("floatingContentBtn")) return;
+    
+        const btn = document.createElement("button");
+        btn.id = "floatingContentBtn";
+        btn.innerHTML = "📚";
+        btn.title = "Mục lục bài học";
+        btn.style.cssText = `
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            z-index: 9999;
+            font-size: 20px;
+            padding: 10px 14px;
+            border-radius: 50%;
+            border: none;
+            background-color: #4CAF50;
+            color: white;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+            cursor: pointer;
+        `;
+    
+        const tocDiv = document.getElementById("tocData");
+        const tocHtml = tocDiv ? tocDiv.innerHTML : "<p>Chưa có mục lục.</p>";
+    
+        const popup = document.createElement("div");
+        popup.id = "floatingContentPopup";
+        popup.innerHTML = "<h4>Mục lục bài học</h4>" + tocHtml;
+        popup.style.cssText = `
+            display: none;
+            position: fixed;
+            top: 130px;
+            right: 20px;
+            width: 320px;
+            max-height: 400px;
+            overflow: auto;
+            background-color: #fff;
+            border: 1px solid #ccc;
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.2);
+            z-index: 9999;
+        `;
+    
+        btn.onclick = () => {
+            popup.style.display = (popup.style.display === "block") ? "none" : "block";
+        };
+    
+        document.body.appendChild(btn);
+        document.body.appendChild(popup);
+        console.log("✅ Đã thêm nút nổi 📚");
+    }
+    
+    setTimeout(addFloatingContentButton, 2000);
+    </script>
+    """, height=0)
+
     # 2. Hiển thị bảng mục lục
     st.markdown("### 📚 **Mục lục bài học**")
     df = pd.DataFrame(parts_sorted)
