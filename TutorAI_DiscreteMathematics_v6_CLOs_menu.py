@@ -953,32 +953,38 @@ if all_parts:
     components.html("""
     <script>
     function insertContentMenu() {
-        const header = document.querySelector('[data-testid="stToolbarActions"]') 
-            || document.querySelector('.stAppToolbar');
-    
+        const header = document.querySelector('[data-testid="stToolbarActions"]');
         if (!header) {
-            console.log("⚠️ Toolbar chưa sẵn sàng");
+            console.log("⚠️ Không tìm thấy thanh công cụ.");
             return;
         }
     
         if (document.getElementById("customContentBtn")) return;
     
+        // Tạo nút 📚 giống style các nút hệ thống
         const btn = document.createElement("button");
-        btn.innerHTML = "📚";
         btn.title = "Mục lục bài học";
         btn.id = "customContentBtn";
-        btn.style.cssText = `
-            background: none;
-            border: none;
-            cursor: pointer;
-            font-size: 20px;
-            margin-right: 10px;
-        `;
+        btn.className = "st-emotion-cache-usvq0g eacrzsi17";  // giống nút Share
     
-        // Đọc nội dung từ phần đã chèn sẵn
+        const span = document.createElement("span");
+        span.setAttribute("data-testid", "stToolbarActionButtonLabel");
+        span.innerText = "📚";
+        const inner = document.createElement("div");
+        inner.className = "st-emotion-cache-1wbqy5l ekuhni80";
+        inner.appendChild(span);
+        btn.appendChild(inner);
+    
+        const wrapper = document.createElement("div");
+        wrapper.className = "stToolbarActionButton";
+        wrapper.setAttribute("data-testid", "stToolbarActionButton");
+        wrapper.appendChild(btn);
+    
+        header.insertBefore(wrapper, header.firstChild);  // Thêm lên đầu (bên trái)
+    
+        // Tạo popup
         const tocDiv = document.getElementById("tocData");
         const tocHtml = tocDiv ? tocDiv.innerHTML : "<p>Chưa có nội dung mục lục.</p>";
-    
         const popup = document.createElement("div");
         popup.id = "popupMenu";
         popup.innerHTML = `<h4>Mục lục bài học</h4>` + tocHtml;
@@ -1003,9 +1009,8 @@ if all_parts:
             popup.style.display = (popup.style.display === "block") ? "none" : "block";
         };
     
-        header.insertBefore(btn, header.firstChild);
         document.body.appendChild(popup);
-        console.log("✅ Nút content đã được thêm");
+        console.log("✅ Nút 📚 đã thêm vào thanh công cụ.");
     }
     
     setTimeout(insertContentMenu, 2000);
