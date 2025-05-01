@@ -522,7 +522,7 @@ with st.sidebar:
                     button_style = "color: white; background-color: green;" if trang_thai == "hoan_thanh" else ""
             
                     # Hiển thị nút với style (sử dụng HTML và key duy nhất cho mỗi nút)
-                    if st.button(f"{part['id']} – {part['tieu_de']}", key=f"btn_{part_id}"):
+                    if st.button(f"{part['id']} – {part['tieu_de']}", key=f"sidebar_btn_{part_id}"):
                         st.session_state["selected_part_for_discussion"] = part
                         st.session_state["force_ai_to_ask"] = True
                         if st.session_state.messages:
