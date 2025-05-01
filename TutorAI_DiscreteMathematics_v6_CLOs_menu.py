@@ -583,7 +583,12 @@ with st.sidebar:
 st.title("🎓 Tutor AI")
 
 # Nếu người dùng vừa chọn mục từ menu Content
-if st.session_state.get("force_ai_to_ask", False) and st.session_state.get("selected_part_for_discussion"):
+#if st.session_state.get("force_ai_to_ask", False) and st.session_state.get("selected_part_for_discussion"):
+if (
+    st.session_state.get("force_ai_to_ask", False)
+    and st.session_state.get("selected_part_for_discussion")
+    and st.session_state.get("lesson_parts")  # đảm bảo đã load xong nội dung
+):
     selected_part = st.session_state["selected_part_for_discussion"]
     question_prompt = f"""
     Hãy đặt một câu hỏi kiểm tra hiểu biết dựa trên phần sau trong bài học:
