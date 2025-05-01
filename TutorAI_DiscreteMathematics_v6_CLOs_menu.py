@@ -987,13 +987,12 @@ if all_parts:
     ):
         selected_part = st.session_state["selected_part_for_discussion"]
         question_prompt = f"""
-        Hãy đặt một câu hỏi kiểm tra hiểu biết dựa trên phần sau trong bài học:
+        Dựa trên mục học có tiêu đề: "{selected_part['tieu_de']}", hãy đặt một câu hỏi kiểm tra hiểu biết ngắn gọn, rõ ràng cho học sinh, theo phong cách đã thiết lập trong buổi học.
         
+        Chỉ sử dụng thông tin có trong nội dung sau:
         ---
         {selected_part['noi_dung']}
         ---
-        
-        Câu hỏi nên ngắn gọn, rõ ràng và bám sát nội dung trên.
         """
         
         #st.subheader("🧪 Nội dung gửi lên Gemini:")
