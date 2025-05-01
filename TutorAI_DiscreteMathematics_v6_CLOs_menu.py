@@ -974,41 +974,31 @@ if all_parts:
     ):
         selected_part = st.session_state["selected_part_for_discussion"]
         question_prompt = f"""
-        Dựa trên nội dung sau, hãy đặt 1 câu hỏi kiểm tra hiểu biết cho học sinh, rồi chờ học sinh trả lời:
+        Hãy đặt một câu hỏi kiểm tra hiểu biết dựa trên phần sau trong bài học:
+        
         ---
         {selected_part['noi_dung']}
         ---
-        Câu hỏi cần ngắn gọn, rõ ràng, liên quan chặt chẽ đến nội dung trên.
+        
+        Câu hỏi nên ngắn gọn, rõ ràng và bám sát nội dung trên.
         """
-    
-        with st.spinner("🤖 Đang tạo câu hỏi từ mục bạn chọn..."):
-            try:
-                ai_question = chat_with_gemini([
-                    {"role": "user", "parts": [{"text": question_prompt}]}
-                ])
-                #st.code(question_prompt, language="markdown")
-                st.subheader("📄 Nội dung gửi lên Gemini:")
-                st.code(question_prompt, language="markdown")
-                
-                if ai_question is None:
-                    st.warning("⚠️ Hệ thống AI đang quá tải. Vui lòng thử lại sau ít phút hoặc chọn mô hình nhẹ hơn (ví dụ Gemini 2.0 Flash).")
-                    st.session_state["force_ai_to_ask"] = False
-                    st.stop()
+        
+        st.subheader("🧪 Nội dung gửi lên Gemini:")
+        st.code(question_prompt, language="markdown")  # để debug prompt
+        
+        with st.spinner("🤖 Đang tạo câu hỏi từ phần bạn chọn..."):
+            ai_question = chat_with_gemini([{"role": "user", "parts": [{"text": question_prompt}]}])
+        
+            if ai_question is None:
+                st.error("⚠️ Gemini hiện đang quá tải (503). Vui lòng thử lại sau hoặc chọn mô hình nhẹ hơn.")
+            elif ai_question.startswith("Lỗi API"):
+                st.error(ai_question)
+            else:
                 ai_question = clean_html_to_text(ai_question)
                 ai_question = format_mcq_options(ai_question)
-    
                 st.chat_message("🤖 Gia sư AI").markdown(ai_question)
-                st.session_state.messages.append({
-                    "role": "model",
-                    "parts": [{"text": ai_question}]
-                })
-    
+                st.session_state.messages.append({"role": "model", "parts": [{"text": ai_question}]})
                 st.session_state["current_part_id"] = selected_part["id"]
-    
-            except Exception as e:
-                st.error(f"⚠️ Lỗi khi tạo câu hỏi từ AI: {e}")
-    
-        st.session_state["force_ai_to_ask"] = False
         
     # ✅ Nếu vừa khôi phục tiến độ, thông báo ra
     if st.session_state.get("progress_restored"):
