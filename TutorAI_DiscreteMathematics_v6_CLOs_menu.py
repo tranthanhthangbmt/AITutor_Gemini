@@ -853,11 +853,6 @@ def chat_with_gemini(messages):
             return response.json()["candidates"][0]["content"]["parts"][0]["text"]
         except Exception as e:
             return f"Lỗi phân tích phản hồi: {e}"
-    else:
-        #return f"Lỗi API: {response.status_code} - {response.text}"
-        if response.status_code == 429 and "quota" in response.text.lower():
-            return "⚠️ Mã API của bạn đã hết hạn hoặc vượt quá giới hạn sử dụng. Vui lòng lấy mã API mới để tiếp tục việc học."
-        return f"Lỗi API: {response.status_code} - {response.text}"
     elif response.status_code == 503:
         return None  # model quá tải
     else:
