@@ -42,60 +42,56 @@ st.set_page_config(page_title="Tutor AI", page_icon="🎓")
 #for menu content
 import streamlit.components.v1 as components
 
-components.html("""
-<style>
-#menuButton {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  z-index: 9999;
-  background-color: #4CAF50;
-  color: white;
-  border: none;
-  padding: 10px 14px;
-  font-size: 14px;
-  cursor: pointer;
-  border-radius: 6px;
-}
+if "toc_html" in st.session_state:
+    components.html(f"""
+    <style>
+    #menuButton {{
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 9999;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      padding: 10px 14px;
+      font-size: 14px;
+      cursor: pointer;
+      border-radius: 6px;
+    }}
 
-#popupMenu {
-  display: none;
-  position: fixed;
-  top: 60px;
-  right: 20px;
-  width: 300px;
-  max-height: 400px;
-  background-color: #f9f9f9;
-  border: 1px solid #ccc;
-  overflow: auto;
-  z-index: 9998;
-  resize: both;
-  padding: 10px;
-  border-radius: 8px;
-  box-shadow: 0 0 10px rgba(0,0,0,0.2);
-}
-</style>
+    #popupMenu {{
+      display: none;
+      position: fixed;
+      top: 60px;
+      right: 20px;
+      width: 320px;
+      max-height: 400px;
+      background-color: #f9f9f9;
+      border: 1px solid #ccc;
+      overflow: auto;
+      z-index: 9998;
+      resize: both;
+      padding: 10px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+    }}
+    </style>
 
-<button id="menuButton">📑 Content</button>
+    <button id="menuButton">📑 Content</button>
 
-<div id="popupMenu">
-  <strong>Mục lục bài học</strong>
-  <ul>
-    <li>Phần 1: Lý thuyết</li>
-    <li>Phần 2: Bài tập có giải</li>
-    <li>Phần 3: Trắc nghiệm</li>
-    <li>Phần 4: Dự án</li>
-  </ul>
-</div>
+    <div id="popupMenu">
+      <h4>Mục lục bài học</h4>
+      {st.session_state["toc_html"]}
+    </div>
 
-<script>
-const btn = document.getElementById("menuButton");
-const menu = document.getElementById("popupMenu");
-btn.onclick = function() {
-  menu.style.display = (menu.style.display === "block") ? "none" : "block";
-};
-</script>
-""", height=500)
+    <script>
+    const btn = document.getElementById("menuButton");
+    const menu = document.getElementById("popupMenu");
+    btn.onclick = function() {{
+      menu.style.display = (menu.style.display === "block") ? "none" : "block";
+    }};
+    </script>
+    """, height=500)
 
 #Hàm 1: Khởi tạo dữ liệu tiến độ học
 def init_lesson_progress(all_parts):
@@ -988,10 +984,18 @@ if all_parts:
     }
     parts_sorted = sorted(all_parts, key=lambda x: thu_tu_muc.get(x["loai"], 999))
 
+    # Sinh HTML mục lục
+    toc_html = "<ul>"
+    for part in parts_sorted:
+        toc_html += f"<li><strong>{part['id']}</strong> – {part['tieu_de']} ({part['loai']})</li>"
+    toc_html += "</ul>"
+    
+    st.session_state["toc_html"] = toc_html  # lưu để dùng phía dưới
+
     # 2. Hiển thị bảng mục lục
     st.markdown("### 📚 **Mục lục bài học**")
     df = pd.DataFrame(parts_sorted)
-    st.dataframe(df[["id", "loai", "tieu_de"]])
+    #st.dataframe(df[["id", "loai", "tieu_de"]]) #đang ẩn để dùng nút content
 
     # 3. Lưu session để dùng tiếp
     st.session_state["lesson_parts"] = parts_sorted
