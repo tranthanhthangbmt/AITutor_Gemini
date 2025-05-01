@@ -495,12 +495,6 @@ with st.sidebar:
         for f in uploaded_files:
             st.markdown(f"- {f.name}")
 
-    if "part_click" not in st.session_state:
-        st.session_state["part_click"] = ""
-    
-    part_click = st.experimental_get_query_params().get("part_click", [""])[0]
-    st.session_state["part_click"] = part_click
-
     #with st.sidebar.expander("📑 Content – Mục lục bài học", expanded=True):
     #    st.markdown(st.session_state["toc_html"], unsafe_allow_html=True)
     with st.sidebar.expander("📑 Content – Mục lục bài học", expanded=True):
@@ -516,18 +510,23 @@ with st.sidebar:
             else:
                 button_color = ""
         
-            custom_button = st.markdown(
-                f"""
-                <div style="margin-bottom: 4px;">
-                    <form action="" method="post">
-                        <button type="submit" name="part_click" value="{part_id}" style="width: 100%; text-align: left; padding: 6px; border-radius: 6px; border: none; {button_color}">
-                            {part['id']} – {part['tieu_de']}
-                        </button>
-                    </form>
-                </div>
-                """,
-                unsafe_allow_html=True
-            )
+            with st.sidebar.expander("📑 Content – Mục lục bài học", expanded=True):
+                st.write("🧠 Chọn một mục bên dưới để bắt đầu:")
+            
+                for part in st.session_state.get("lesson_parts", []):
+                    part_id = part["id"]
+                    progress_item = next((p for p in st.session_state.get("lesson_progress", []) if p["id"] == part_id), {})
+                    trang_thai = progress_item.get("trang_thai", "chua_hoan_thanh")
+            
+                    # Chọn màu cho nút theo trạng thái
+                    button_style = "color: white; background-color: green;" if trang_thai == "hoan_thanh" else ""
+            
+                    # Hiển thị nút với style (sử dụng HTML và key duy nhất cho mỗi nút)
+                    if st.button(f"{part['id']} – {part['tieu_de']}", key=f"btn_{part_id}"):
+                        st.session_state["selected_part_for_discussion"] = part
+                        st.session_state["force_ai_to_ask"] = True
+                        if st.session_state.messages:
+                            st.session_state.messages = [st.session_state.messages[0]]
         
             # Đọc hành vi click
             if st.session_state.get("part_click") == part_id:
