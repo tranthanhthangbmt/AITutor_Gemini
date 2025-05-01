@@ -512,7 +512,21 @@ with st.sidebar:
 	            button_label = f"✅ {button_label}"
 	
 	        # ✅ Key luôn duy nhất nhờ thêm index
-	        if st.button(button_label, key=f"sidebar_btn_{part_id}_{idx}"):
+	        #if st.button(button_label, key=f"sidebar_btn_{part_id}_{idx}"):
+            button_id = f"sidebar_btn_{part_id}_{idx}"
+            completed = (trang_thai == "hoan_thanh")
+            button_style = f"""
+                <style>
+                    div[data-testid="stButton"]#{button_id} > button {{
+                        background-color: {'#d4edda' if completed else '#f8f9fa'};
+                        color: black;
+                        width: 100%;
+                        text-align: left;
+                    }}
+                </style>
+            """
+            st.markdown(button_style, unsafe_allow_html=True)
+            if st.button(button_label, key=button_id):
 	            st.session_state["selected_part_for_discussion"] = part
 	            st.session_state["force_ai_to_ask"] = True
 	            # Xóa các tin nhắn cũ (giữ lại prompt hệ thống nếu có)
