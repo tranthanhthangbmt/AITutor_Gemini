@@ -983,9 +983,12 @@ if all_parts:
     
         with st.spinner("🤖 Đang tạo câu hỏi từ mục bạn chọn..."):
             try:
-                ai_question = chat_with_gemini([
-                    {"role": "user", "parts": [{"text": question_prompt}]}
-                ])
+                #ai_question = chat_with_gemini([
+                #    {"role": "user", "parts": [{"text": question_prompt}]}
+                #])
+                st.code(question_prompt, language="markdown")
+                st.subheader("📄 Nội dung gửi lên Gemini:")
+                st.code(question_prompt, language="markdown")
                 
                 if ai_question is None:
                     st.warning("⚠️ Hệ thống AI đang quá tải. Vui lòng thử lại sau ít phút hoặc chọn mô hình nhẹ hơn (ví dụ Gemini 2.0 Flash).")
