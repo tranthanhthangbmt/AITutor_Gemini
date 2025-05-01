@@ -42,6 +42,57 @@ st.set_page_config(page_title="Tutor AI", page_icon="🎓")
 #for menu content
 import streamlit.components.v1 as components
 
+if "toc_html" in st.session_state:
+    components.html(f"""
+    <style>
+    #menuButton {{
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 9999;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      padding: 10px 14px;
+      font-size: 14px;
+      cursor: pointer;
+      border-radius: 6px;
+    }}
+
+    #popupMenu {{
+      display: none;
+      position: fixed;
+      top: 60px;
+      right: 20px;
+      width: 320px;
+      max-height: 400px;
+      background-color: #f9f9f9;
+      border: 1px solid #ccc;
+      overflow: auto;
+      z-index: 9998;
+      resize: both;
+      padding: 10px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+    }}
+    </style>
+
+    <button id="menuButton">📑 Content</button>
+
+    <div id="popupMenu">
+      <h4>Mục lục bài học</h4>
+      {st.session_state["toc_html"]}
+    </div>
+
+    <script>
+    const btn = document.getElementById("menuButton");
+    const menu = document.getElementById("popupMenu");
+    btn.onclick = function() {{
+      menu.style.display = (menu.style.display === "block") ? "none" : "block";
+    }};
+    </script>
+    """, height=500)
+
 #Hàm 1: Khởi tạo dữ liệu tiến độ học
 def init_lesson_progress(all_parts):
     """
@@ -357,7 +408,7 @@ with st.sidebar:
     # ✅ Nhúng script JS duy nhất để tự động điền & lưu API key
     key_from_local = st_javascript("""
     (() => {
-        const inputEl = document.querySelector('input[data-testid="stTextInput"][type="password"]');
+        const inputEl = window.parent.document.querySelector('input[data-testid="stTextInput"][type="password"]');
         const storedKey = localStorage.getItem("gemini_api_key");
     
         // Tự động điền nếu textbox rỗng
@@ -408,7 +459,7 @@ with st.sidebar:
 
     st_javascript("""
     (() => {
-        const inputEl = document.querySelector('input[data-testid="stTextInput"][type="password"]');
+        const inputEl = window.parent.document.querySelector('input[data-testid="stTextInput"][type="password"]');
         const storedKey = localStorage.getItem("gemini_api_key");
     
         // Tự điền nếu còn trống
@@ -921,8 +972,6 @@ else:
 #xuất ra TOC file pdf
 import pandas as pd
 
-
-
 # Sau khi lấy all_parts xong
 if all_parts:
     # 1. Sắp xếp
@@ -942,79 +991,6 @@ if all_parts:
     toc_html += "</ul>"
     
     st.session_state["toc_html"] = toc_html  # lưu để dùng phía dưới
-    toc_content = st.session_state.get("toc_html", "<p>📄 Đang tải nội dung mục lục...</p>")
-
-    # 1. Chèn sẵn nội dung HTML mục lục vào một thẻ hidden trong body
-    # Chèn nội dung toc_html vào thẻ ẩn
-    st.markdown(f"""
-    <div id="tocData" style="display:none">{st.session_state.get("toc_html", "Chưa có nội dung.")}</div>
-    """, unsafe_allow_html=True)
-    
-    # Floating button + popup
-    components.html("""
-    <script>
-    function addFloatingContentButtonInsideContent() {
-        const container = document.querySelector('[data-testid="stVerticalBlock"]');
-        if (!container) {
-            console.warn("❌ Không tìm thấy stVerticalBlock.");
-            return;
-        }
-    
-        if (document.getElementById("floatingContentBtn")) return;
-    
-        const btn = document.createElement("button");
-        btn.id = "floatingContentBtn";
-        btn.innerHTML = "📚";
-        btn.title = "Mục lục bài học";
-        btn.style.cssText = `
-            position: sticky;
-            top: 20px;
-            float: right;
-            margin: 10px;
-            z-index: 999;
-            font-size: 20px;
-            padding: 10px 14px;
-            border-radius: 50%;
-            border: none;
-            background-color: #4CAF50;
-            color: white;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-            cursor: pointer;
-        `;
-    
-        const popup = document.createElement("div");
-        popup.id = "floatingContentPopup";
-        const tocDiv = document.getElementById("tocData");
-        const tocHtml = tocDiv ? tocDiv.innerHTML : "<p>Chưa có mục lục.</p>";
-        popup.innerHTML = "<h4>Mục lục bài học</h4>" + tocHtml;
-        popup.style.cssText = `
-            display: none;
-            position: fixed;
-            top: 80px;
-            right: 30px;
-            width: 320px;
-            max-height: 400px;
-            overflow: auto;
-            background-color: #fff;
-            border: 1px solid #ccc;
-            padding: 10px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.2);
-            z-index: 10000;
-        `;
-    
-        btn.onclick = () => {
-            popup.style.display = (popup.style.display === "block") ? "none" : "block";
-        };
-    
-        container.insertBefore(btn, container.firstChild); // chèn vào đầu content
-        document.body.appendChild(popup);  // popup vẫn nên gắn body
-        console.log("✅ Nút nổi 📚 đã chèn vào stVerticalBlock");
-    }
-    
-    setTimeout(addFloatingContentButtonInsideContent, 2000);
-    </script>
-    """, height=0)
 
     # 2. Hiển thị bảng mục lục
     st.markdown("### 📚 **Mục lục bài học**")
