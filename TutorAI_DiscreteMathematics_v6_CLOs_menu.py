@@ -526,11 +526,10 @@ with st.sidebar:
             """
             st.markdown(button_style, unsafe_allow_html=True)
             if st.button(button_label, key=button_id):
-	            st.session_state["selected_part_for_discussion"] = part
-	            st.session_state["force_ai_to_ask"] = True
-	            # Xóa các tin nhắn cũ (giữ lại prompt hệ thống nếu có)
-	            if st.session_state.messages:
-	                st.session_state.messages = [st.session_state.messages[0]]
+                st.session_state["selected_part_for_discussion"] = part
+                st.session_state["force_ai_to_ask"] = True
+                if st.session_state.messages:
+                    st.session_state.messages = [st.session_state.messages[0]]
 	        
 	            # Đọc hành vi click
 	            if st.session_state.get("part_click") == part_id:
