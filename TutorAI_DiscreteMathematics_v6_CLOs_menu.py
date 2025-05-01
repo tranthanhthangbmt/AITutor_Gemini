@@ -51,7 +51,7 @@ components.html(f"""
   position: fixed;
   top: 20px;
   right: 20px;
-  z-index: 9999;
+  z-index: 99999;
   background-color: #4CAF50;
   color: white;
   border: none;
@@ -59,6 +59,7 @@ components.html(f"""
   font-size: 14px;
   cursor: pointer;
   border-radius: 6px;
+  box-shadow: 0px 4px 6px rgba(0,0,0,0.1);
 }}
 
 #popupMenu {{
@@ -68,10 +69,10 @@ components.html(f"""
   right: 20px;
   width: 320px;
   max-height: 400px;
-  background-color: #f9f9f9;
+  background-color: #fff;
   border: 1px solid #ccc;
   overflow: auto;
-  z-index: 9998;
+  z-index: 99998;
   resize: both;
   padding: 10px;
   border-radius: 8px;
@@ -93,7 +94,7 @@ btn.onclick = function() {{
   menu.style.display = (menu.style.display === "block") ? "none" : "block";
 }};
 </script>
-""", height=500)
+""", height=600)
 
 #Hàm 1: Khởi tạo dữ liệu tiến độ học
 def init_lesson_progress(all_parts):
