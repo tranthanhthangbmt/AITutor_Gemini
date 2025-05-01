@@ -498,19 +498,19 @@ with st.sidebar:
     #with st.sidebar.expander("📑 Content – Mục lục bài học", expanded=True):
     #    st.markdown(st.session_state["toc_html"], unsafe_allow_html=True)
     with st.sidebar.expander("📑 Content – Mục lục bài học", expanded=True):
-	    st.write("🧠 Chọn một mục bên dưới để bắt đầu:")
-	
-	    for idx, part in enumerate(st.session_state.get("lesson_parts", [])):
-	        part_id = part["id"]
-	        tieu_de = part.get("tieu_de", "Không có tiêu đề")
-	        progress_item = next((p for p in st.session_state.get("lesson_progress", []) if p["id"] == part_id), {})
-	        trang_thai = progress_item.get("trang_thai", "chua_hoan_thanh")
-	
-	        # ✅ Chọn màu cho nút dựa theo trạng thái
-	        button_label = f"{part_id} – {tieu_de}"
-	        if trang_thai == "hoan_thanh":
-	            button_label = f"✅ {button_label}"
-            
+        st.write("🧠 Chọn một mục bên dưới để bắt đầu:")
+    
+        for idx, part in enumerate(st.session_state.get("lesson_parts", [])):
+            part_id = part["id"]
+            tieu_de = part.get("tieu_de", "Không có tiêu đề")
+            progress_item = next((p for p in st.session_state.get("lesson_progress", []) if p["id"] == part_id), {})
+            trang_thai = progress_item.get("trang_thai", "chua_hoan_thanh")
+    
+            # ✅ Chọn màu cho nút dựa theo trạng thái
+            button_label = f"{part_id} – {tieu_de}"
+            if trang_thai == "hoan_thanh":
+                button_label = f"✅ {button_label}"
+    
             # ✅ Key luôn duy nhất nhờ thêm index
             button_id = f"sidebar_btn_{part_id}_{idx}"
             completed = (trang_thai == "hoan_thanh")
@@ -525,18 +525,19 @@ with st.sidebar:
                 </style>
             """
             st.markdown(button_style, unsafe_allow_html=True)
+    
             if st.button(button_label, key=button_id):
                 st.session_state["selected_part_for_discussion"] = part
                 st.session_state["force_ai_to_ask"] = True
                 if st.session_state.messages:
                     st.session_state.messages = [st.session_state.messages[0]]
-	        
-	            # Đọc hành vi click
-	            if st.session_state.get("part_click") == part_id:
-	                st.session_state["selected_part_for_discussion"] = part
-	                st.session_state["force_ai_to_ask"] = True
-	                if st.session_state.messages:
-	                    st.session_state.messages = [st.session_state.messages[0]]
+    
+                # Đọc hành vi click
+                if st.session_state.get("part_click") == part_id:
+                    st.session_state["selected_part_for_discussion"] = part
+                    st.session_state["force_ai_to_ask"] = True
+                    if st.session_state.messages:
+                        st.session_state.messages = [st.session_state.messages[0]]
     
     #st.session_state["firebase_enabled"] = st.checkbox("💾 Lưu dữ liệu lên Firebase", value=st.session_state["firebase_enabled"])
     st.session_state["firebase_enabled"] = True
