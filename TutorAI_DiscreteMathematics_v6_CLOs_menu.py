@@ -953,7 +953,13 @@ if all_parts:
     # Floating button + popup
     components.html("""
     <script>
-    function addFloatingContentButton() {
+    function addFloatingContentButtonInsideContent() {
+        const container = document.querySelector('[data-testid="stVerticalBlock"]');
+        if (!container) {
+            console.warn("❌ Không tìm thấy stVerticalBlock.");
+            return;
+        }
+    
         if (document.getElementById("floatingContentBtn")) return;
     
         const btn = document.createElement("button");
@@ -961,10 +967,11 @@ if all_parts:
         btn.innerHTML = "📚";
         btn.title = "Mục lục bài học";
         btn.style.cssText = `
-            position: fixed;
-            top: 80px;
-            right: 20px;
-            z-index: 9999;
+            position: sticky;
+            top: 20px;
+            float: right;
+            margin: 10px;
+            z-index: 999;
             font-size: 20px;
             padding: 10px 14px;
             border-radius: 50%;
@@ -975,17 +982,16 @@ if all_parts:
             cursor: pointer;
         `;
     
-        const tocDiv = document.getElementById("tocData");
-        const tocHtml = tocDiv ? tocDiv.innerHTML : "<p>Chưa có mục lục.</p>";
-    
         const popup = document.createElement("div");
         popup.id = "floatingContentPopup";
+        const tocDiv = document.getElementById("tocData");
+        const tocHtml = tocDiv ? tocDiv.innerHTML : "<p>Chưa có mục lục.</p>";
         popup.innerHTML = "<h4>Mục lục bài học</h4>" + tocHtml;
         popup.style.cssText = `
             display: none;
             position: fixed;
-            top: 130px;
-            right: 20px;
+            top: 80px;
+            right: 30px;
             width: 320px;
             max-height: 400px;
             overflow: auto;
@@ -994,19 +1000,19 @@ if all_parts:
             padding: 10px;
             border-radius: 8px;
             box-shadow: 0 0 10px rgba(0,0,0,0.2);
-            z-index: 9999;
+            z-index: 10000;
         `;
     
         btn.onclick = () => {
             popup.style.display = (popup.style.display === "block") ? "none" : "block";
         };
     
-        document.body.appendChild(btn);
-        document.body.appendChild(popup);
-        console.log("✅ Đã thêm nút nổi 📚");
+        container.insertBefore(btn, container.firstChild); // chèn vào đầu content
+        document.body.appendChild(popup);  // popup vẫn nên gắn body
+        console.log("✅ Nút nổi 📚 đã chèn vào stVerticalBlock");
     }
     
-    setTimeout(addFloatingContentButton, 2000);
+    setTimeout(addFloatingContentButtonInsideContent, 2000);
     </script>
     """, height=0)
 
