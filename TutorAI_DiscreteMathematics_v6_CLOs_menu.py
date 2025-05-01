@@ -964,7 +964,7 @@ if all_parts:
             selected_part = st.session_state["lesson_parts"][selected_idx]
             st.session_state["selected_part_for_discussion"] = selected_part
             st.session_state["force_ai_to_ask"] = True
-            st.rerun()
+            #st.rerun()
 
     # 👉 Nếu người dùng chọn một phần → sinh câu hỏi kiểm tra
     if (
