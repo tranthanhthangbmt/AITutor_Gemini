@@ -498,42 +498,33 @@ with st.sidebar:
     #with st.sidebar.expander("📑 Content – Mục lục bài học", expanded=True):
     #    st.markdown(st.session_state["toc_html"], unsafe_allow_html=True)
     with st.sidebar.expander("📑 Content – Mục lục bài học", expanded=True):
-        st.write("🧠 Chọn một mục bên dưới để bắt đầu:")
-        for part in st.session_state.get("lesson_parts", []):
-            part_id = part["id"]
-            progress_item = next((p for p in st.session_state.get("lesson_progress", []) if p["id"] == part_id), {})
-            trang_thai = progress_item.get("trang_thai", "chua_hoan_thanh")
-        
-            # Gán màu theo trạng thái
-            if trang_thai == "hoan_thanh":
-                button_color = "background-color: #d4edda;"  # xanh lá nhạt
-            else:
-                button_color = ""
-        
-            with st.sidebar.expander("📑 Content – Mục lục bài học", expanded=True):
-                st.write("🧠 Chọn một mục bên dưới để bắt đầu:")
-            
-                for part in st.session_state.get("lesson_parts", []):
-                    part_id = part["id"]
-                    progress_item = next((p for p in st.session_state.get("lesson_progress", []) if p["id"] == part_id), {})
-                    trang_thai = progress_item.get("trang_thai", "chua_hoan_thanh")
-            
-                    # Chọn màu cho nút theo trạng thái
-                    button_style = "color: white; background-color: green;" if trang_thai == "hoan_thanh" else ""
-            
-                    # Hiển thị nút với style (sử dụng HTML và key duy nhất cho mỗi nút)
-                    if st.button(f"{part['id']} – {part['tieu_de']}", key=f"sidebar_btn_{part_id}"):
-                        st.session_state["selected_part_for_discussion"] = part
-                        st.session_state["force_ai_to_ask"] = True
-                        if st.session_state.messages:
-                            st.session_state.messages = [st.session_state.messages[0]]
-        
-            # Đọc hành vi click
-            if st.session_state.get("part_click") == part_id:
-                st.session_state["selected_part_for_discussion"] = part
-                st.session_state["force_ai_to_ask"] = True
-                if st.session_state.messages:
-                    st.session_state.messages = [st.session_state.messages[0]]
+	    st.write("🧠 Chọn một mục bên dưới để bắt đầu:")
+	
+	    for idx, part in enumerate(st.session_state.get("lesson_parts", [])):
+	        part_id = part["id"]
+	        tieu_de = part.get("tieu_de", "Không có tiêu đề")
+	        progress_item = next((p for p in st.session_state.get("lesson_progress", []) if p["id"] == part_id), {})
+	        trang_thai = progress_item.get("trang_thai", "chua_hoan_thanh")
+	
+	        # ✅ Chọn màu cho nút dựa theo trạng thái
+	        button_label = f"{part_id} – {tieu_de}"
+	        if trang_thai == "hoan_thanh":
+	            button_label = f"✅ {button_label}"
+	
+	        # ✅ Key luôn duy nhất nhờ thêm index
+	        if st.button(button_label, key=f"sidebar_btn_{part_id}_{idx}"):
+	            st.session_state["selected_part_for_discussion"] = part
+	            st.session_state["force_ai_to_ask"] = True
+	            # Xóa các tin nhắn cũ (giữ lại prompt hệ thống nếu có)
+	            if st.session_state.messages:
+	                st.session_state.messages = [st.session_state.messages[0]]
+	        
+	            # Đọc hành vi click
+	            if st.session_state.get("part_click") == part_id:
+	                st.session_state["selected_part_for_discussion"] = part
+	                st.session_state["force_ai_to_ask"] = True
+	                if st.session_state.messages:
+	                    st.session_state.messages = [st.session_state.messages[0]]
     
     #st.session_state["firebase_enabled"] = st.checkbox("💾 Lưu dữ liệu lên Firebase", value=st.session_state["firebase_enabled"])
     st.session_state["firebase_enabled"] = True
