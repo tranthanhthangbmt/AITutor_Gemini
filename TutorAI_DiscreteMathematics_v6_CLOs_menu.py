@@ -39,88 +39,59 @@ import json
 # Giao diện Streamlit
 st.set_page_config(page_title="Tutor AI", page_icon="🎓")
 
-if "toc_html" not in st.session_state:
-    st.session_state["toc_html"] = "<p><em>Chưa có mục lục bài học.</em></p>"
-
 #for menu content
 import streamlit.components.v1 as components
 
-components.html(f"""
-<style>
-#floatingTabs {{
-  position: fixed;
-  top: 20px;
-  left: 20px;
-  z-index: 99999;
-}}
+if "toc_html" in st.session_state:
+    components.html(f"""
+    <style>
+    #menuButton {{
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 9999;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      padding: 10px 14px;
+      font-size: 14px;
+      cursor: pointer;
+      border-radius: 6px;
+    }}
 
-#floatingTabs button {{
-  background-color: #4CAF50;
-  border: none;
-  color: white;
-  padding: 10px 16px;
-  margin-right: 5px;
-  font-size: 14px;
-  cursor: pointer;
-  border-radius: 6px 6px 0 0;
-}}
+    #popupMenu {{
+      display: none;
+      position: fixed;
+      top: 60px;
+      right: 20px;
+      width: 320px;
+      max-height: 400px;
+      background-color: #f9f9f9;
+      border: 1px solid #ccc;
+      overflow: auto;
+      z-index: 9998;
+      resize: both;
+      padding: 10px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+    }}
+    </style>
 
-#fullScreenPanel {{
-  position: fixed;
-  top: 60px;
-  left: 0;
-  width: 100%;
-  height: calc(100% - 60px);
-  background-color: #fff;
-  z-index: 99998;
-  overflow-y: auto;
-  padding: 20px;
-  display: none;
-}}
+    <button id="menuButton">📑 Content</button>
 
-#closePanel {{
-  position: absolute;
-  top: 10px;
-  right: 20px;
-  background: #e74c3c;
-  color: white;
-  border: none;
-  font-size: 16px;
-  padding: 4px 10px;
-  border-radius: 4px;
-  cursor: pointer;
-}}
-</style>
+    <div id="popupMenu">
+      <h4>Mục lục bài học</h4>
+      {st.session_state["toc_html"]}
+    </div>
 
-<div id="floatingTabs">
-  <button onclick="showPanel('toc')">📑 Content</button>
-  <button onclick="showPanel('chat')">💬 Messages</button>
-</div>
-
-<div id="fullScreenPanel">
-  <button id="closePanel" onclick="hidePanel()">✖</button>
-  <div id="panelContent"></div>
-</div>
-
-<script>
-function showPanel(tab) {{
-  const panel = document.getElementById("fullScreenPanel");
-  const content = document.getElementById("panelContent");
-
-  if (tab === "toc") {{
-    content.innerHTML = `{st.session_state["toc_html"]}`;
-  }} else if (tab === "chat") {{
-    content.innerHTML = `{''.join([f"<p><b>🧑‍🎓:</b> {m['parts'][0]['text']}</p>" if m['role']=='user' else f"<p><b>🤖:</b> {m['parts'][0]['text']}</p>" for m in st.session_state.get('messages', [])[1:]])}`;
-  }}
-
-  panel.style.display = "block";
-}}
-
-function hidePanel() {{
-  document.getElementById("fullScreenPanel").style.display = "none";
-}}
-</script>
-""", height=0)
+    <script>
+    const btn = document.getElementById("menuButton");
+    const menu = document.getElementById("popupMenu");
+    btn.onclick = function() {{
+      menu.style.display = (menu.style.display === "block") ? "none" : "block";
+    }};
+    </script>
+    """, height=500)
 
 #Hàm 1: Khởi tạo dữ liệu tiến độ học
 def init_lesson_progress(all_parts):
