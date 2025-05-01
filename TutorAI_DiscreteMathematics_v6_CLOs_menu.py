@@ -495,14 +495,8 @@ with st.sidebar:
         for f in uploaded_files:
             st.markdown(f"- {f.name}")
 
-    #with st.sidebar.expander("📑 Content – Mục lục bài học", expanded=True):
-    #    st.markdown(st.session_state["toc_html"], unsafe_allow_html=True)
     with st.sidebar.expander("📑 Content – Mục lục bài học", expanded=True):
-        st.write("Chọn mục để bắt đầu trao đổi:")
-        for part in st.session_state.get("lesson_parts", []):
-            if st.button(f"{part['id']} – {part['tieu_de']}"):
-                st.session_state["selected_part_for_discussion"] = part
-                st.session_state["force_ai_to_ask"] = True
+        st.markdown(st.session_state["toc_html"], unsafe_allow_html=True)
     
     #st.session_state["firebase_enabled"] = st.checkbox("💾 Lưu dữ liệu lên Firebase", value=st.session_state["firebase_enabled"])
     st.session_state["firebase_enabled"] = True
@@ -854,10 +848,6 @@ def chat_with_gemini(messages):
 
     response = requests.post(GEMINI_API_URL, headers=headers, params=params, json=data)
 
-    #Hiển thị cảnh báo rõ ràng khi model quá tải
-    if response.status_code == 503:
-        return "⚠️ Mô hình đang quá tải (503). Hãy thử lại sau vài phút hoặc chọn mô hình khác trong menu."
-        
     if response.status_code == 200:
         try:
             return response.json()["candidates"][0]["content"]["parts"][0]["text"]
@@ -965,46 +955,6 @@ if all_parts:
 
     # 3. Lưu session để dùng tiếp
     st.session_state["lesson_parts"] = parts_sorted
-
-    # 👉 Nếu người dùng vừa chọn mục → sinh câu hỏi tại đây luôn
-    if (
-        st.session_state.get("force_ai_to_ask", False)
-        and st.session_state.get("selected_part_for_discussion")
-        and st.session_state.get("lesson_parts")
-    ):
-        selected_part = st.session_state["selected_part_for_discussion"]
-    
-        question_prompt = f"""
-        Hãy đặt một câu hỏi kiểm tra hiểu biết dựa trên phần sau trong bài học:
-    
-        ---
-        {selected_part['noi_dung']}
-        ---
-    
-        Câu hỏi nên ngắn gọn, rõ ràng và bám sát nội dung trên.
-        """
-    
-        with st.spinner("🤖 Đang chuẩn bị câu hỏi..."):
-            try:
-                ai_question = chat_with_gemini([
-                    {"role": "user", "parts": [{"text": question_prompt}]}
-                ])
-                ai_question = clean_html_to_text(ai_question)
-                ai_question = format_mcq_options(ai_question)
-                st.chat_message("🤖 Gia sư AI").markdown(ai_question)
-                st.session_state.messages.append({
-                    "role": "model",
-                    "parts": [{"text": ai_question}]
-                })
-
-                 # Gán phần hiện tại để có thể đánh dấu sau khi trả lời
-                st.session_state["current_part_id"] = selected_part["id"]
-            except Exception as e:
-                st.error("❗️ Không thể gọi AI vào lúc này. Hãy thử lại sau.")
-                st.stop()
-    
-        # Reset flag
-        st.session_state["force_ai_to_ask"] = False
 
     # ✅ Nếu vừa khôi phục tiến độ, thông báo ra
     if st.session_state.get("progress_restored"):
@@ -1176,15 +1126,8 @@ if user_input:
         ---
         Hãy đặt câu hỏi ngắn gọn, rõ ràng, liên quan trực tiếp đến nội dung trên.
         """
-        try:
-            reply = chat_with_gemini([...])
-        except Exception as e:
-            st.error(f"❗️ AI đang quá tải hoặc gặp sự cố. Vui lòng thử lại sau.\n\nChi tiết lỗi: {e}")
-            st.stop()
-
-        #Nếu bạn vẫn muốn giữ messages để AI có ngữ cảnh toàn bộ buổi học, bạn có thể thêm prompt này như một lượt tương tác mới vào messages, như sau:
-        #st.session_state.messages.append({"role": "user", "parts": [{"text": prompt}]})
-        #reply = chat_with_gemini(st.session_state.messages)
+        
+        reply = chat_with_gemini(st.session_state.messages)
 
         # Nếu có thể xuất HTML (như <p>...</p>)
         reply = clean_html_to_text(reply)
@@ -1212,15 +1155,9 @@ if user_input:
 	    ---
 	    """
      
-        
-
-        try:
-            diem_raw = chat_with_gemini([
-    	        {"role": "user", "parts": [{"text": scoring_prompt}]}
-    	    ])
-        except Exception as e:
-            st.error(f"❗️ AI đang quá tải hoặc gặp sự cố. Vui lòng thử lại sau.\n\nChi tiết lỗi: {e}")
-            st.stop()
+        diem_raw = chat_with_gemini([
+	        {"role": "user", "parts": [{"text": scoring_prompt}]}
+	    ])
      
         try:
 	        diem_so = int(re.findall(r"\d+", diem_raw)[0])
