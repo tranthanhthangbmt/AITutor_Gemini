@@ -1000,18 +1000,32 @@ if all_parts:
         st.code(question_prompt, language="markdown")  # để debug prompt
         
         with st.spinner("🤖 Đang tạo câu hỏi từ phần bạn chọn..."):
-            ai_question = chat_with_gemini([{"role": "user", "parts": [{"text": question_prompt}]}])
-        
+            #ai_question = chat_with_gemini([{"role": "user", "parts": [{"text": question_prompt}]}])
+            st.session_state.messages.append({
+                "role": "user",
+                "parts": [{"text": question_prompt}]
+            })
+
+            #Bước 2: Gợi ý cách viết prompt tốt (ngắn + rõ)
+            selected_part = st.session_state["selected_part_for_discussion"]
+
+            question_prompt = f"""
+            Dựa trên mục học có tiêu đề: "{selected_part['tieu_de']}", hãy đặt một câu hỏi kiểm tra hiểu biết ngắn gọn, rõ ràng cho học sinh, theo phong cách đã thiết lập trong buổi học.
+            
+            Chỉ sử dụng thông tin có trong handout. Không được đưa ví dụ hay kiến thức ngoài tài liệu.
+            """
+
+            #Bước 3: Hiển thị câu hỏi AI phản hồi
+            ai_question = chat_with_gemini(st.session_state.messages)
+
+            #Xử lý kết quả:
             if ai_question is None:
-                st.error("⚠️ Gemini hiện đang quá tải (503). Vui lòng thử lại sau hoặc chọn mô hình nhẹ hơn.")
-            elif ai_question.startswith("Lỗi API"):
-                st.error(ai_question)
+                st.warning("⚠️ Gemini đang quá tải hoặc phản hồi lỗi. Vui lòng thử lại sau.")
             else:
                 ai_question = clean_html_to_text(ai_question)
                 ai_question = format_mcq_options(ai_question)
                 st.chat_message("🤖 Gia sư AI").markdown(ai_question)
                 st.session_state.messages.append({"role": "model", "parts": [{"text": ai_question}]})
-                st.session_state["current_part_id"] = selected_part["id"]
         
     # ✅ Nếu vừa khôi phục tiến độ, thông báo ra
     if st.session_state.get("progress_restored"):
