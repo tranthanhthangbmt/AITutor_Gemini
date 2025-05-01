@@ -35,6 +35,64 @@ from google.cloud.firestore_v1 import ArrayUnion
 
 import json
 
+#for menu content
+import streamlit.components.v1 as components
+
+components.html("""
+<style>
+#menuButton {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 9999;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  padding: 10px 14px;
+  font-size: 14px;
+  cursor: pointer;
+  border-radius: 6px;
+}
+
+#popupMenu {
+  display: none;
+  position: fixed;
+  top: 60px;
+  right: 20px;
+  width: 300px;
+  max-height: 400px;
+  background-color: #f9f9f9;
+  border: 1px solid #ccc;
+  overflow: auto;
+  z-index: 9998;
+  resize: both;
+  padding: 10px;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.2);
+}
+</style>
+
+<button id="menuButton">📑 Content</button>
+
+<div id="popupMenu">
+  <strong>Mục lục bài học</strong>
+  <ul>
+    <li>Phần 1: Lý thuyết</li>
+    <li>Phần 2: Bài tập có giải</li>
+    <li>Phần 3: Trắc nghiệm</li>
+    <li>Phần 4: Dự án</li>
+  </ul>
+</div>
+
+<script>
+const btn = document.getElementById("menuButton");
+const menu = document.getElementById("popupMenu");
+btn.onclick = function() {
+  menu.style.display = (menu.style.display === "block") ? "none" : "block";
+};
+</script>
+""", height=500)
+
 #Hàm 1: Khởi tạo dữ liệu tiến độ học
 def init_lesson_progress(all_parts):
     """
