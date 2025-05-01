@@ -1272,6 +1272,7 @@ if user_input:
             part_id=current_part["id"],
             trang_thai="hoan_thanh",
             diem_so=diem_so
+	        st.rerun()
         )
         
         #b64 = generate_and_encode_audio(reply)
