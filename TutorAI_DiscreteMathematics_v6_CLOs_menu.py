@@ -986,13 +986,25 @@ if all_parts:
         and st.session_state.get("lesson_parts")
     ):
         selected_part = st.session_state["selected_part_for_discussion"]
+        question_prompt = f"""
+        Hãy đặt một câu hỏi kiểm tra hiểu biết dựa trên phần sau trong bài học:
+        
+        ---
+        {selected_part['noi_dung']}
+        ---
+        
+        Câu hỏi nên ngắn gọn, rõ ràng và bám sát nội dung trên.
+        """
+        
+        #st.subheader("🧪 Nội dung gửi lên Gemini:")
+        #st.code(question_prompt, language="markdown")  # để debug prompt
         
         with st.spinner("🤖 Đang tạo câu hỏi từ phần bạn chọn..."):
             #ai_question = chat_with_gemini([{"role": "user", "parts": [{"text": question_prompt}]}])
-            st.session_state.messages.append({
-                "role": "user",
-                "parts": [{"text": question_prompt}]
-            })
+            #st.session_state.messages.append({
+            #    "role": "user",
+            #    "parts": [{"text": question_prompt}]
+            #})
 
             #Bước 2: Gợi ý cách viết prompt tốt (ngắn + rõ)
             selected_part = st.session_state["selected_part_for_discussion"]
