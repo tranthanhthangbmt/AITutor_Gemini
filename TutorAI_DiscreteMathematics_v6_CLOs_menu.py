@@ -962,6 +962,48 @@ if all_parts:
     # 3. Lưu session để dùng tiếp
     st.session_state["lesson_parts"] = parts_sorted
 
+    # 👉 Nếu người dùng vừa chọn mục → sinh câu hỏi tại đây luôn
+    if (
+        st.session_state.get("force_ai_to_ask", False)
+        and st.session_state.get("selected_part_for_discussion")
+        and st.session_state.get("lesson_parts")
+    ):
+        selected_part = st.session_state["selected_part_for_discussion"]
+    
+        question_prompt = f"""
+        Hãy đặt một câu hỏi kiểm tra hiểu biết dựa trên phần sau trong bài học:
+    
+        ---
+        {selected_part['noi_dung']}
+        ---
+    
+        Câu hỏi nên ngắn gọn, rõ ràng và bám sát nội dung trên.
+        """
+    
+        with st.spinner("🤖 Đang chuẩn bị câu hỏi..."):
+            try:
+                ai_question = chat_with_gemini([
+                    {"role": "user", "parts": [{"text": question_prompt}]}
+                ])
+                ai_question = clean_html_to_text(ai_question)
+                ai_question = format_mcq_options(ai_question)
+    
+                st.chat_message("🤖 Gia sư AI").markdown(ai_question)
+    
+                st.session_state.messages.append({
+                    "role": "model",
+                    "parts": [{"text": ai_question}]
+                })
+    
+                # Gán phần hiện tại để có thể đánh dấu sau khi trả lời
+                st.session_state["current_part_id"] = selected_part["id"]
+    
+            except Exception as e:
+                st.error(f"Lỗi khi gọi AI: {e}")
+    
+        # Reset flag
+        st.session_state["force_ai_to_ask"] = False
+
     # ✅ Nếu vừa khôi phục tiến độ, thông báo ra
     if st.session_state.get("progress_restored"):
         st.success(f"✅ Đã khôi phục tiến độ học từ {st.session_state['progress_restored']}.")
