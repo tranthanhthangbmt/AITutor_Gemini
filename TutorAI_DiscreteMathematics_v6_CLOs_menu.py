@@ -49,7 +49,7 @@ if "toc_html" in st.session_state:
       position: fixed;
       top: 20px;
       right: 20px;
-      z-index: 10000;
+      z-index: 9999;
       background-color: #4CAF50;
       color: white;
       border: none;
@@ -57,7 +57,6 @@ if "toc_html" in st.session_state:
       font-size: 14px;
       cursor: pointer;
       border-radius: 6px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
     }}
 
     #popupMenu {{
@@ -70,7 +69,7 @@ if "toc_html" in st.session_state:
       background-color: #f9f9f9;
       border: 1px solid #ccc;
       overflow: auto;
-      z-index: 9999;
+      z-index: 9998;
       resize: both;
       padding: 10px;
       border-radius: 8px;
