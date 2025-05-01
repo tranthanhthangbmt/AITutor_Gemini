@@ -854,6 +854,10 @@ def chat_with_gemini(messages):
 
     response = requests.post(GEMINI_API_URL, headers=headers, params=params, json=data)
 
+    #Hiển thị cảnh báo rõ ràng khi model quá tải
+    if response.status_code == 503:
+        return "⚠️ Mô hình đang quá tải (503). Hãy thử lại sau vài phút hoặc chọn mô hình khác trong menu."
+        
     if response.status_code == 200:
         try:
             return response.json()["candidates"][0]["content"]["parts"][0]["text"]
@@ -987,19 +991,17 @@ if all_parts:
                 ])
                 ai_question = clean_html_to_text(ai_question)
                 ai_question = format_mcq_options(ai_question)
-    
                 st.chat_message("🤖 Gia sư AI").markdown(ai_question)
-    
                 st.session_state.messages.append({
                     "role": "model",
                     "parts": [{"text": ai_question}]
                 })
-    
-                # Gán phần hiện tại để có thể đánh dấu sau khi trả lời
+
+                 # Gán phần hiện tại để có thể đánh dấu sau khi trả lời
                 st.session_state["current_part_id"] = selected_part["id"]
-    
             except Exception as e:
-                st.error(f"Lỗi khi gọi AI: {e}")
+                st.error("❗️ Không thể gọi AI vào lúc này. Hãy thử lại sau.")
+                st.stop()
     
         # Reset flag
         st.session_state["force_ai_to_ask"] = False
@@ -1174,14 +1176,15 @@ if user_input:
         ---
         Hãy đặt câu hỏi ngắn gọn, rõ ràng, liên quan trực tiếp đến nội dung trên.
         """
-        
-        reply = chat_with_gemini([
-            {"role": "user", "parts": [{"text": prompt}]}
-        ])
+        try:
+            reply = chat_with_gemini([...])
+        except Exception as e:
+            st.error(f"❗️ AI đang quá tải hoặc gặp sự cố. Vui lòng thử lại sau.\n\nChi tiết lỗi: {e}")
+            st.stop()
 
         #Nếu bạn vẫn muốn giữ messages để AI có ngữ cảnh toàn bộ buổi học, bạn có thể thêm prompt này như một lượt tương tác mới vào messages, như sau:
-        st.session_state.messages.append({"role": "user", "parts": [{"text": prompt}]})
-        reply = chat_with_gemini(st.session_state.messages)
+        #st.session_state.messages.append({"role": "user", "parts": [{"text": prompt}]})
+        #reply = chat_with_gemini(st.session_state.messages)
 
         # Nếu có thể xuất HTML (như <p>...</p>)
         reply = clean_html_to_text(reply)
@@ -1209,9 +1212,15 @@ if user_input:
 	    ---
 	    """
      
-        diem_raw = chat_with_gemini([
-	        {"role": "user", "parts": [{"text": scoring_prompt}]}
-	    ])
+        
+
+        try:
+            diem_raw = chat_with_gemini([
+    	        {"role": "user", "parts": [{"text": scoring_prompt}]}
+    	    ])
+        except Exception as e:
+            st.error(f"❗️ AI đang quá tải hoặc gặp sự cố. Vui lòng thử lại sau.\n\nChi tiết lỗi: {e}")
+            st.stop()
      
         try:
 	        diem_so = int(re.findall(r"\d+", diem_raw)[0])
