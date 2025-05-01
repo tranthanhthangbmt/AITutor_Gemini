@@ -1167,6 +1167,12 @@ if user_input:
         Hãy đặt câu hỏi ngắn gọn, rõ ràng, liên quan trực tiếp đến nội dung trên.
         """
         
+        reply = chat_with_gemini([
+            {"role": "user", "parts": [{"text": prompt}]}
+        ])
+
+        #Nếu bạn vẫn muốn giữ messages để AI có ngữ cảnh toàn bộ buổi học, bạn có thể thêm prompt này như một lượt tương tác mới vào messages, như sau:
+        st.session_state.messages.append({"role": "user", "parts": [{"text": prompt}]})
         reply = chat_with_gemini(st.session_state.messages)
 
         # Nếu có thể xuất HTML (như <p>...</p>)
