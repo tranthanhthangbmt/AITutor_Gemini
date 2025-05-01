@@ -942,16 +942,24 @@ if all_parts:
     st.session_state["toc_html"] = toc_html  # lưu để dùng phía dưới
     toc_content = st.session_state.get("toc_html", "<p>📄 Đang tải nội dung mục lục...</p>")
 
-    components.html(f"""
+    # 1. Chèn sẵn nội dung HTML mục lục vào một thẻ hidden trong body
+    st.markdown(f"""
+    <div id="tocData" style="display:none">{st.session_state.get("toc_html", "Chưa có nội dung.")}</div>
+    """, unsafe_allow_html=True)
+
+    #st.markdown(st.session_state.get("toc_html", "Chưa có nội dung."))
+
+    # 2. Script JS để đọc nội dung và hiển thị đúng vị trí
+    components.html("""
     <script>
-    function insertContentMenu() {{
+    function insertContentMenu() {
         const header = document.querySelector('[data-testid="stToolbarActions"]') 
             || document.querySelector('.stAppToolbar');
     
-        if (!header) {{
+        if (!header) {
             console.log("⚠️ Toolbar chưa sẵn sàng");
             return;
-        }}
+        }
     
         if (document.getElementById("customContentBtn")) return;
     
@@ -967,9 +975,13 @@ if all_parts:
             margin-right: 10px;
         `;
     
+        // Đọc nội dung từ phần đã chèn sẵn
+        const tocDiv = document.getElementById("tocData");
+        const tocHtml = tocDiv ? tocDiv.innerHTML : "<p>Chưa có nội dung mục lục.</p>";
+    
         const popup = document.createElement("div");
         popup.id = "popupMenu";
-        popup.innerHTML = `<h4>Mục lục bài học</h4>{st.session_state.get("toc_html", "Chưa có nội dung.")}`;
+        popup.innerHTML = `<h4>Mục lục bài học</h4>` + tocHtml;
         popup.style.cssText = `
             display: none;
             position: fixed;
@@ -987,20 +999,18 @@ if all_parts:
             box-shadow: 0 0 10px rgba(0,0,0,0.2);
         `;
     
-        btn.onclick = () => {{
+        btn.onclick = () => {
             popup.style.display = (popup.style.display === "block") ? "none" : "block";
-        }};
+        };
     
         header.insertBefore(btn, header.firstChild);
         document.body.appendChild(popup);
         console.log("✅ Nút content đã được thêm");
-    }}
+    }
     
     setTimeout(insertContentMenu, 2000);
     </script>
     """, height=0)
-
-    st.markdown(st.session_state.get("toc_html", "Chưa có nội dung."))
     
     # 2. Hiển thị bảng mục lục
     st.markdown("### 📚 **Mục lục bài học**")
