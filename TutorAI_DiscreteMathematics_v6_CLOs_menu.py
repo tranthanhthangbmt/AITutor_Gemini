@@ -945,39 +945,47 @@ if all_parts:
     components.html(f"""
     <script>
     function insertContentMenu() {{
-        const header = document.querySelector('[data-testid="stToolbarActions"]');
-        if (!header) return;
+        const header = document.querySelector('[data-testid="stToolbarActions"]') 
+            || document.querySelector('.stAppToolbar');
     
-        // Nếu đã có nút rồi thì không thêm nữa
+        if (!header) {{
+            console.log("⚠️ Toolbar chưa sẵn sàng");
+            return;
+        }}
+    
         if (document.getElementById("customContentBtn")) return;
     
         const btn = document.createElement("button");
         btn.innerHTML = "📚";
         btn.title = "Mục lục bài học";
         btn.id = "customContentBtn";
-        btn.style.background = "none";
-        btn.style.border = "none";
-        btn.style.cursor = "pointer";
-        btn.style.fontSize = "20px";
-        btn.style.marginRight = "10px";
+        btn.style.cssText = `
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 20px;
+            margin-right: 10px;
+        `;
     
         const popup = document.createElement("div");
         popup.id = "popupMenu";
         popup.innerHTML = `<h4>Mục lục bài học</h4>{st.session_state.get("toc_html", "Chưa có nội dung.")}`;
-        popup.style.display = "none";
-        popup.style.position = "fixed";
-        popup.style.top = "60px";
-        popup.style.right = "20px";
-        popup.style.width = "320px";
-        popup.style.maxHeight = "400px";
-        popup.style.backgroundColor = "#f9f9f9";
-        popup.style.border = "1px solid #ccc";
-        popup.style.overflow = "auto";
-        popup.style.zIndex = "9999";
-        popup.style.resize = "both";
-        popup.style.padding = "10px";
-        popup.style.borderRadius = "8px";
-        popup.style.boxShadow = "0 0 10px rgba(0,0,0,0.2)";
+        popup.style.cssText = `
+            display: none;
+            position: fixed;
+            top: 60px;
+            right: 20px;
+            width: 320px;
+            max-height: 400px;
+            background-color: #f9f9f9;
+            border: 1px solid #ccc;
+            overflow: auto;
+            z-index: 9999;
+            resize: both;
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.2);
+        `;
     
         btn.onclick = () => {{
             popup.style.display = (popup.style.display === "block") ? "none" : "block";
@@ -985,12 +993,15 @@ if all_parts:
     
         header.insertBefore(btn, header.firstChild);
         document.body.appendChild(popup);
+        console.log("✅ Nút content đã được thêm");
     }}
     
-    setTimeout(insertContentMenu, 1000);
+    setTimeout(insertContentMenu, 2000);
     </script>
     """, height=0)
 
+    st.markdown(st.session_state.get("toc_html", "Chưa có nội dung."))
+    
     # 2. Hiển thị bảng mục lục
     st.markdown("### 📚 **Mục lục bài học**")
     df = pd.DataFrame(parts_sorted)
