@@ -357,7 +357,7 @@ with st.sidebar:
     # ✅ Nhúng script JS duy nhất để tự động điền & lưu API key
     key_from_local = st_javascript("""
     (() => {
-        const inputEl = window.parent.document.querySelector('input[data-testid="stTextInput"][type="password"]');
+        const inputEl = document.querySelector('input[data-testid="stTextInput"][type="password"]');
         const storedKey = localStorage.getItem("gemini_api_key");
     
         // Tự động điền nếu textbox rỗng
@@ -408,7 +408,7 @@ with st.sidebar:
 
     st_javascript("""
     (() => {
-        const inputEl = window.parent.document.querySelector('input[data-testid="stTextInput"][type="password"]');
+        const inputEl = document.querySelector('input[data-testid="stTextInput"][type="password"]');
         const storedKey = localStorage.getItem("gemini_api_key");
     
         // Tự điền nếu còn trống
@@ -945,13 +945,12 @@ if all_parts:
     components.html(f"""
     <script>
     function insertContentMenu() {{
-        const header = window.parent.document.querySelector('[data-testid="stToolbarActions"]');
+        const header = document.querySelector('[data-testid="stToolbarActions"]');
         if (!header) return;
-        
-        // Đã chèn rồi thì không chèn nữa
-        if (window.parent.document.getElementById("customContentBtn")) return;
     
-        // Tạo nút 📚
+        // Nếu đã có nút rồi thì không thêm nữa
+        if (document.getElementById("customContentBtn")) return;
+    
         const btn = document.createElement("button");
         btn.innerHTML = "📚";
         btn.title = "Mục lục bài học";
@@ -962,7 +961,6 @@ if all_parts:
         btn.style.fontSize = "20px";
         btn.style.marginRight = "10px";
     
-        // Tạo popup
         const popup = document.createElement("div");
         popup.id = "popupMenu";
         popup.innerHTML = `<h4>Mục lục bài học</h4>{st.session_state.get("toc_html", "Chưa có nội dung.")}`;
@@ -980,17 +978,16 @@ if all_parts:
         popup.style.padding = "10px";
         popup.style.borderRadius = "8px";
         popup.style.boxShadow = "0 0 10px rgba(0,0,0,0.2)";
-        
-        // Gắn sự kiện cho nút
+    
         btn.onclick = () => {{
             popup.style.display = (popup.style.display === "block") ? "none" : "block";
         }};
     
         header.insertBefore(btn, header.firstChild);
-        window.parent.document.body.appendChild(popup);
+        document.body.appendChild(popup);
     }}
     
-    setTimeout(insertContentMenu, 1500);
+    setTimeout(insertContentMenu, 1000);
     </script>
     """, height=0)
 
