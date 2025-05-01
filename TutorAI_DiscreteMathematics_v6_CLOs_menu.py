@@ -582,40 +582,6 @@ with st.sidebar:
     
 st.title("🎓 Tutor AI")
 
-# Nếu người dùng vừa chọn mục từ menu Content
-#if st.session_state.get("force_ai_to_ask", False) and st.session_state.get("selected_part_for_discussion"):
-if (
-    st.session_state.get("force_ai_to_ask", False)
-    and st.session_state.get("selected_part_for_discussion")
-    and st.session_state.get("lesson_parts")  # đảm bảo đã load xong nội dung
-):
-    selected_part = st.session_state["selected_part_for_discussion"]
-    question_prompt = f"""
-    Hãy đặt một câu hỏi kiểm tra hiểu biết dựa trên phần sau trong bài học:
-
-    ---
-    {selected_part['noi_dung']}
-    ---
-
-    Câu hỏi nên ngắn gọn, rõ ràng và bám sát nội dung trên.
-    """
-
-    with st.spinner("🤖 Đang chuẩn bị câu hỏi..."):
-        ai_question = chat_with_gemini([
-            {"role": "user", "parts": [{"text": question_prompt}]}
-        ])
-        ai_question = clean_html_to_text(ai_question)
-        ai_question = format_mcq_options(ai_question)
-
-        st.chat_message("🤖 Gia sư AI").markdown(ai_question)
-        st.session_state.messages.append({
-            "role": "model",
-            "parts": [{"text": ai_question}]
-        })
-
-    # Reset cờ
-    st.session_state["force_ai_to_ask"] = False
-
 # Nhúng script MathJax
 mathjax_script = """
 <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
