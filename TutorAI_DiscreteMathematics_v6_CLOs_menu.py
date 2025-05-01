@@ -47,62 +47,80 @@ import streamlit.components.v1 as components
 
 components.html(f"""
 <style>
-#floatingSidebar {{
+#floatingTabs {{
   position: fixed;
-  top: 80px;
-  right: 20px;
-  width: 320px;
-  max-height: 500px;
-  background-color: #f9f9f9;
-  border: 1px solid #ccc;
+  top: 20px;
+  left: 20px;
   z-index: 99999;
-  resize: both;
-  overflow: auto;
-  padding: 10px;
-  border-radius: 10px;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-  cursor: move;
 }}
 
-#floatingSidebar h4 {{
-  margin-top: 0;
-  cursor: default;
+#floatingTabs button {{
+  background-color: #4CAF50;
+  border: none;
+  color: white;
+  padding: 10px 16px;
+  margin-right: 5px;
+  font-size: 14px;
+  cursor: pointer;
+  border-radius: 6px 6px 0 0;
+}}
+
+#fullScreenPanel {{
+  position: fixed;
+  top: 60px;
+  left: 0;
+  width: 100%;
+  height: calc(100% - 60px);
+  background-color: #fff;
+  z-index: 99998;
+  overflow-y: auto;
+  padding: 20px;
+  display: none;
+}}
+
+#closePanel {{
+  position: absolute;
+  top: 10px;
+  right: 20px;
+  background: #e74c3c;
+  color: white;
+  border: none;
+  font-size: 16px;
+  padding: 4px 10px;
+  border-radius: 4px;
+  cursor: pointer;
 }}
 </style>
 
-<div id="floatingSidebar">
-  <h4>📑 Mục lục bài học</h4>
-  {st.session_state["toc_html"]}
+<div id="floatingTabs">
+  <button onclick="showPanel('toc')">📑 Content</button>
+  <button onclick="showPanel('chat')">💬 Messages</button>
+</div>
+
+<div id="fullScreenPanel">
+  <button id="closePanel" onclick="hidePanel()">✖</button>
+  <div id="panelContent"></div>
 </div>
 
 <script>
-(function() {{
-  const sidebar = document.getElementById("floatingSidebar");
-  let isDragging = false;
-  let offsetX, offsetY;
+function showPanel(tab) {{
+  const panel = document.getElementById("fullScreenPanel");
+  const content = document.getElementById("panelContent");
 
-  sidebar.addEventListener("mousedown", function(e) {{
-    isDragging = true;
-    offsetX = e.clientX - sidebar.offsetLeft;
-    offsetY = e.clientY - sidebar.offsetTop;
-    sidebar.style.cursor = "grabbing";
-  }});
+  if (tab === "toc") {{
+    content.innerHTML = `{st.session_state["toc_html"]}`;
+  }} else if (tab === "chat") {{
+    content.innerHTML = `{''.join([f"<p><b>🧑‍🎓:</b> {m['parts'][0]['text']}</p>" if m['role']=='user' else f"<p><b>🤖:</b> {m['parts'][0]['text']}</p>" for m in st.session_state.get('messages', [])[1:]])}`;
+  }}
 
-  document.addEventListener("mousemove", function(e) {{
-    if (isDragging) {{
-      sidebar.style.left = (e.clientX - offsetX) + "px";
-      sidebar.style.top = (e.clientY - offsetY) + "px";
-      sidebar.style.right = "auto";  // Bỏ neo phải khi kéo đi
-    }}
-  }});
+  panel.style.display = "block";
+}}
 
-  document.addEventListener("mouseup", function() {{
-    isDragging = false;
-    sidebar.style.cursor = "move";
-  }});
-}})();
+function hidePanel() {{
+  document.getElementById("fullScreenPanel").style.display = "none";
+}}
 </script>
-""", height=600)
+""", height=0)
 
 #Hàm 1: Khởi tạo dữ liệu tiến độ học
 def init_lesson_progress(all_parts):
