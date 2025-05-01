@@ -858,6 +858,10 @@ def chat_with_gemini(messages):
         if response.status_code == 429 and "quota" in response.text.lower():
             return "⚠️ Mã API của bạn đã hết hạn hoặc vượt quá giới hạn sử dụng. Vui lòng lấy mã API mới để tiếp tục việc học."
         return f"Lỗi API: {response.status_code} - {response.text}"
+    elif response.status_code == 503:
+        return None  # model quá tải
+    else:
+        return f"Lỗi API: {response.status_code} - {response.text}"
 
 # Giao diện Streamlit
 #st.set_page_config(page_title="Tutor AI", page_icon="🎓")
@@ -987,6 +991,11 @@ if all_parts:
                 ai_question = chat_with_gemini([
                     {"role": "user", "parts": [{"text": question_prompt}]}
                 ])
+                
+                if ai_question is None:
+                    st.warning("⚠️ Hệ thống AI đang quá tải. Vui lòng thử lại sau ít phút hoặc chọn mô hình nhẹ hơn (ví dụ Gemini 2.0 Flash).")
+                    st.session_state["force_ai_to_ask"] = False
+                    st.stop()
                 ai_question = clean_html_to_text(ai_question)
                 ai_question = format_mcq_options(ai_question)
     
