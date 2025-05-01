@@ -35,6 +35,10 @@ from google.cloud.firestore_v1 import ArrayUnion
 
 import json
 
+# Đảm bảo st.set_page_config là lệnh đầu tiên
+# Giao diện Streamlit
+st.set_page_config(page_title="Tutor AI", page_icon="🎓")
+
 #for menu content
 import streamlit.components.v1 as components
 
@@ -261,9 +265,7 @@ def save_exchange_to_firestore(user_id, lesson_source, question, answer, session
         }])
     })
 
-# Đảm bảo st.set_page_config là lệnh đầu tiên
-# Giao diện Streamlit
-st.set_page_config(page_title="Tutor AI", page_icon="🎓")
+#for data firebase
 if "firebase_enabled" not in st.session_state:
     st.session_state["firebase_enabled"] = True # False  # hoặc True nếu muốn mặc định bật
     
