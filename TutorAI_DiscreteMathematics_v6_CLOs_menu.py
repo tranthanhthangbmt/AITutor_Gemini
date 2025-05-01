@@ -512,7 +512,6 @@ with st.sidebar:
 	            button_label = f"✅ {button_label}"
 	
 	        # ✅ Key luôn duy nhất nhờ thêm index
-	        #if st.button(button_label, key=f"sidebar_btn_{part_id}_{idx}"):
             button_id = f"sidebar_btn_{part_id}_{idx}"
             completed = (trang_thai == "hoan_thanh")
             button_style = f"""
