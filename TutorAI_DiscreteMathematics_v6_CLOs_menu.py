@@ -46,57 +46,63 @@ if "toc_html" not in st.session_state:
 import streamlit.components.v1 as components
 
 components.html(f"""
-<script>
-// Chỉ chèn nếu chưa tồn tại
-if (!window.contentButtonInjected) {{
-    window.contentButtonInjected = true;
-
-    const button = document.createElement("button");
-    button.innerText = "📑 Content";
-    button.id = "floatingContentButton";
-    Object.assign(button.style, {{
-        position: "fixed",
-        top: "20px",
-        right: "20px",
-        zIndex: "10000",
-        backgroundColor: "#4CAF50",
-        color: "white",
-        border: "none",
-        padding: "10px 14px",
-        fontSize: "14px",
-        cursor: "pointer",
-        borderRadius: "6px",
-        boxShadow: "0px 4px 6px rgba(0,0,0,0.1)"
-    }});
-
-    const popup = document.createElement("div");
-    popup.id = "floatingPopupMenu";
-    popup.innerHTML = `<h4 style='margin-top:0;'>Mục lục bài học</h4>{st.session_state["toc_html"]}`;
-    Object.assign(popup.style, {{
-        position: "fixed",
-        top: "60px",
-        right: "20px",
-        width: "320px",
-        maxHeight: "400px",
-        overflow: "auto",
-        backgroundColor: "#fff",
-        border: "1px solid #ccc",
-        padding: "10px",
-        borderRadius: "8px",
-        boxShadow: "0 0 10px rgba(0,0,0,0.2)",
-        zIndex: "9999",
-        display: "none"
-    }});
-
-    button.onclick = function() {{
-        popup.style.display = popup.style.display === "none" ? "block" : "none";
-    }};
-
-    document.body.appendChild(button);
-    document.body.appendChild(popup);
+<style>
+#floatingSidebar {{
+  position: fixed;
+  top: 80px;
+  right: 20px;
+  width: 320px;
+  max-height: 500px;
+  background-color: #f9f9f9;
+  border: 1px solid #ccc;
+  z-index: 99999;
+  resize: both;
+  overflow: auto;
+  padding: 10px;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  cursor: move;
 }}
+
+#floatingSidebar h4 {{
+  margin-top: 0;
+  cursor: default;
+}}
+</style>
+
+<div id="floatingSidebar">
+  <h4>📑 Mục lục bài học</h4>
+  {st.session_state["toc_html"]}
+</div>
+
+<script>
+(function() {{
+  const sidebar = document.getElementById("floatingSidebar");
+  let isDragging = false;
+  let offsetX, offsetY;
+
+  sidebar.addEventListener("mousedown", function(e) {{
+    isDragging = true;
+    offsetX = e.clientX - sidebar.offsetLeft;
+    offsetY = e.clientY - sidebar.offsetTop;
+    sidebar.style.cursor = "grabbing";
+  }});
+
+  document.addEventListener("mousemove", function(e) {{
+    if (isDragging) {{
+      sidebar.style.left = (e.clientX - offsetX) + "px";
+      sidebar.style.top = (e.clientY - offsetY) + "px";
+      sidebar.style.right = "auto";  // Bỏ neo phải khi kéo đi
+    }}
+  }});
+
+  document.addEventListener("mouseup", function() {{
+    isDragging = false;
+    sidebar.style.cursor = "move";
+  }});
+}})();
 </script>
-""", height=0)
+""", height=600)
 
 #Hàm 1: Khởi tạo dữ liệu tiến độ học
 def init_lesson_progress(all_parts):
