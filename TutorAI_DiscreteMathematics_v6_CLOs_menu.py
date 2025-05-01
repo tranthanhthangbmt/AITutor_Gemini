@@ -496,7 +496,7 @@ with st.sidebar:
             st.markdown(f"- {f.name}")
 
     with st.sidebar.expander("📑 Content – Mục lục bài học", expanded=True):
-    st.markdown(st.session_state["toc_html"], unsafe_allow_html=True)
+        st.markdown(st.session_state["toc_html"], unsafe_allow_html=True)
     
     #st.session_state["firebase_enabled"] = st.checkbox("💾 Lưu dữ liệu lên Firebase", value=st.session_state["firebase_enabled"])
     st.session_state["firebase_enabled"] = True
