@@ -495,8 +495,17 @@ with st.sidebar:
         for f in uploaded_files:
             st.markdown(f"- {f.name}")
 
+    #with st.sidebar.expander("📑 Content – Mục lục bài học", expanded=True):
+    #    st.markdown(st.session_state["toc_html"], unsafe_allow_html=True)
     with st.sidebar.expander("📑 Content – Mục lục bài học", expanded=True):
-        st.markdown(st.session_state["toc_html"], unsafe_allow_html=True)
+        st.write("🧠 Chọn một mục bên dưới để bắt đầu:")
+        for part in st.session_state.get("lesson_parts", []):
+            if st.button(f"{part['id']} – {part['tieu_de']}"):
+                st.session_state["selected_part_for_discussion"] = part
+                st.session_state["force_ai_to_ask"] = True
+                # Nếu muốn reset lại tin nhắn trước đó (giữ lại prompt hệ thống):
+                if st.session_state.messages:
+                    st.session_state.messages = [st.session_state.messages[0]]
     
     #st.session_state["firebase_enabled"] = st.checkbox("💾 Lưu dữ liệu lên Firebase", value=st.session_state["firebase_enabled"])
     st.session_state["firebase_enabled"] = True
