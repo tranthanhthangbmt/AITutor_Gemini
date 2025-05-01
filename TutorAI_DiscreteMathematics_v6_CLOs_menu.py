@@ -966,6 +966,10 @@ if all_parts:
             st.session_state["force_ai_to_ask"] = True
             #st.rerun()
 
+            # Chỉ giữ lại prompt hệ thống để tránh lặp lại phần chào hỏi
+            if st.session_state.messages:
+                st.session_state.messages = [st.session_state.messages[0]]
+
     # 👉 Nếu người dùng chọn một phần → sinh câu hỏi kiểm tra
     if (
         st.session_state.get("force_ai_to_ask", False)
