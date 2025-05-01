@@ -956,6 +956,53 @@ if all_parts:
     # 3. Lưu session để dùng tiếp
     st.session_state["lesson_parts"] = parts_sorted
 
+    # 📌 Chọn phần học từ danh sách Content
+    with st.expander("🎯 Chọn mục để bắt đầu từ Content", expanded=False):
+        lesson_part_titles = [f"{part['id']} – {part['tieu_de']} ({part['loai']})" for part in st.session_state["lesson_parts"]]
+        selected_idx = st.selectbox("🔍 Chọn phần học để AI đặt câu hỏi:", list(range(len(lesson_part_titles))), format_func=lambda i: lesson_part_titles[i])
+    
+        if st.button("🚀 Bắt đầu mục này"):
+            selected_part = st.session_state["lesson_parts"][selected_idx]
+            st.session_state["selected_part_for_discussion"] = selected_part
+            st.session_state["force_ai_to_ask"] = True
+            st.rerun()
+
+    # 👉 Nếu người dùng chọn một phần → sinh câu hỏi kiểm tra
+    if (
+        st.session_state.get("force_ai_to_ask", False)
+        and st.session_state.get("selected_part_for_discussion")
+        and st.session_state.get("lesson_parts")
+    ):
+        selected_part = st.session_state["selected_part_for_discussion"]
+        question_prompt = f"""
+        Dựa trên nội dung sau, hãy đặt 1 câu hỏi kiểm tra hiểu biết cho học sinh, rồi chờ học sinh trả lời:
+        ---
+        {selected_part['noi_dung']}
+        ---
+        Câu hỏi cần ngắn gọn, rõ ràng, liên quan chặt chẽ đến nội dung trên.
+        """
+    
+        with st.spinner("🤖 Đang tạo câu hỏi từ mục bạn chọn..."):
+            try:
+                ai_question = chat_with_gemini([
+                    {"role": "user", "parts": [{"text": question_prompt}]}
+                ])
+                ai_question = clean_html_to_text(ai_question)
+                ai_question = format_mcq_options(ai_question)
+    
+                st.chat_message("🤖 Gia sư AI").markdown(ai_question)
+                st.session_state.messages.append({
+                    "role": "model",
+                    "parts": [{"text": ai_question}]
+                })
+    
+                st.session_state["current_part_id"] = selected_part["id"]
+    
+            except Exception as e:
+                st.error(f"⚠️ Lỗi khi tạo câu hỏi từ AI: {e}")
+    
+        st.session_state["force_ai_to_ask"] = False
+        
     # ✅ Nếu vừa khôi phục tiến độ, thông báo ra
     if st.session_state.get("progress_restored"):
         st.success(f"✅ Đã khôi phục tiến độ học từ {st.session_state['progress_restored']}.")
