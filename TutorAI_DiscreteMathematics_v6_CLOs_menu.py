@@ -510,8 +510,8 @@ with st.sidebar:
 	        button_label = f"{part_id} – {tieu_de}"
 	        if trang_thai == "hoan_thanh":
 	            button_label = f"✅ {button_label}"
-	
-	        # ✅ Key luôn duy nhất nhờ thêm index
+            
+            # ✅ Key luôn duy nhất nhờ thêm index
             button_id = f"sidebar_btn_{part_id}_{idx}"
             completed = (trang_thai == "hoan_thanh")
             button_style = f"""
