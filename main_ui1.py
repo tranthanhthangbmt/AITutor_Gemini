@@ -45,7 +45,7 @@ if "toc_html" not in st.session_state:
 #for menu content
 import streamlit.components.v1 as components
 
-import content_parser
+from content_parser import clean_text, make_id, classify_section, parse_pdf_file, parse_docx_file, parse_uploaded_file
 
 
 #Hàm 1: Khởi tạo dữ liệu tiến độ học
