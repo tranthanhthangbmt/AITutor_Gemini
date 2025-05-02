@@ -2,6 +2,8 @@ import asyncio
 import base64
 import streamlit as st
 import edge_tts
+import uuid
+import os
 
 
 def generate_audio_filename(text, voice="vi-VN-HoaiMyNeural"):
@@ -41,6 +43,25 @@ def play_audio(text, voice="vi-VN-HoaiMyNeural"):
             </audio>
         """
         st.markdown(audio_html, unsafe_allow_html=True)
+
+
+def generate_and_encode_audio(text, voice="vi-VN-HoaiMyNeural"):
+    """
+    Sinh file audio từ văn bản, encode base64 để nhúng HTML
+    """
+    async def _generate_audio(text, filename, voice):
+        communicate = edge_tts.Communicate(text, voice)
+        await communicate.save(filename)
+
+    temp_filename = f"temp_{uuid.uuid4().hex}.mp3"
+    asyncio.run(_generate_audio(text, temp_filename, voice))
+
+    with open(temp_filename, "rb") as f:
+        audio_bytes = f.read()
+        b64 = base64.b64encode(audio_bytes).decode()
+
+    os.remove(temp_filename)
+    return b64
 
 
 # Gợi ý giọng đọc tiếng Việt:
