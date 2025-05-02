@@ -77,7 +77,7 @@ from firestore_logger import (
     get_history
 )
 
-from dashboard import show_progress_dashboard, show_part_detail_table
+#from dashboard import show_progress_dashboard, show_part_detail_table
            
 #tự động nhận diện loại nội dung:
 def tach_noi_dung_bai_hoc_tong_quat(file_path):
