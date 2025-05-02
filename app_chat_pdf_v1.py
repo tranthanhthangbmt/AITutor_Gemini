@@ -23,10 +23,10 @@ with st.sidebar:
     st.write("👉 Chọn bài học hoặc tùy chỉnh thêm ở đây.")
 
     st.markdown("## 📄 Tài liệu PDF")
-        st.components.v1.html(f"""
-        <iframe src="https://docs.google.com/gview?url={PDF_URL}&embedded=true"
-                style="width:100%; height:85vh;" frameborder="0"></iframe>
-        """, height=700)
+    st.components.v1.html(f"""
+    <iframe src="https://docs.google.com/gview?url={PDF_URL}&embedded=true"
+            style="width:100%; height:85vh;" frameborder="0"></iframe>
+    """, height=700)
 
 
 
