@@ -30,15 +30,18 @@ with col2:
             {"role": "assistant", "content": "Chào bạn! Bạn muốn hỏi gì về đồ thị Hamilton?"}
         ]
 
-    if len(st.session_state.chat) >= 1:
-        last_msgs = st.session_state.chat[-2:]  # Lấy tối đa 2 message cuối cùng (1 hỏi + 1 đáp)
-    
-        for msg in last_msgs:
-            if msg["role"] == "user":
-                st.chat_message("🧑‍🎓 Học sinh").write(msg["content"])
-            else:
-                st.chat_message("🤖 Gia sư AI").write(msg["content"])
+    # 👉 Hiển thị duy nhất cặp hỏi-trả lời gần nhất
+    last_msgs = st.session_state.chat[-2:] if len(st.session_state.chat) >= 2 else st.session_state.chat
 
+    for msg in last_msgs:
+        if msg["role"] == "user":
+            with st.chat_message("🧑‍🎓 Học sinh"):
+                st.write(msg["content"])
+        else:
+            with st.chat_message("🤖 Gia sư AI"):
+                st.write(msg["content"])
+
+    # 👉 Ô nhập prompt nằm bên dưới
     user_input = st.chat_input("Nhập câu hỏi hoặc trả lời...")
 
     if user_input:
@@ -57,4 +60,6 @@ with col2:
                 reply = "❌ Lỗi khi gọi API Gemini."
 
             st.session_state.chat.append({"role": "assistant", "content": reply})
-            st.chat_message("🤖 Gia sư AI").write(reply)
+
+        # 👉 Gọi lại chính trang để hiển thị đúng 1 cặp mới nhất
+        st.rerun()
