@@ -22,22 +22,26 @@ with st.sidebar:
 html(f"""
 <style>
   html, body {{
-    overflow: hidden;
     margin: 0;
     padding: 0;
     height: 100%;
+    overflow: hidden;
   }}
+
   .split {{
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     height: 88vh;
   }}
-  .top {{
-    height: 45vh;
-    border-bottom: 2px solid #ccc;
-    background: white;
+
+  .left {{
+    width: 50%;
+    min-width: 400px;
+    border-right: 2px solid #ccc;
+    background-color: white;
   }}
-  .bottom {{
+
+  .right {{
     flex: 1;
     overflow-y: auto;
     padding: 15px;
@@ -45,15 +49,15 @@ html(f"""
 </style>
 
 <div class="split">
-  <div class="top">
+  <div class="left">
     <iframe src="https://docs.google.com/gview?url={PDF_URL}&embedded=true"
             style="width: 100%; height: 100%;" frameborder="0"></iframe>
   </div>
-  <div class="bottom">
+  <div class="right">
     <div id="chat-area"></div>
   </div>
 </div>
-""", height=700)
+""", height=750)
 
 # Tạo session để lưu hội thoại
 if "chat" not in st.session_state:
