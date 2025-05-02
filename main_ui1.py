@@ -77,6 +77,11 @@ from firestore_logger import (
     get_history
 )
 
+from  file_reader import (
+    extract_text_from_uploaded_file,
+    extract_pdf_text_from_url    
+)
+
 #from dashboard import show_progress_dashboard, show_part_detail_table
 
 #for data firebase
@@ -145,25 +150,6 @@ def format_mcq_options(text):
     text = re.sub(r'\s*C\.', r'\nC.', text)
     text = re.sub(r'\s*D\.', r'\nD.', text)
     return text
-    
-def extract_text_from_uploaded_file(uploaded_file):
-    if uploaded_file is None:
-        return ""
-
-    file_type = uploaded_file.name.split(".")[-1].lower()
-    try:
-        if file_type == "pdf":
-            with fitz.open(stream=uploaded_file.read(), filetype="pdf") as doc:
-                return "\n".join(page.get_text() for page in doc)
-        elif file_type == "txt":
-            return uploaded_file.read().decode("utf-8")
-        elif file_type == "docx":
-            doc = docx.Document(uploaded_file)
-            return "\n".join([para.text for para in doc.paragraphs])
-        else:
-            return "❌ Định dạng không được hỗ trợ."
-    except Exception as e:
-        return f"❌ Lỗi đọc file: {e}"
 
 # Xác thực API bằng request test
 def is_valid_gemini_key(key):
@@ -586,21 +572,6 @@ if selected_lesson == "👉 Chọn bài học..." and not uploaded_files: #kiể
 #GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent" 
 #GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro-preview-03-25:generateContent"
 GEMINI_API_URL = st.session_state.get("GEMINI_API_URL", "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent")
-
-#read file PDF
-def extract_pdf_text_from_url(url):
-    try:
-        response = requests.get(url)
-        if response.status_code != 200:
-            return "❌ Không thể tải tài liệu PDF từ GitHub."
-
-        with fitz.open(stream=io.BytesIO(response.content), filetype="pdf") as doc:
-            text = ""
-            for page in doc:
-                text += page.get_text()
-        return text
-    except Exception as e:
-        return f"Lỗi khi đọc PDF: {e}"
 
 #PDF_URL = "https://raw.githubusercontent.com/tranthanhthangbmt/AITutor_Gemini/main/handoutBuoi4.pdf"
 #pdf_context = extract_pdf_text_from_url(PDF_URL)
