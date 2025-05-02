@@ -78,37 +78,6 @@ from firestore_logger import (
 )
 
 #from dashboard import show_progress_dashboard, show_part_detail_table
-           
-#tự động nhận diện loại nội dung:
-def tach_noi_dung_bai_hoc_tong_quat(file_path):
-    doc = fitz.open(file_path)
-    toc = doc.get_toc()
-
-    pages_text = [page.get_text("text") for page in doc]
-    results = []
-    current_section = None
-
-    for idx, (level, title, page_num) in enumerate(toc):
-        page_idx = page_num - 1
-        start_text = pages_text[page_idx]
-        
-        extracted_text = start_text  # Tạm thời, để tránh lỗi
-        
-        new_section = classify_section(title)
-        if new_section:
-            current_section = new_section
-
-        loai = current_section if current_section else 'khac'
-        id_ = make_id(loai, idx + 1)
-
-        results.append({
-            'id': id_,
-            'loai': loai,
-            'tieu_de': title.strip(),
-            'noi_dung': clean_text(extracted_text)
-        })
-
-    return results
 
 #for data firebase
 if "firebase_enabled" not in st.session_state:
@@ -718,7 +687,7 @@ if uploaded_files:
                 tmpfile.write(file_bytes)
                 tmpfile_path = tmpfile.name
     
-            parts = tach_noi_dung_bai_hoc_tong_quat(tmpfile_path)
+            parts = parse_pdf_file(tmpfile_path)
             all_parts.extend(parts)
     
         else:
@@ -735,7 +704,7 @@ elif selected_lesson != "👉 Chọn bài học..." and default_link.strip():
             tmpfile.write(response.content)
             tmpfile_path = tmpfile.name
         try:
-            parts = tach_noi_dung_bai_hoc_tong_quat(tmpfile_path)
+            parts = parse_pdf_file(tmpfile_path)
             all_parts.extend(parts)
         finally:
             if os.path.exists(tmpfile_path):
