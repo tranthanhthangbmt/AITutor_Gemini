@@ -48,13 +48,13 @@ import streamlit.components.v1 as components
 
 components.html("""
 <style>
-  .split-screen {
+  .split-screen {{
     height: 85vh;
     display: flex;
     flex-direction: column;
-  }
+  }}
 
-  .fixed-top {
+  .fixed-top {{
     height: 40vh;
     overflow: auto;
     position: sticky;
@@ -62,28 +62,22 @@ components.html("""
     z-index: 10;
     border-bottom: 2px solid #ccc;
     background-color: white;
-  }
+  }}
 
-  .scrollable-bottom {
+  .scrollable-bottom {{
     flex: 1;
     overflow-y: auto;
     padding: 10px;
-  }
+  }}
 </style>
 
 <div class="split-screen">
-  <!-- Phần trên: luôn hiển thị cố định -->
   <div class="fixed-top">
     <iframe src="https://docs.google.com/gview?url=https://example.com/sample.pdf&embedded=true"
             style="width: 100%; height: 100%;" frameborder="0"></iframe>
   </div>
-
-  <!-- Phần dưới: có thể cuộn -->
   <div class="scrollable-bottom">
-    <h4>💬 Khu vực chat</h4>
-    <p>Nội dung chat sẽ hiển thị ở đây và có thể cuộn thoải mái.</p>
-    <p>Thêm nhiều dòng để thấy hiệu ứng cuộn...</p>
-    <p style="line-height: 2;">{}</p>
+    <p>{}</p>
   </div>
 </div>
 """.format("💬 " * 300), height=850)
