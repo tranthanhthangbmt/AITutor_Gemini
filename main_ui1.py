@@ -67,7 +67,8 @@ from progress_tracker import (
 from audio_module import (
     generate_audio_filename,
     generate_audio_async,
-    play_audio
+    play_audio,
+    generate_and_encode_audio
 )
 
 from firestore_logger import (
@@ -108,30 +109,6 @@ def tach_noi_dung_bai_hoc_tong_quat(file_path):
         })
 
     return results
-
-def generate_and_encode_audio(text, voice="vi-VN-HoaiMyNeural"):
-    """
-    Sinh file audio từ văn bản, encode base64 để nhúng HTML
-    """
-    import edge_tts
-    import asyncio
-    import base64
-    import uuid
-    import os
-
-    async def _generate_audio(text, filename, voice):
-        communicate = edge_tts.Communicate(text, voice)
-        await communicate.save(filename)
-
-    temp_filename = f"temp_{uuid.uuid4().hex}.mp3"
-    asyncio.run(_generate_audio(text, temp_filename, voice))
-
-    with open(temp_filename, "rb") as f:
-        audio_bytes = f.read()
-        b64 = base64.b64encode(audio_bytes).decode()
-
-    os.remove(temp_filename)
-    return b64
 
 #for data firebase
 if "firebase_enabled" not in st.session_state:
