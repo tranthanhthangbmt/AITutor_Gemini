@@ -48,15 +48,22 @@ import streamlit.components.v1 as components
 
 components.html("""
 <style>
+  html, body {{
+    overflow: hidden; /* ❌ Tắt cuộn toàn trang */
+    margin: 0;
+    padding: 0;
+    height: 100%;
+  }}
+
   .split-screen {{
-    height: 85vh;
     display: flex;
     flex-direction: column;
+    height: 85vh;
   }}
 
   .fixed-top {{
     height: 40vh;
-    overflow: auto;
+    overflow: hidden;
     position: sticky;
     top: 0;
     z-index: 10;
@@ -66,7 +73,7 @@ components.html("""
 
   .scrollable-bottom {{
     flex: 1;
-    overflow-y: auto;
+    overflow-y: auto; /* ✅ Chỉ phần này cuộn được */
     padding: 10px;
   }}
 </style>
@@ -76,11 +83,13 @@ components.html("""
     <iframe src="https://docs.google.com/gview?url=https://example.com/sample.pdf&embedded=true"
             style="width: 100%; height: 100%;" frameborder="0"></iframe>
   </div>
+
   <div class="scrollable-bottom">
+    <h4>💬 Khu vực chat</h4>
     <p>{}</p>
   </div>
 </div>
-""".format("💬 " * 300), height=850)
+""".format("💬 Tin nhắn... " * 200), height=850)
 
 #Hàm 1: Khởi tạo dữ liệu tiến độ học
 def init_lesson_progress(all_parts):
