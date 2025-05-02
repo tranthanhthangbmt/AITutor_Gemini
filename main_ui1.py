@@ -56,6 +56,25 @@ from session_manager import (
     update_progress,
     get_current_session_info
 )
+from progress_tracker import (
+    get_progress_summary,
+    list_incomplete_parts,
+    get_low_understanding_parts,
+    mark_part_review_needed,
+    get_progress_table
+)
+
+from audio_module import (
+    generate_audio_filename,
+    generate_audio_async,
+    play_audio
+)
+
+from firestore_logger import (
+    save_exchange_to_firestore,
+    save_part_feedback,
+    get_history
+)
            
 #tự động nhận diện loại nội dung:
 def tach_noi_dung_bai_hoc_tong_quat(file_path):
@@ -111,27 +130,6 @@ def generate_and_encode_audio(text, voice="vi-VN-HoaiMyNeural"):
 
     os.remove(temp_filename)
     return b64
-    
-def save_exchange_to_firestore(user_id, lesson_source, question, answer, session_id):
-    doc_id = f"{user_id}_{lesson_source.replace('::', '_')}_{session_id}"
-    doc_ref = db.collection("sessions").document(doc_id)
-
-    # Tạo document nếu chưa tồn tại (KHÔNG gán answer_history ở đây)
-    doc_ref.set({
-        "user_id": user_id,
-        "lesson_source": lesson_source,
-        "session_id": session_id,
-        "timestamp": firestore.SERVER_TIMESTAMP
-    }, merge=True)
-
-    # Append vào mảng answer_history
-    doc_ref.update({
-        "answer_history": firestore.ArrayUnion([{
-            "question": question,
-            "answer": answer,
-            "timestamp": datetime.utcnow()
-        }])
-    })
 
 #for data firebase
 if "firebase_enabled" not in st.session_state:
