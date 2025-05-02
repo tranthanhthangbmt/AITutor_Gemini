@@ -142,10 +142,7 @@ def tach_noi_dung_bai_hoc_tong_quat(file_path):
         }.get(loai, 'KHAC')
         return f"{prefix}_{stt}"
 
-    def clean_text(text):
-        import re
-        text = re.sub(r'Page \d+ of \d+', '', text)
-        return text.strip()
+    import content_parser    
 
     for idx, (level, title, page_num) in enumerate(toc):
         page_idx = page_num - 1
