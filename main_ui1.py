@@ -114,35 +114,7 @@ def tach_noi_dung_bai_hoc_tong_quat(file_path):
 
     pages_text = [page.get_text("text") for page in doc]
     results = []
-
-    # Phân loại phần
-    def classify_section(title):
-        title_upper = title.upper()
-        if "PHẦN 1:" in title_upper:
-            return 'ly_thuyet'
-        elif "PHẦN 2:" in title_upper:
-            return 'bai_tap_co_giai'
-        elif "PHẦN 3:" in title_upper:
-            return 'trac_nghiem'
-        elif "PHẦN 4:" in title_upper:
-            return 'luyen_tap'
-        elif "PHẦN 5:" in title_upper:
-            return 'du_an'
-        else:
-            return None  # Không thay đổi nếu không phải tiêu đề phần chính
-
     current_section = None
-
-    def make_id(loai, stt):
-        prefix = {
-            'ly_thuyet': 'LYTHUYET',
-            'bai_tap_co_giai': 'BAITAPCOGIAI',
-            'trac_nghiem': 'TRACNGHIEM',
-            'luyen_tap': 'LUYENTAP',
-            'du_an': 'DUAN',
-            'khac': 'KHAC'
-        }.get(loai, 'KHAC')
-        return f"{prefix}_{stt}" 
 
     for idx, (level, title, page_num) in enumerate(toc):
         page_idx = page_num - 1
