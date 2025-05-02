@@ -45,6 +45,8 @@ if "toc_html" not in st.session_state:
 #for menu content
 import streamlit.components.v1 as components
 
+import content_parser
+
 
 #Hàm 1: Khởi tạo dữ liệu tiến độ học
 def init_lesson_progress(all_parts):
@@ -140,9 +142,7 @@ def tach_noi_dung_bai_hoc_tong_quat(file_path):
             'du_an': 'DUAN',
             'khac': 'KHAC'
         }.get(loai, 'KHAC')
-        return f"{prefix}_{stt}"
-
-    import content_parser    
+        return f"{prefix}_{stt}" 
 
     for idx, (level, title, page_num) in enumerate(toc):
         page_idx = page_num - 1
