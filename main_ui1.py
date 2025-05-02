@@ -46,67 +46,17 @@ if "toc_html" not in st.session_state:
 import streamlit.components.v1 as components
 
 from content_parser import clean_text, make_id, classify_section, parse_pdf_file, parse_docx_file, parse_uploaded_file
-
-
-#Hàm 1: Khởi tạo dữ liệu tiến độ học
-def init_lesson_progress(all_parts):
-    """
-    Tạo danh sách lesson_progress từ all_parts, thêm trạng thái mặc định.
-    """
-    lesson_progress = []
-    for part in all_parts:
-        lesson_progress.append({
-            "id": part["id"],
-            "loai": part["loai"],
-            "tieu_de": part["tieu_de"],
-            "noi_dung": part["noi_dung"],
-            "trang_thai": "chua_hoan_thanh",  # mặc định
-            "diem_so": 0  # mặc định
-        })
-    st.session_state["lesson_progress"] = lesson_progress
-
-#Hàm 2: Lưu tiến độ học ra file JSON
-def save_lesson_progress(filename="tien_do_bai_hoc.json"):
-    """
-    Lưu lesson_progress hiện tại thành file JSON để tải về.
-    """
-    if "lesson_progress" in st.session_state:
-        json_data = json.dumps(st.session_state["lesson_progress"], ensure_ascii=False, indent=2)
-        st.download_button(
-            label="📥 Tải file tiến độ (.json)",
-            data=json_data,
-            file_name=filename,
-            mime="application/json"
-        )
-    else:
-        st.warning("⚠️ Chưa có tiến độ học nào để lưu.")
-
-#Hàm 3: Cập nhật trạng thái sau mỗi phần học
-def update_progress(part_id, trang_thai="hoan_thanh", diem_so=100):
-    """
-    Cập nhật trạng thái và điểm số cho một phần học theo ID.
-    """
-    if "lesson_progress" not in st.session_state:
-        st.warning("⚠️ Chưa có dữ liệu tiến độ để cập nhật.")
-        return
-
-    for item in st.session_state["lesson_progress"]:
-        if item["id"] == part_id:
-            item["trang_thai"] = trang_thai
-            item["diem_so"] = diem_so
-            break
-#cập nhật trạng thái từ file JSON vào bài học mới:
-def merge_lesson_progress(existing_progress, loaded_progress):
-    """
-    Ghép dữ liệu tiến độ cũ vào tiến độ hiện tại.
-    """
-    loaded_dict = {item["id"]: item for item in loaded_progress}
-
-    for item in existing_progress:
-        if item["id"] in loaded_dict:
-            item["trang_thai"] = loaded_dict[item["id"]]["trang_thai"]
-            item["diem_so"] = loaded_dict[item["id"]]["diem_so"]
-            
+from session_manager import (
+    generate_session_id,
+    init_session_state,
+    init_lesson_progress,
+    save_lesson_progress,
+    load_lesson_progress_from_file,
+    merge_lesson_progress,
+    update_progress,
+    get_current_session_info
+)
+           
 #tự động nhận diện loại nội dung:
 def tach_noi_dung_bai_hoc_tong_quat(file_path):
     doc = fitz.open(file_path)
