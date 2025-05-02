@@ -46,20 +46,21 @@ if "toc_html" not in st.session_state:
 import streamlit.components.v1 as components
 
 components.html("""
-<div style="display: flex; height: 85vh; border: 1px solid #ccc;">
-  <div style="flex: 1; resize: horizontal; overflow: auto; min-width: 300px; max-width: 80%; border-right: 2px solid #aaa;">
-    <!-- PDF Viewer: Thay bằng nội dung PDF thực tế -->
+<div style="display: flex; flex-direction: column; height: 85vh;">
+  <!-- Phần trên: hiển thị PDF -->
+  <div style="flex: 1; resize: vertical; overflow: auto; min-height: 200px; border-bottom: 2px solid #aaa;">
     <iframe src="https://docs.google.com/gview?url=https://example.com/sample.pdf&embedded=true"
             style="width: 100%; height: 100%;" frameborder="0">
     </iframe>
   </div>
+
+  <!-- Phần dưới: hiển thị nội dung chat -->
   <div style="flex: 1; overflow: auto; padding: 10px;">
-    <!-- Nội dung chat sẽ được hiển thị trong Streamlit -->
-    <h4>💬 Đây là khu vực hiển thị chat</h4>
-    <p>Bạn có thể chèn nội dung chatbot Streamlit vào đây nếu cần đồng bộ.</p>
+    <h4>💬 Khu vực chat</h4>
+    <p>Đây là nơi hiển thị lịch sử trao đổi với gia sư AI.</p>
   </div>
 </div>
-""", height=700)
+""", height=800)
 
 #Hàm 1: Khởi tạo dữ liệu tiến độ học
 def init_lesson_progress(all_parts):
