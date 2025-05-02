@@ -37,7 +37,8 @@ import json
 
 # Đảm bảo st.set_page_config là lệnh đầu tiên
 # Giao diện Streamlit
-st.set_page_config(page_title="Tutor AI", page_icon="🎓")
+#st.set_page_config(page_title="Tutor AI", page_icon="🎓")
+st.set_page_config(page_title="Tutor AI", page_icon="🎓", layout="wide")
 
 if "toc_html" not in st.session_state:
     st.session_state["toc_html"] = "<p><em>Chưa có mục lục bài học.</em></p>"
