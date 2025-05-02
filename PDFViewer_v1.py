@@ -47,21 +47,46 @@ if "toc_html" not in st.session_state:
 import streamlit.components.v1 as components
 
 components.html("""
-<div style="display: flex; flex-direction: column; height: 85vh;">
-  <!-- Phần trên: hiển thị PDF -->
-  <div style="flex: 1; resize: vertical; overflow: auto; min-height: 200px; border-bottom: 2px solid #aaa;">
+<style>
+  .split-screen {
+    height: 85vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .fixed-top {
+    height: 40vh;
+    overflow: auto;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    border-bottom: 2px solid #ccc;
+    background-color: white;
+  }
+
+  .scrollable-bottom {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px;
+  }
+</style>
+
+<div class="split-screen">
+  <!-- Phần trên: luôn hiển thị cố định -->
+  <div class="fixed-top">
     <iframe src="https://docs.google.com/gview?url=https://example.com/sample.pdf&embedded=true"
-            style="width: 100%; height: 100%;" frameborder="0">
-    </iframe>
+            style="width: 100%; height: 100%;" frameborder="0"></iframe>
   </div>
 
-  <!-- Phần dưới: hiển thị nội dung chat -->
-  <div style="flex: 1; overflow: auto; padding: 10px;">
+  <!-- Phần dưới: có thể cuộn -->
+  <div class="scrollable-bottom">
     <h4>💬 Khu vực chat</h4>
-    <p>Đây là nơi hiển thị lịch sử trao đổi với gia sư AI.</p>
+    <p>Nội dung chat sẽ hiển thị ở đây và có thể cuộn thoải mái.</p>
+    <p>Thêm nhiều dòng để thấy hiệu ứng cuộn...</p>
+    <p style="line-height: 2;">{}</p>
   </div>
 </div>
-""", height=800)
+""".format("💬 " * 300), height=850)
 
 #Hàm 1: Khởi tạo dữ liệu tiến độ học
 def init_lesson_progress(all_parts):
