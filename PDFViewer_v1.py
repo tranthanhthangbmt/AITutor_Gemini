@@ -49,7 +49,7 @@ import streamlit.components.v1 as components
 components.html("""
 <style>
   html, body {{
-    overflow: hidden; /* ❌ Tắt cuộn toàn trang */
+    overflow: hidden;
     margin: 0;
     padding: 0;
     height: 100%;
@@ -58,23 +58,20 @@ components.html("""
   .split-screen {{
     display: flex;
     flex-direction: column;
-    height: 85vh;
+    height: 88vh;
   }}
 
   .fixed-top {{
     height: 40vh;
     overflow: hidden;
-    position: sticky;
-    top: 0;
-    z-index: 10;
     border-bottom: 2px solid #ccc;
     background-color: white;
   }}
 
   .scrollable-bottom {{
     flex: 1;
-    overflow-y: auto; /* ✅ Chỉ phần này cuộn được */
-    padding: 10px;
+    overflow-y: auto;
+    padding: 0 10px;
   }}
 </style>
 
@@ -83,13 +80,22 @@ components.html("""
     <iframe src="https://docs.google.com/gview?url=https://example.com/sample.pdf&embedded=true"
             style="width: 100%; height: 100%;" frameborder="0"></iframe>
   </div>
-
   <div class="scrollable-bottom">
-    <h4>💬 Khu vực chat</h4>
-    <p>{}</p>
+    <div id="chat-placeholder"></div>
   </div>
 </div>
-""".format("💬 Tin nhắn... " * 200), height=850)
+""", height=850)
+
+with st.container():
+    st.title("🎓 Tutor AI")
+    st.markdown("📚 **Mục lục bài học**")
+    # phần st.markdown mục lục...
+    st.markdown("🎯 **Chọn mục để bắt đầu từ Content**")
+    # phần selectbox để chọn bài...
+    for msg in st.session_state.messages[1:]:
+        role = "🧑‍🎓 Học sinh" if msg["role"] == "user" else "🤖 Gia sư AI"
+        st.chat_message(role).write(msg["parts"][0]["text"])
+    user_input = st.chat_input("Nhập câu trả lời hoặc câu hỏi...")
 
 #Hàm 1: Khởi tạo dữ liệu tiến độ học
 def init_lesson_progress(all_parts):
