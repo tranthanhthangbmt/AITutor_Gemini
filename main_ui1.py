@@ -82,6 +82,14 @@ from  file_reader import (
     extract_pdf_text_from_url    
 )
 
+from text_utils import (
+    clean_html_to_text,
+    format_mcq_options,
+    convert_to_mathjax,
+    convert_to_mathjax1,
+    convert_parentheses_to_latex
+)
+
 #from dashboard import show_progress_dashboard, show_part_detail_table
 
 #for data firebase
@@ -135,21 +143,6 @@ def load_available_lessons_from_txt(url):
         
 LESSON_LIST_URL = "https://raw.githubusercontent.com/tranthanhthangbmt/AITutor_Gemini/main/Data/DiscreteMathematicsLesson3B.txt"  
 available_lessons = load_available_lessons_from_txt(LESSON_LIST_URL) 
-
-def clean_html_to_text(text):
-    soup = BeautifulSoup(text, "html.parser")
-    return soup.get_text()
-    
-def format_mcq_options(text):
-    """
-    Tách các lựa chọn A. B. C. D. thành dòng riêng biệt – kể cả khi bị dính liền câu hỏi hoặc dính nhau.
-    """
-    # Xử lý A. B. C. D. (chèn \n trước nếu chưa có)
-    text = re.sub(r'\s*A\.', r'\nA.', text)
-    text = re.sub(r'\s*B\.', r'\nB.', text)
-    text = re.sub(r'\s*C\.', r'\nC.', text)
-    text = re.sub(r'\s*D\.', r'\nD.', text)
-    return text
 
 # Xác thực API bằng request test
 def is_valid_gemini_key(key):
@@ -477,79 +470,6 @@ mathjax_script = """
 """
 
 st.markdown(mathjax_script, unsafe_allow_html=True)
-
-def convert_to_mathjax(text):
-    import re
-
-    def is_inline_math(expr):
-        math_keywords = ["=", "!", r"\times", r"\div", r"\cdot", r"\frac", "^", "_", 
-                         r"\ge", r"\le", r"\neq", r"\binom", "C(", "C_", "n", "k"]
-        return any(kw in expr for kw in math_keywords)
-
-    def wrap_inline(match):
-        expr = match.group(1).strip()
-        return f"\\({expr}\\)" if is_inline_math(expr) else match.group(0)
-
-    # Xử lý inline: ( ... ) → \( ... \)
-    text = re.sub(r"\(([^()]+)\)", wrap_inline, text)
-    return text
-
-def convert_to_mathjax1(text):
-    import re
-
-    # 1. Những biểu thức đã được bọc bởi \(..\), \[..\], $$..$$ → giữ nguyên
-    protected_patterns = [
-        r"\\\([^\(\)]+?\\\)",  # \( ... \)
-        r"\\\[[^\[\]]+?\\\]",  # \[ ... \]
-        r"\$\$[^\$]+\$\$",     # $$ ... $$
-        r"`[^`]+?`",           # inline code block
-    ]
-
-    def protect_existing(expr):
-        return re.sub('|'.join(protected_patterns), lambda m: f"{{{{PROTECTED:{m.group(0)}}}}}", expr)
-
-    def restore_protected(expr):
-        return re.sub(r"\{\{PROTECTED:(.+?)\}\}", lambda m: m.group(1), expr)
-
-    def is_math_expression(expr):
-        math_keywords = ["=", "!", r"\times", r"\div", r"\cdot", r"\frac", "^", "_", 
-                         r"\ge", r"\le", r"\neq", r"\binom", "C(", "C_", "n!", "A_", "C_"]
-        return any(kw in expr for kw in math_keywords)
-
-    def wrap_likely_math(match):
-        expr = match.group(0)
-        stripped = expr.strip()
-        if is_math_expression(stripped):
-            return f"\\({stripped}\\)"
-        return expr
-
-    # Step 1: Bảo vệ các đoạn đã có công thức đúng
-    text = protect_existing(text)
-
-    # Step 2: Tìm và bọc những biểu thức dạng chưa được bọc (có dấu ngoặc hoặc dấu =) có chứa ký hiệu toán học
-    # Ví dụ: n! = n × (n-1) × ... × 2 × 1 → toàn bộ sẽ được bọc
-    text = re.sub(r"(?<!\\)(\b[^()\n]{1,50}\([^()]+\)[^()\n]{0,50})", wrap_likely_math, text)
-
-    # Step 3: Restore lại các biểu thức đã đúng định dạng
-    text = restore_protected(text)
-
-    return text
-
-	
-def convert_parentheses_to_latex(text):
-    """
-    Chuyển tất cả biểu thức trong dấu () thành cú pháp \( ... \) nếu là biểu thức toán học.
-    Bao gồm cả các biến đơn như (n), (k), (C(n, k))
-    """
-    def is_math_expression(expr):
-        math_keywords = ["=", "!", r"\times", r"\div", r"\cdot", r"\frac", "^", "_", 
-                         r"\ge", r"\le", r"\neq", r"\binom", "C(", "C_", "n", "k"]
-        return any(keyword in expr for keyword in math_keywords) or re.fullmatch(r"[a-zA-Z0-9_+\-\*/\s\(\),]+", expr)
-
-    # Thay tất cả (toán học) => \( ... \)
-    return re.sub(r"\(([^()]+)\)", 
-                  lambda m: f"\\({m.group(1).strip()}\\)" if is_math_expression(m.group(1)) else m.group(0), 
-                  text)
 	
 # Load biến môi trường
 load_dotenv()
