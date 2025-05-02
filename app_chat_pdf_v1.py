@@ -1,6 +1,5 @@
 import streamlit as st
 import requests
-from streamlit.components.v1 import html
 
 st.set_page_config(page_title="Tutor AI", layout="wide")
 
@@ -12,54 +11,49 @@ with st.sidebar:
     st.markdown("## 📚 Mục lục")
     st.write("👉 Chọn bài học hoặc tùy chỉnh thêm ở đây.")
 
-# 👉 Bắt đầu layout chia đôi ngang
-col1, col2 = st.columns([1.2, 1.5], gap="large")  # Tùy chỉnh tỷ lệ trái/phải
+# 👉 Chia hai cột với container cuộn riêng
+col1, col2 = st.columns([1.2, 1.5], gap="large")
 
 with col1:
-    st.markdown("### 📄 Tài liệu PDF")
-    st.components.v1.html(f"""
-    <iframe src="https://docs.google.com/gview?url={PDF_URL}&embedded=true"
-            style="width:100%; height:85vh;" frameborder="0"></iframe>
-    """, height=700)
+    with st.container():
+        st.markdown("### 📄 Tài liệu PDF")
+        st.components.v1.html(f"""
+        <div style="height: 85vh; overflow-y: auto;">
+            <iframe src="https://docs.google.com/gview?url={PDF_URL}&embedded=true"
+                    style="width:100%; height:100%;" frameborder="0"></iframe>
+        </div>
+        """, height=700)
 
 with col2:
-    st.markdown("### 🤖 Trao đổi với Gia sư AI")
+    with st.container():
+        st.markdown("### 🤖 Trao đổi với Gia sư AI")
 
-    if "chat" not in st.session_state:
-        st.session_state.chat = [
-            {"role": "assistant", "content": "Chào bạn! Bạn muốn hỏi gì về đồ thị Hamilton?"}
-        ]
+        if "chat" not in st.session_state:
+            st.session_state.chat = [
+                {"role": "assistant", "content": "Chào bạn! Bạn muốn hỏi gì về đồ thị Hamilton?"}
+            ]
 
-    # 👉 Hiển thị duy nhất cặp hỏi-trả lời gần nhất
-    last_msgs = st.session_state.chat[-2:] if len(st.session_state.chat) >= 2 else st.session_state.chat
+        # Chỉ hiển thị cặp hỏi-trả lời mới nhất
+        last_msgs = st.session_state.chat[-2:] if len(st.session_state.chat) >= 2 else st.session_state.chat
+        for msg in last_msgs:
+            role = "🧑‍🎓 Học sinh" if msg["role"] == "user" else "🤖 Gia sư AI"
+            st.chat_message(role).write(msg["content"])
 
-    for msg in last_msgs:
-        if msg["role"] == "user":
-            with st.chat_message("🧑‍🎓 Học sinh"):
-                st.write(msg["content"])
-        else:
-            with st.chat_message("🤖 Gia sư AI"):
-                st.write(msg["content"])
+        user_input = st.chat_input("Nhập câu hỏi hoặc trả lời...")
+        if user_input:
+            st.session_state.chat.append({"role": "user", "content": user_input})
 
-    # 👉 Ô nhập prompt nằm bên dưới
-    user_input = st.chat_input("Nhập câu hỏi hoặc trả lời...")
+            with st.spinner("Đang phản hồi..."):
+                response = requests.post(
+                    GEMINI_URL,
+                    params={"key": API_KEY},
+                    headers={"Content-Type": "application/json"},
+                    json={"contents": [{"parts": [{"text": user_input}]}]}
+                )
+                try:
+                    reply = response.json()["candidates"][0]["content"]["parts"][0]["text"]
+                except:
+                    reply = "❌ Lỗi khi gọi API Gemini."
 
-    if user_input:
-        st.session_state.chat.append({"role": "user", "content": user_input})
-
-        with st.spinner("Đang phản hồi..."):
-            response = requests.post(
-                GEMINI_URL,
-                params={"key": API_KEY},
-                headers={"Content-Type": "application/json"},
-                json={"contents": [{"parts": [{"text": user_input}]}]}
-            )
-            try:
-                reply = response.json()["candidates"][0]["content"]["parts"][0]["text"]
-            except:
-                reply = "❌ Lỗi khi gọi API Gemini."
-
-            st.session_state.chat.append({"role": "assistant", "content": reply})
-
-        # 👉 Gọi lại chính trang để hiển thị đúng 1 cặp mới nhất
-        st.rerun()
+                st.session_state.chat.append({"role": "assistant", "content": reply})
+            st.rerun()
