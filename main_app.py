@@ -526,11 +526,13 @@ def load_system_prompt_from_file(filepath):
 #SYSTEM_PROMPT_Tutor_AI = ""
 from modules.file_handler import load_system_prompt_from_file
 
+# Đường dẫn tuyệt đối tới file prompt dựa trên thư mục gốc
+prompt_path = Path("data") / "system_prompt_tutor_ai.txt"
+
 try:
-    SYSTEM_PROMPT_Tutor_AI = load_system_prompt_from_file(os.path.join("data", "system_prompt_tutor_ai.txt"))
+    SYSTEM_PROMPT_Tutor_AI = load_system_prompt_from_file(prompt_path)
 except FileNotFoundError:
-    import streamlit as st
-    st.error("❌ Không tìm thấy file data/system_prompt_tutor_ai.txt")
+    st.error(f"❌ Không tìm thấy file {prompt_path}")
     st.stop()
 
 # Gọi API Gemini, gửi cả lịch sử trò chuyện
