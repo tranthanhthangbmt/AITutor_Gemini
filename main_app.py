@@ -45,7 +45,7 @@ if "toc_html" not in st.session_state:
 #for menu content
 import streamlit.components.v1 as components
 
-from modules.file_handler import (
+from modules.content_parser import (
     clean_text,
     make_id,
     classify_section,
