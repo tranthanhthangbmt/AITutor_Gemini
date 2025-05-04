@@ -45,8 +45,18 @@ if "toc_html" not in st.session_state:
 #for menu content
 import streamlit.components.v1 as components
 
-from content_parser import clean_text, make_id, classify_section, parse_pdf_file, parse_docx_file, parse_uploaded_file
-from session_manager import (
+from modules.file_handler import (
+    clean_text,
+    make_id,
+    classify_section,
+    parse_pdf_file,
+    parse_docx_file,
+    parse_uploaded_file,
+    extract_text_from_uploaded_file,
+    extract_pdf_text_from_url  
+)
+
+from modules.session_state import (
     generate_session_id,
     init_session_state,
     init_lesson_progress,
@@ -56,7 +66,8 @@ from session_manager import (
     update_progress,
     get_current_session_info
 )
-from progress_tracker import (
+
+from modules.progress_tracker import (
     get_progress_summary,
     list_incomplete_parts,
     get_low_understanding_parts,
@@ -64,25 +75,20 @@ from progress_tracker import (
     get_progress_table
 )
 
-from audio_module import (
+from modules.audio import (
     generate_audio_filename,
     generate_audio_async,
     play_audio,
     generate_and_encode_audio
 )
 
-from firestore_logger import (
+from modules.firestore_logger import (
     save_exchange_to_firestore,
     save_part_feedback,
     get_history
 )
 
-from  file_reader import (
-    extract_text_from_uploaded_file,
-    extract_pdf_text_from_url    
-)
-
-from text_utils import (
+from modules.text_utils import (
     clean_html_to_text,
     format_mcq_options,
     convert_to_mathjax,
@@ -518,10 +524,13 @@ def load_system_prompt_from_file(filepath):
         
 # 🔹 Vai trò mặc định của Tutor AI (trước khi có tài liệu)
 #SYSTEM_PROMPT_Tutor_AI = ""
+from modules.file_handler import load_system_prompt_from_file
+
 try:
-    SYSTEM_PROMPT_Tutor_AI = load_system_prompt_from_file("system_prompt_tutor_ai.txt")
+    SYSTEM_PROMPT_Tutor_AI = load_system_prompt_from_file(os.path.join("data", "system_prompt_tutor_ai.txt"))
 except FileNotFoundError:
-    st.error("❌ Không tìm thấy file system_prompt_tutor_ai.txt")
+    import streamlit as st
+    st.error("❌ Không tìm thấy file data/system_prompt_tutor_ai.txt")
     st.stop()
 
 # Gọi API Gemini, gửi cả lịch sử trò chuyện
