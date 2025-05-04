@@ -23,10 +23,11 @@ import asyncio  #AI audio
 
 import base64
 import uuid
-import os
 
 from firebase_config import init_firestore
 from firebase_admin import firestore  # ✨ Thêm dòng này ở đầu file chính
+import sys
+sys.path.append(os.path.join(os.path.dirname(__file__), 'modules'))
 
 db = init_firestore()
 
